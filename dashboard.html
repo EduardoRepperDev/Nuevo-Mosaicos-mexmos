@@ -1,0 +1,1627 @@
+<!DOCTYPE html>
+<html lang="es" dir="ltr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Mexicana de Mosaicos — Dashboard Principal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet"/>
+<style>
+/* ═══════════════════════════════════════
+   DESIGN TOKENS — Flutter: ThemeData
+═══════════════════════════════════════ */
+:root {
+  --brand-navy:    #0D1B2A;
+  --brand-cobalt:  #1A4B8C;
+  --brand-cobalt2: #1E5FAD;
+  --brand-terra:   #C8741A;
+  --brand-terra2:  #A85E12;
+  --brand-gold:    #D4A843;
+  --brand-stone:   #F5F2EC;
+  --brand-stone2:  #EDE9E0;
+  --brand-ink:     #1A1A2E;
+  --brand-green:   #2E6E4E;
+
+  --surface-dark:  #0D1B2A;
+  --surface-panel: #112236;
+  --surface-card:  #162E45;
+  --surface-hover: #1E3A54;
+  --surface-deep:  #0A1520;
+
+  --text-primary:   #F0EDE8;
+  --text-secondary: #94A3B8;
+  --text-muted:     #5B7A99;
+
+  --border-subtle: rgba(255,255,255,0.06);
+  --border-panel:  rgba(255,255,255,0.10);
+  --border-accent: rgba(200,116,26,0.35);
+
+  --focus-ring:    #1A6BBF;
+  --focus-shadow:  0 0 0 3px rgba(26,107,191,0.5);
+
+  --sp-xs: 4px; --sp-sm: 8px; --sp-md: 16px;
+  --sp-lg: 24px; --sp-xl: 32px; --sp-2xl: 48px;
+
+  --r-sm: 4px; --r-md: 8px; --r-lg: 12px;
+  --r-xl: 16px; --r-2xl: 24px; --r-full: 9999px;
+
+  --font-display: 'Syne', sans-serif;
+  --font-body:    'DM Sans', sans-serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--font-body);
+  background: var(--surface-dark);
+  color: var(--text-primary);
+  font-size: 14px;
+  line-height: 1.5;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+:focus-visible {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 2px;
+  border-radius: var(--r-sm);
+}
+
+.sr-only {
+  position: absolute; width: 1px; height: 1px;
+  padding: 0; margin: -1px; overflow: hidden;
+  clip: rect(0,0,0,0); white-space: nowrap; border: 0;
+}
+
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--surface-hover); border-radius: 2px; }
+
+/* ══════════════════════════════════════
+   APP SHELL — Flutter: Scaffold
+   grid-rows: AppBar | Content | BottomBar
+══════════════════════════════════════ */
+.app-shell {
+  display: grid;
+  grid-template-rows: 56px 1fr 36px;
+  min-height: 100vh;
+}
+
+/* ══════════════════════════════════════
+   APP BAR — Flutter: AppBar
+══════════════════════════════════════ */
+.app-bar {
+  position: sticky; top: 0; z-index: 30;
+  background: var(--surface-panel);
+  border-bottom: 1px solid var(--border-panel);
+  display: flex; align-items: center;
+  padding: 0 var(--sp-lg);
+  gap: var(--sp-md);
+  backdrop-filter: blur(8px);
+}
+
+/* Logo */
+.app-bar__logo {
+  display: flex; align-items: center; gap: 10px;
+  text-decoration: none; flex-shrink: 0;
+}
+.app-bar__mark {
+  width: 34px; height: 34px;
+  background: var(--brand-terra);
+  border-radius: var(--r-md);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-display);
+  font-size: 16px; font-weight: 800;
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(200,116,26,0.35);
+  flex-shrink: 0;
+}
+.app-bar__brand { display: flex; flex-direction: column; gap: 0; }
+.app-bar__name {
+  font-family: var(--font-display);
+  font-size: 13px; font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.1;
+  white-space: nowrap;
+}
+.app-bar__sub {
+  font-size: 9px; color: var(--text-muted);
+  letter-spacing: 0.10em; text-transform: uppercase;
+}
+.app-bar__div {
+  width: 1px; height: 26px;
+  background: var(--border-panel); flex-shrink: 0;
+}
+.app-bar__spacer { flex: 1; }
+
+/* Navigation links */
+.nav-links {
+  display: flex; align-items: center; gap: 2px;
+}
+.nav-link {
+  display: flex; align-items: center; gap: 5px;
+  padding: 6px 12px;
+  background: transparent;
+  border: none; border-radius: var(--r-md);
+  color: var(--text-secondary);
+  font-family: var(--font-body); font-size: 12px;
+  cursor: pointer; transition: all 0.15s;
+  white-space: nowrap;
+}
+.nav-link:hover { background: var(--surface-hover); color: var(--text-primary); }
+.nav-link.active {
+  background: rgba(200,116,26,0.12);
+  color: var(--brand-terra);
+  font-weight: 500;
+}
+.nav-link__icon { font-size: 13px; }
+
+/* Search bar */
+.search-bar {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--surface-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--r-lg);
+  padding: 7px 12px;
+  min-width: 200px;
+  transition: border-color 0.15s;
+}
+.search-bar:focus-within {
+  border-color: var(--brand-terra);
+  box-shadow: 0 0 0 3px rgba(200,116,26,0.12);
+}
+.search-bar__icon { font-size: 13px; color: var(--text-muted); flex-shrink: 0; }
+.search-bar__input {
+  background: none; border: none; outline: none;
+  color: var(--text-primary);
+  font-family: var(--font-body); font-size: 12px;
+  width: 100%;
+}
+.search-bar__input::placeholder { color: var(--text-muted); }
+
+/* Notification bell */
+.notif-btn {
+  position: relative;
+  width: 34px; height: 34px;
+  background: var(--surface-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--r-md);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; color: var(--text-secondary);
+  font-size: 15px; transition: all 0.15s;
+  flex-shrink: 0;
+}
+.notif-btn:hover { background: var(--surface-hover); color: var(--text-primary); }
+.notif-dot {
+  position: absolute; top: 6px; right: 6px;
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--brand-terra);
+  border: 1.5px solid var(--surface-panel);
+}
+
+/* Avatar */
+.user-avatar {
+  width: 34px; height: 34px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--brand-cobalt), var(--brand-cobalt2));
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-display); font-size: 12px; font-weight: 700;
+  color: #fff; cursor: pointer; flex-shrink: 0;
+  border: 2px solid rgba(255,255,255,0.1);
+  transition: border-color 0.15s;
+}
+.user-avatar:hover { border-color: var(--brand-terra); }
+
+/* Flutter toggle */
+.flutter-btn {
+  padding: 5px 10px;
+  background: rgba(0,150,255,0.08);
+  border: 1px solid rgba(0,150,255,0.2);
+  border-radius: var(--r-sm);
+  color: rgba(100,200,255,0.7);
+  font-family: monospace; font-size: 10px;
+  cursor: pointer; transition: all 0.15s; flex-shrink: 0;
+}
+.flutter-btn:hover { background: rgba(0,150,255,0.18); color: #7DE8FF; }
+.flutter-btn.active { background: rgba(0,150,255,0.25); color: #7DE8FF; }
+
+/* ══════════════════════════════════════
+   MAIN CONTENT — Flutter: SingleChildScrollView
+══════════════════════════════════════ */
+.dash-content {
+  grid-row: 2;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.dash-inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: var(--sp-lg) var(--sp-xl);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2xl);
+}
+
+/* ═══════════════════════════════════
+   HERO SECTION
+   Flutter: Container › Row
+═══════════════════════════════════ */
+.dash-hero {
+  position: relative;
+  background: var(--surface-panel);
+  border: 1px solid var(--border-panel);
+  border-radius: var(--r-2xl);
+  overflow: hidden;
+  padding: var(--sp-xl) var(--sp-xl);
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: var(--sp-xl);
+  align-items: center;
+}
+
+/* Textura de fondo: mini mosaicos */
+.dash-hero__bg {
+  position: absolute; inset: 0;
+  pointer-events: none; opacity: 0.04;
+  background-image: repeating-linear-gradient(
+    0deg, transparent, transparent 18px,
+    rgba(200,116,26,0.8) 18px, rgba(200,116,26,0.8) 20px
+  ),
+  repeating-linear-gradient(
+    90deg, transparent, transparent 18px,
+    rgba(200,116,26,0.8) 18px, rgba(200,116,26,0.8) 20px
+  );
+}
+
+/* Glow izquierdo */
+.dash-hero::before {
+  content: '';
+  position: absolute;
+  top: -60px; left: -60px;
+  width: 300px; height: 300px;
+  background: radial-gradient(circle, rgba(200,116,26,0.12) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.dash-hero__left { position: relative; z-index: 1; }
+
+.dash-hero__greeting {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 4px 12px 4px 8px;
+  background: rgba(200,116,26,0.10);
+  border: 1px solid rgba(200,116,26,0.25);
+  border-radius: var(--r-full);
+  font-size: 11px; color: var(--brand-terra);
+  font-weight: 500; letter-spacing: 0.04em;
+  margin-bottom: 14px;
+}
+.dash-hero__greeting__dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--brand-terra);
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+@keyframes pulse-dot {
+  0%,100%{transform:scale(1);opacity:1}
+  50%{transform:scale(1.4);opacity:0.6}
+}
+
+.dash-hero__title {
+  font-family: var(--font-display);
+  font-size: clamp(22px, 2.5vw, 32px);
+  font-weight: 800;
+  color: var(--text-primary);
+  line-height: 1.15;
+  margin-bottom: 10px;
+}
+.dash-hero__title em {
+  font-style: normal;
+  color: var(--brand-terra);
+}
+
+.dash-hero__sub {
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  max-width: 520px;
+  margin-bottom: 22px;
+}
+
+.hero-actions {
+  display: flex; gap: 10px; flex-wrap: wrap;
+}
+
+.btn-hero-primary {
+  display: flex; align-items: center; gap: 8px;
+  padding: 11px 22px;
+  background: var(--brand-terra);
+  border: none; border-radius: var(--r-md);
+  font-family: var(--font-display);
+  font-size: 13px; font-weight: 700;
+  color: #fff; cursor: pointer;
+  transition: all 0.2s;
+  position: relative; overflow: hidden;
+}
+.btn-hero-primary::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(to right, transparent, rgba(255,255,255,0.08), transparent);
+  transform: translateX(-100%); transition: transform 0.5s;
+}
+.btn-hero-primary:hover {
+  background: var(--brand-terra2);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(200,116,26,0.3);
+}
+.btn-hero-primary:hover::after { transform: translateX(100%); }
+
+.btn-hero-secondary {
+  display: flex; align-items: center; gap: 8px;
+  padding: 11px 20px;
+  background: transparent;
+  border: 1px solid var(--border-panel);
+  border-radius: var(--r-md);
+  font-family: var(--font-body);
+  font-size: 13px; color: var(--text-secondary);
+  cursor: pointer; transition: all 0.15s;
+}
+.btn-hero-secondary:hover {
+  background: var(--surface-hover);
+  color: var(--text-primary);
+  border-color: var(--border-accent);
+}
+
+/* Stat cards — Hero right */
+.dash-hero__right {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  position: relative; z-index: 1;
+}
+
+.stat-card {
+  background: var(--surface-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--r-lg);
+  padding: 14px 16px;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.2s;
+  min-width: 120px;
+}
+.stat-card:hover {
+  background: var(--surface-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+}
+.stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  border-radius: var(--r-sm) var(--r-sm) 0 0;
+}
+.stat-card.terra::before  { background: var(--brand-terra); }
+.stat-card.cobalt::before { background: var(--brand-cobalt); }
+.stat-card.gold::before   { background: var(--brand-gold); }
+.stat-card.green::before  { background: var(--brand-green); }
+
+.stat-card__icon { font-size: 18px; margin-bottom: 8px; display: block; }
+.stat-card__val {
+  font-family: var(--font-display);
+  font-size: 26px; font-weight: 800;
+  color: var(--text-primary); line-height: 1;
+}
+.stat-card__label {
+  font-size: 10px; color: var(--text-muted);
+  margin-top: 4px; text-transform: uppercase;
+  letter-spacing: 0.07em;
+}
+
+/* ═══════════════════════════════════
+   SECTION HEADER  (reutilizable)
+═══════════════════════════════════ */
+.section-head {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: var(--sp-md);
+}
+.section-head__title {
+  font-family: var(--font-display);
+  font-size: 16px; font-weight: 700;
+  color: var(--text-primary);
+  display: flex; align-items: center; gap: 8px;
+}
+.section-head__title::before {
+  content: '';
+  display: inline-block;
+  width: 3px; height: 16px;
+  background: var(--brand-terra);
+  border-radius: 2px;
+}
+.section-head__link {
+  font-size: 11px; color: var(--brand-terra);
+  text-decoration: none; cursor: pointer;
+  display: flex; align-items: center; gap: 4px;
+  transition: opacity 0.15s;
+}
+.section-head__link:hover { opacity: 0.75; }
+
+/* ═══════════════════════════════════
+   QUICK ACCESS GRID 4×2
+   Flutter: GridView.count(crossAxisCount:4)
+═══════════════════════════════════ */
+.quick-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.quick-card {
+  background: var(--surface-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--r-xl);
+  padding: 20px 16px;
+  cursor: pointer;
+  display: flex; flex-direction: column;
+  gap: 10px;
+  transition: all 0.2s;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Glow radial en hover */
+.quick-card::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(circle at 30% 30%, rgba(200,116,26,0.10) 0%, transparent 65%);
+  opacity: 0; transition: opacity 0.25s;
+  pointer-events: none;
+}
+.quick-card:hover::after { opacity: 1; }
+
+.quick-card:hover {
+  background: var(--surface-hover);
+  border-color: rgba(200,116,26,0.30);
+  transform: translateY(-3px);
+  box-shadow: 0 12px 32px rgba(0,0,0,0.25);
+}
+
+/* Restricted card style */
+.quick-card.restricted {
+  border-color: rgba(200,116,26,0.15);
+}
+.quick-card.restricted:hover {
+  border-color: rgba(200,116,26,0.45);
+}
+
+.quick-card__icon-wrap {
+  width: 44px; height: 44px;
+  border-radius: var(--r-lg);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px;
+  transition: transform 0.2s;
+  flex-shrink: 0;
+}
+.quick-card:hover .quick-card__icon-wrap { transform: scale(1.1); }
+
+.quick-card__icon-wrap.terra  { background: rgba(200,116,26,0.15); }
+.quick-card__icon-wrap.cobalt { background: rgba(26,75,140,0.20); }
+.quick-card__icon-wrap.gold   { background: rgba(212,168,67,0.15); }
+.quick-card__icon-wrap.green  { background: rgba(46,110,78,0.18); }
+.quick-card__icon-wrap.purple { background: rgba(120,60,180,0.18); }
+.quick-card__icon-wrap.teal   { background: rgba(30,140,140,0.18); }
+.quick-card__icon-wrap.red    { background: rgba(185,28,28,0.15); }
+.quick-card__icon-wrap.dark   { background: rgba(255,255,255,0.06); }
+
+.quick-card__text {}
+.quick-card__label {
+  font-family: var(--font-display);
+  font-size: 13px; font-weight: 700;
+  color: var(--text-primary); line-height: 1.2;
+}
+.quick-card__sub {
+  font-size: 10px; color: var(--text-muted);
+  margin-top: 3px; line-height: 1.4;
+}
+
+.quick-card__badge {
+  display: inline-flex; align-items: center;
+  padding: 2px 7px;
+  border-radius: var(--r-full);
+  font-size: 9px; font-weight: 600;
+  letter-spacing: 0.06em; text-transform: uppercase;
+  align-self: flex-start; margin-top: 4px;
+}
+.quick-card__badge.new  { background: rgba(200,116,26,0.15); color: var(--brand-terra); border: 1px solid rgba(200,116,26,0.25); }
+.quick-card__badge.wcag { background: rgba(76,175,80,0.12); color: #81C784; border: 1px solid rgba(76,175,80,0.2); }
+.quick-card__badge.ai   { background: rgba(120,60,180,0.15); color: #C084FC; border: 1px solid rgba(120,60,180,0.25); }
+.quick-card__badge.lock { background: rgba(200,116,26,0.10); color: var(--text-muted); border: 1px solid var(--border-subtle); }
+
+/* ═══════════════════════════════════
+   LOWER ROW: Lines + Activity + Widget Tree
+   Flutter: Row(Expanded + SizedBox(320))
+═══════════════════════════════════ */
+.dash-lower {
+  display: grid;
+  grid-template-columns: 1fr 1fr 320px;
+  gap: var(--sp-lg);
+  align-items: start;
+}
+
+/* ─── Líneas de Producto — ListView horizontal ─── */
+.lines-section {}
+.lines-scroll {
+  display: flex; gap: 12px;
+  overflow-x: auto; padding-bottom: 8px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--surface-hover) transparent;
+}
+
+.line-card {
+  background: var(--surface-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--r-xl);
+  padding: 16px;
+  flex-shrink: 0;
+  width: 190px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex; flex-direction: column; gap: 10px;
+}
+.line-card:hover {
+  background: var(--surface-hover);
+  border-color: rgba(200,116,26,0.30);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+}
+.line-card__canvas-wrap {
+  width: 100%; height: 80px;
+  border-radius: var(--r-md);
+  overflow: hidden;
+  background: var(--surface-deep);
+}
+.line-card__canvas-wrap canvas {
+  width: 100%; height: 100%; display: block;
+}
+.line-card__code {
+  font-family: var(--font-display);
+  font-size: 10px; font-weight: 700;
+  color: var(--brand-terra); text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.line-card__name {
+  font-family: var(--font-display);
+  font-size: 13px; font-weight: 700;
+  color: var(--text-primary); line-height: 1.2;
+  margin-top: 2px;
+}
+.line-card__sizes {
+  font-size: 10px; color: var(--text-muted); margin-top: 2px;
+}
+.line-card__arrow {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-top: 4px;
+}
+.line-card__btn {
+  font-size: 10px; color: var(--brand-terra);
+  background: rgba(200,116,26,0.10);
+  border: 1px solid rgba(200,116,26,0.20);
+  border-radius: var(--r-full);
+  padding: 3px 10px; cursor: pointer;
+  transition: all 0.15s;
+}
+.line-card__btn:hover { background: rgba(200,116,26,0.20); }
+
+/* ─── Actividad Reciente ─── */
+.activity-section {}
+.activity-list {
+  display: flex; flex-direction: column; gap: 6px;
+}
+.activity-item {
+  background: var(--surface-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--r-lg);
+  padding: 12px 14px;
+  display: flex; align-items: center; gap: 12px;
+  transition: all 0.15s;
+}
+.activity-item:hover {
+  background: var(--surface-hover);
+  border-color: rgba(200,116,26,0.15);
+}
+.activity-item__dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  flex-shrink: 0;
+}
+.activity-item__content { flex: 1; min-width: 0; }
+.activity-item__title {
+  font-size: 12px; font-weight: 500; color: var(--text-primary);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.activity-item__sub {
+  font-size: 10px; color: var(--text-muted); margin-top: 2px;
+}
+.activity-item__time {
+  font-size: 10px; color: var(--text-muted);
+  font-family: monospace; flex-shrink: 0;
+}
+.activity-item__action {
+  padding: 5px 12px;
+  background: transparent;
+  border: 1px solid var(--border-panel);
+  border-radius: var(--r-full);
+  font-size: 10px; color: var(--text-secondary);
+  cursor: pointer; transition: all 0.15s;
+  flex-shrink: 0; white-space: nowrap;
+}
+.activity-item__action:hover {
+  background: rgba(200,116,26,0.12);
+  border-color: rgba(200,116,26,0.30);
+  color: var(--brand-terra);
+}
+.activity-item__action.loaded {
+  background: rgba(76,175,80,0.10);
+  border-color: rgba(76,175,80,0.25);
+  color: #81C784;
+}
+
+/* ─── Widget Tree + WCAG Sidebar ─── */
+.sidebar-panel {
+  background: var(--surface-panel);
+  border: 1px solid var(--border-panel);
+  border-radius: var(--r-xl);
+  overflow: hidden;
+  display: flex; flex-direction: column;
+}
+.sidebar-tab-bar {
+  display: flex;
+  border-bottom: 1px solid var(--border-panel);
+}
+.sidebar-tab {
+  flex: 1; padding: 10px 12px;
+  background: transparent; border: none;
+  font-family: var(--font-body); font-size: 11px;
+  color: var(--text-muted); cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.15s;
+}
+.sidebar-tab.active {
+  color: var(--brand-terra);
+  border-bottom-color: var(--brand-terra);
+  background: rgba(200,116,26,0.05);
+}
+.sidebar-tab:hover:not(.active) { color: var(--text-secondary); }
+
+.sidebar-body { padding: 14px; flex: 1; }
+
+/* Widget tree */
+.widget-tree {
+  font-family: 'Courier New', monospace;
+  font-size: 10px; line-height: 1.9;
+  color: var(--text-muted);
+  overflow-x: auto;
+}
+.wt-root  { color: #7EB3E8; font-weight: 700; }
+.wt-widget{ color: #94D8A4; }
+.wt-prop  { color: #D4A843; font-style: italic; }
+.wt-arrow { color: var(--text-muted); }
+.wt-indent{ padding-left: 14px; display: block; }
+.wt-indent2{ padding-left: 28px; display: block; }
+.wt-indent3{ padding-left: 42px; display: block; }
+.wt-indent4{ padding-left: 56px; display: block; }
+
+/* WCAG panel */
+.wcag-panel { display: none; }
+.wcag-panel.active { display: block; }
+.wcag-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border-subtle);
+  font-size: 11px;
+}
+.wcag-item:last-child { border-bottom: none; }
+.wcag-item__icon { font-size: 12px; flex-shrink: 0; }
+.wcag-item__text { flex: 1; color: var(--text-secondary); }
+.wcag-item__badge {
+  font-family: monospace; font-size: 9px;
+  padding: 1px 6px; border-radius: 3px;
+}
+.wcag-item.pass .wcag-item__icon { color: #81C784; }
+.wcag-item.pass .wcag-item__badge { background: rgba(76,175,80,0.1); color: #81C784; }
+.wcag-item.warn .wcag-item__icon { color: #FCD34D; }
+.wcag-item.warn .wcag-item__badge { background: rgba(245,158,11,0.1); color: #FCD34D; }
+
+.wcag-summary {
+  margin-top: 12px;
+  padding: 10px;
+  background: rgba(76,175,80,0.08);
+  border: 1px solid rgba(76,175,80,0.18);
+  border-radius: var(--r-md);
+  text-align: center;
+}
+.wcag-summary__val {
+  font-family: var(--font-display);
+  font-size: 22px; font-weight: 800;
+  color: #81C784;
+}
+.wcag-summary__label {
+  font-size: 10px; color: var(--text-muted);
+  margin-top: 2px; text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+/* ══════════════════════════════════════
+   BOTTOM STATUS BAR — Flutter: BottomAppBar
+══════════════════════════════════════ */
+.status-bar {
+  grid-row: 3;
+  background: var(--surface-panel);
+  border-top: 1px solid var(--border-panel);
+  display: flex; align-items: center; gap: var(--sp-md);
+  padding: 0 var(--sp-lg);
+  position: sticky; bottom: 0; z-index: 20;
+}
+.kbd-hint {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 10px; color: var(--text-muted);
+}
+.kbd {
+  padding: 1px 5px;
+  background: var(--surface-card);
+  border: 1px solid var(--border-panel);
+  border-radius: 3px;
+  font-family: monospace; font-size: 9px;
+  color: var(--text-secondary);
+}
+.status-bar__mid { flex: 1; display: flex; justify-content: center; }
+.wcag-badge {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 10px; color: #4CAF50; font-weight: 600;
+}
+.wcag-badge__dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: #4CAF50;
+  animation: wcag-pulse 2s ease-in-out infinite;
+}
+@keyframes wcag-pulse {
+  0%,100%{box-shadow:0 0 0 0 rgba(76,175,80,0.4)}
+  50%{box-shadow:0 0 0 4px rgba(76,175,80,0)}
+}
+.status-live {
+  font-size: 10px; color: var(--text-muted);
+  font-family: monospace;
+  animation: fadeIn 0.3s ease;
+}
+@keyframes fadeIn{ from{opacity:0}to{opacity:1} }
+
+/* ══════════════════════════════════════
+   FLUTTER ANNOTATION OVERLAY
+══════════════════════════════════════ */
+.flutter-overlay {
+  position: fixed; inset: 0;
+  pointer-events: none; z-index: 100;
+  display: none;
+}
+.flutter-overlay.visible { display: block; }
+.flutter-box {
+  position: absolute;
+  border: 1.5px dashed rgba(100,200,255,0.45);
+  border-radius: 2px;
+}
+.flutter-tag {
+  position: absolute; top: -18px; left: 0;
+  background: rgba(0,140,255,0.88);
+  color: #fff; font-size: 9px; font-family: monospace;
+  padding: 1px 6px; border-radius: 3px; white-space: nowrap;
+}
+
+/* ══════════════════════════════════════
+   TOAST feedback
+══════════════════════════════════════ */
+.toast {
+  position: fixed; bottom: 56px; left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: var(--surface-card);
+  border: 1px solid var(--border-panel);
+  border-radius: var(--r-lg);
+  padding: 10px 20px;
+  font-size: 12px; color: var(--text-primary);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  opacity: 0; pointer-events: none;
+  transition: all 0.25s;
+  z-index: 50; white-space: nowrap;
+}
+.toast.show {
+  opacity: 1; transform: translateX(-50%) translateY(0);
+}
+
+/* ══════════════════════════════════════
+   ENTRY ANIMATIONS
+══════════════════════════════════════ */
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.anim-1 { animation: slideUp 0.45s ease 0.05s both; }
+.anim-2 { animation: slideUp 0.45s ease 0.15s both; }
+.anim-3 { animation: slideUp 0.45s ease 0.25s both; }
+.anim-4 { animation: slideUp 0.45s ease 0.35s both; }
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════
+     Flutter: Scaffold
+════════════════════════════════════════ -->
+<div
+  class="app-shell"
+  role="application"
+  aria-label="Dashboard Principal — Mexicana de Mosaicos"
+>
+
+  <!-- ══ APP BAR — Flutter: AppBar ══ -->
+  <header class="app-bar" role="banner">
+
+    <!-- Logo -->
+    <a class="app-bar__logo" href="dashboard.html" aria-label="Inicio — Mexicana de Mosaicos">
+      <div class="app-bar__mark" aria-hidden="true">M</div>
+      <div class="app-bar__brand">
+        <span class="app-bar__name">Mexicana de Mosaicos</span>
+        <span class="app-bar__sub">Sistema de gestión privado</span>
+      </div>
+    </a>
+
+    <div class="app-bar__div" aria-hidden="true"></div>
+
+    <!-- Nav links -->
+    <nav class="nav-links" aria-label="Navegación principal">
+      <button class="nav-link active" onclick="window.location.href='dashboard.html'" aria-current="page" aria-label="Dashboard — página actual">
+        <span class="nav-link__icon" aria-hidden="true">⊞</span> Dashboard
+      </button>
+      <button class="nav-link" onclick="window.location.href='catalogo.html'" aria-label="Ir al Catálogo de productos">
+        <span class="nav-link__icon" aria-hidden="true">📦</span> Catálogo
+      </button>
+      <button class="nav-link" onclick="window.location.href='configurador.html'" aria-label="Ir al Configurador Visual">
+        <span class="nav-link__icon" aria-hidden="true">🎨</span> Configurador
+      </button>
+      <button class="nav-link" onclick="window.location.href='creaciones.html'" aria-label="Ir a Mis Creaciones">
+        <span class="nav-link__icon" aria-hidden="true">♡</span> Mis Creaciones
+      </button>
+    </nav>
+
+    <div class="app-bar__spacer"></div>
+
+    <!-- Search bar -->
+    <div
+      class="search-bar"
+      role="search"
+      aria-label="Buscar en la aplicación"
+    >
+      <span class="search-bar__icon" aria-hidden="true">🔍</span>
+      <input
+        class="search-bar__input"
+        type="search"
+        placeholder="Buscar configuraciones, patrones…"
+        aria-label="Campo de búsqueda"
+        autocomplete="off"
+      />
+    </div>
+
+    <!-- Notificaciones -->
+    <button
+      class="notif-btn"
+      aria-label="Notificaciones — 1 nueva notificación"
+      title="Notificaciones"
+    >
+      🔔
+      <div class="notif-dot" aria-hidden="true"></div>
+    </button>
+
+    <!-- Avatar -->
+    <div
+      class="user-avatar"
+      id="userAvatar"
+      role="button"
+      tabindex="0"
+      aria-label="Perfil de usuario"
+      title=""
+      onclick="doLogout()"
+    ></div>
+
+    <div class="app-bar__div" aria-hidden="true"></div>
+
+    <!-- Flutter toggle -->
+    <button
+      class="flutter-btn"
+      id="btnFlutter"
+      aria-pressed="false"
+      aria-label="Mostrar anotaciones de widgets Flutter"
+    >⬡ Flutter</button>
+
+  </header>
+
+  <!-- ══ CONTENIDO PRINCIPAL — Flutter: SingleChildScrollView ══ -->
+  <main class="dash-content" id="mainContent" role="main">
+    <div class="dash-inner">
+
+      <!-- ────────────────────────────────
+           HERO SECTION
+           Flutter: Container › Row
+      ──────────────────────────────── -->
+      <section
+        class="dash-hero anim-1"
+        aria-label="Bienvenida y accesos principales"
+      >
+        <div class="dash-hero__bg" aria-hidden="true"></div>
+
+        <!-- Izquierda: texto + CTAs -->
+        <div class="dash-hero__left">
+
+          <div class="dash-hero__greeting" role="status">
+            <div class="dash-hero__greeting__dot" aria-hidden="true"></div>
+            Sistema activo · Sesión privada
+          </div>
+
+          <h1 class="dash-hero__title">
+            Bienvenida,<br>
+            <em id="heroName"></em>
+          </h1>
+
+          <p class="dash-hero__sub">
+            Configura y visualiza tus mosaicos de terrazo con precisión industrial.
+            Tus diseños son privados y accesibles solo para ti.
+          </p>
+
+          <div class="hero-actions">
+            <button
+              class="btn-hero-primary"
+              aria-label="Ir al Configurador Visual de mosaicos"
+              onclick="window.location.href='configurador.html'"
+            >
+              <span aria-hidden="true">🎨</span>
+              Ir al configurador
+            </button>
+            <button
+              class="btn-hero-secondary"
+              aria-label="Ver mis creaciones guardadas"
+              onclick="window.location.href='creaciones.html'"
+            >
+              <span aria-hidden="true">♡</span>
+              Mis creaciones
+            </button>
+          </div>
+        </div>
+
+        <!-- Derecha: stat cards -->
+        <div
+          class="dash-hero__right"
+          role="region"
+          aria-label="Estadísticas del sistema"
+        >
+          <div class="stat-card terra" role="img" aria-label="3 líneas de producto disponibles">
+            <span class="stat-card__icon" aria-hidden="true">📐</span>
+            <div class="stat-card__val">3</div>
+            <div class="stat-card__label">Líneas de producto</div>
+          </div>
+          <div class="stat-card cobalt" role="img" aria-label="24 colores de pasta disponibles">
+            <span class="stat-card__icon" aria-hidden="true">🎨</span>
+            <div class="stat-card__val">24</div>
+            <div class="stat-card__label">Colores de pasta</div>
+          </div>
+          <div class="stat-card gold" role="img" aria-label="4 estilos de patrón disponibles">
+            <span class="stat-card__icon" aria-hidden="true">⬡</span>
+            <div class="stat-card__val">4</div>
+            <div class="stat-card__label">Estilos de patrón</div>
+          </div>
+          <div class="stat-card green" role="img" aria-label="WCAG 2.1 AA cumplido">
+            <span class="stat-card__icon" aria-hidden="true">✓</span>
+            <div class="stat-card__val" style="font-size:16px;">WCAG</div>
+            <div class="stat-card__label">AA Cumplido</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ────────────────────────────────
+           QUICK ACCESS GRID 4×2
+           Flutter: GridView.count(crossAxisCount:4)
+      ──────────────────────────────── -->
+      <section class="anim-2" aria-label="Accesos rápidos a módulos del sistema">
+        <div class="section-head">
+          <h2 class="section-head__title">Acceso rápido</h2>
+        </div>
+
+        <div
+          class="quick-grid"
+          role="list"
+          aria-label="Módulos del sistema — 8 accesos rápidos"
+        >
+
+          <!-- 1. Catálogo -->
+          <div class="quick-card" role="listitem" tabindex="0"
+               aria-label="Módulo Catálogo — Explorar líneas y productos disponibles">
+            <div class="quick-card__icon-wrap cobalt" aria-hidden="true">📦</div>
+            <div class="quick-card__text">
+              <div class="quick-card__label">Catálogo</div>
+              <div class="quick-card__sub">Explora líneas y productos</div>
+            </div>
+          </div>
+
+          <!-- 2. Configurador -->
+          <div class="quick-card" role="listitem" tabindex="0"
+               aria-label="Módulo Configurador Visual — Diseña tu mosaico en tiempo real">
+            <div class="quick-card__icon-wrap terra" aria-hidden="true">🎨</div>
+            <div class="quick-card__text">
+              <div class="quick-card__label">Configurador</div>
+              <div class="quick-card__sub">Diseña en tiempo real</div>
+              <span class="quick-card__badge new">Principal</span>
+            </div>
+          </div>
+
+          <!-- 3. Mis Creaciones -->
+          <div class="quick-card" role="listitem" tabindex="0"
+               aria-label="Módulo Mis Creaciones — Diseños guardados privados">
+            <div class="quick-card__icon-wrap gold" aria-hidden="true">♡</div>
+            <div class="quick-card__text">
+              <div class="quick-card__label">Mis Creaciones</div>
+              <div class="quick-card__sub">Tus diseños privados</div>
+            </div>
+          </div>
+
+          <!-- 4. Vista Previa Avanzada -->
+          <div class="quick-card" role="listitem" tabindex="0"
+               aria-label="Módulo Vista Previa Avanzada — Simular junta, acabado e incrustaciones">
+            <div class="quick-card__icon-wrap teal" aria-hidden="true">🔬</div>
+            <div class="quick-card__text">
+              <div class="quick-card__label">Vista Previa Avanzada</div>
+              <div class="quick-card__sub">Junta, acabado, incrustaciones</div>
+              <span class="quick-card__badge new">Nuevo</span>
+            </div>
+          </div>
+
+          <!-- 5. Simulación en Ambiente -->
+          <div class="quick-card" role="listitem" tabindex="0"
+               aria-label="Módulo Simulación en Ambiente — Ver el mosaico en piso, pared o exterior">
+            <div class="quick-card__icon-wrap green" aria-hidden="true">🏠</div>
+            <div class="quick-card__text">
+              <div class="quick-card__label">Simulación en Ambiente</div>
+              <div class="quick-card__sub">Piso, pared o exterior</div>
+            </div>
+          </div>
+
+          <!-- 6. Centro de Accesibilidad -->
+          <div class="quick-card" role="listitem" tabindex="0"
+               aria-label="Módulo Centro de Accesibilidad — Ajustar preferencias de contraste, texto y CVD">
+            <div class="quick-card__icon-wrap purple" aria-hidden="true">♿</div>
+            <div class="quick-card__text">
+              <div class="quick-card__label">Accesibilidad</div>
+              <div class="quick-card__sub">Contraste, texto, CVD</div>
+              <span class="quick-card__badge wcag">WCAG AA</span>
+            </div>
+          </div>
+
+          <!-- 7. Módulo IA -->
+          <div class="quick-card" role="listitem" tabindex="0"
+               aria-label="Módulo IA — Analizar imagen para generar un patrón automáticamente">
+            <div class="quick-card__icon-wrap purple" aria-hidden="true">🤖</div>
+            <div class="quick-card__text">
+              <div class="quick-card__label">Módulo IA</div>
+              <div class="quick-card__sub">Analiza imagen → patrón</div>
+              <span class="quick-card__badge ai">IA</span>
+            </div>
+          </div>
+
+          <!-- 8. Panel Admin (restringido) -->
+          <div class="quick-card restricted" role="listitem" tabindex="0"
+               aria-label="Panel de Administración — Acceso restringido a operadores">
+            <div class="quick-card__icon-wrap dark" aria-hidden="true">🔒</div>
+            <div class="quick-card__text">
+              <div class="quick-card__label">Administración</div>
+              <div class="quick-card__sub">Gestión de contenido</div>
+              <span class="quick-card__badge lock">Restringido</span>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ────────────────────────────────
+           LOWER ROW
+      ──────────────────────────────── -->
+      <div class="dash-lower anim-3">
+
+        <!-- Líneas de Producto — ListView horizontal -->
+        <section class="lines-section" aria-label="Líneas de producto disponibles">
+          <div class="section-head">
+            <h2 class="section-head__title">Líneas de producto</h2>
+            <a class="section-head__link" href="catalogo.html" role="button" aria-label="Ver catálogo completo">
+              Ver todo →
+            </a>
+          </div>
+          <div
+            class="lines-scroll"
+            role="list"
+            aria-label="Lista horizontal de líneas de producto"
+          >
+            <!-- Las tarjetas se renderizan por JS con canvas -->
+          </div>
+        </section>
+
+        <!-- Actividad Reciente -->
+        <section class="activity-section" aria-label="Actividad reciente de tus configuraciones">
+          <div class="section-head">
+            <h2 class="section-head__title">Actividad reciente</h2>
+            <a class="section-head__link" href="creaciones.html" role="button" aria-label="Ver Mis Creaciones completo">
+              Ver todo →
+            </a>
+          </div>
+          <div
+            class="activity-list"
+            role="list"
+            aria-label="Últimas 4 configuraciones guardadas"
+            aria-live="polite"
+            id="activityList"
+          >
+            <!-- Renderizado por JS -->
+          </div>
+        </section>
+
+        <!-- Widget Tree + WCAG Sidebar -->
+        <aside
+          class="sidebar-panel"
+          role="complementary"
+          aria-label="Panel de información técnica del sistema"
+        >
+          <div class="sidebar-tab-bar" role="tablist" aria-label="Pestañas del panel técnico">
+            <button
+              class="sidebar-tab active"
+              id="tabWidgetTree"
+              role="tab"
+              aria-selected="true"
+              aria-controls="panelWidgetTree"
+              aria-label="Ver árbol de widgets Flutter"
+            >⬡ Widget Tree</button>
+            <button
+              class="sidebar-tab"
+              id="tabWcag"
+              role="tab"
+              aria-selected="false"
+              aria-controls="panelWcag"
+              aria-label="Ver validación WCAG 2.1"
+            >✓ WCAG 2.1</button>
+          </div>
+
+          <!-- Panel: Widget Tree -->
+          <div
+            class="sidebar-body"
+            id="panelWidgetTree"
+            role="tabpanel"
+            aria-labelledby="tabWidgetTree"
+          >
+            <div class="widget-tree" aria-label="Árbol de widgets Flutter del Dashboard">
+              <span class="wt-root">MaterialApp</span>
+              <span class="wt-indent">└ <span class="wt-widget">ThemeData</span> <span class="wt-prop">(tokens §2.3)</span></span>
+              <span class="wt-indent2">└ <span class="wt-widget">Scaffold</span></span>
+              <span class="wt-indent3">├ <span class="wt-widget">AppBar</span></span>
+              <span class="wt-indent4"><span class="wt-arrow">├</span> <span class="wt-prop">logo + brand</span></span>
+              <span class="wt-indent4"><span class="wt-arrow">├</span> <span class="wt-prop">NavigationLinks</span></span>
+              <span class="wt-indent4"><span class="wt-arrow">├</span> <span class="wt-prop">SearchBar</span></span>
+              <span class="wt-indent4"><span class="wt-arrow">├</span> <span class="wt-prop">NotifBell</span></span>
+              <span class="wt-indent4"><span class="wt-arrow">└</span> <span class="wt-prop">Avatar</span></span>
+              <span class="wt-indent3">└ <span class="wt-widget">SingleChildScrollView</span></span>
+              <span class="wt-indent4">└ <span class="wt-widget">Column</span></span>
+              <span class="wt-indent4"> ├ <span class="wt-prop">HeroSection</span></span>
+              <span class="wt-indent4"> │  ├ <span class="wt-prop">Row(left+right)</span></span>
+              <span class="wt-indent4"> │  └ <span class="wt-prop">GridView 2×2 stats</span></span>
+              <span class="wt-indent4"> ├ <span class="wt-prop">GridView.count(4)</span></span>
+              <span class="wt-indent4"> │  └ <span class="wt-prop">QuickCard ×8</span></span>
+              <span class="wt-indent4"> └ <span class="wt-prop">Row</span></span>
+              <span class="wt-indent4">    ├ <span class="wt-prop">ListView horiz.</span></span>
+              <span class="wt-indent4">    ├ <span class="wt-prop">ActivityList</span></span>
+              <span class="wt-indent4">    └ <span class="wt-prop">SidebarPanel</span></span>
+              <span class="wt-indent3">└ <span class="wt-widget">BottomAppBar</span></span>
+            </div>
+          </div>
+
+          <!-- Panel: WCAG -->
+          <div
+            class="sidebar-body wcag-panel"
+            id="panelWcag"
+            role="tabpanel"
+            aria-labelledby="tabWcag"
+            hidden
+          >
+            <div class="activity-list" role="list" aria-label="Estado de conformidad WCAG 2.1 AA">
+
+              <div class="wcag-item pass" role="listitem">
+                <span class="wcag-item__icon" aria-hidden="true">✓</span>
+                <span class="wcag-item__text">Contraste texto ≥ 4.5:1</span>
+                <span class="wcag-item__badge">1.4.3</span>
+              </div>
+              <div class="wcag-item pass" role="listitem">
+                <span class="wcag-item__icon" aria-hidden="true">✓</span>
+                <span class="wcag-item__text">Navegación por teclado</span>
+                <span class="wcag-item__badge">2.1.1</span>
+              </div>
+              <div class="wcag-item pass" role="listitem">
+                <span class="wcag-item__icon" aria-hidden="true">✓</span>
+                <span class="wcag-item__text">Etiquetas ARIA completas</span>
+                <span class="wcag-item__badge">4.1.2</span>
+              </div>
+              <div class="wcag-item pass" role="listitem">
+                <span class="wcag-item__icon" aria-hidden="true">✓</span>
+                <span class="wcag-item__text">Color no único canal</span>
+                <span class="wcag-item__badge">1.4.1</span>
+              </div>
+              <div class="wcag-item pass" role="listitem">
+                <span class="wcag-item__icon" aria-hidden="true">✓</span>
+                <span class="wcag-item__text">Foco visible (3px ring)</span>
+                <span class="wcag-item__badge">2.4.11</span>
+              </div>
+              <div class="wcag-item pass" role="listitem">
+                <span class="wcag-item__icon" aria-hidden="true">✓</span>
+                <span class="wcag-item__text">Landmark roles</span>
+                <span class="wcag-item__badge">4.1.3</span>
+              </div>
+              <div class="wcag-item warn" role="listitem">
+                <span class="wcag-item__icon" aria-hidden="true">⚠</span>
+                <span class="wcag-item__text">Alt. texto canvas dinámica</span>
+                <span class="wcag-item__badge">1.1.1</span>
+              </div>
+            </div>
+            <div class="wcag-summary" aria-label="Resultado general WCAG: 6 de 7 criterios aprobados">
+              <div class="wcag-summary__val">6/7</div>
+              <div class="wcag-summary__label">Criterios AA aprobados</div>
+            </div>
+          </div>
+
+        </aside>
+      </div><!-- /dash-lower -->
+
+    </div><!-- /dash-inner -->
+  </main>
+
+  <!-- ══ STATUS BAR — Flutter: BottomAppBar ══ -->
+  <footer class="status-bar" role="contentinfo" aria-label="Barra de atajos de teclado y estado">
+    <span class="kbd-hint">
+      <kbd class="kbd" aria-label="Tecla Tab">Tab</kbd> Navegar
+    </span>
+    <span class="kbd-hint">
+      <kbd class="kbd">Enter</kbd> Seleccionar
+    </span>
+    <span class="kbd-hint">
+      <kbd class="kbd">Ctrl</kbd>+<kbd class="kbd">K</kbd> Buscar
+    </span>
+    <span class="kbd-hint">
+      <kbd class="kbd">Esc</kbd> Cancelar
+    </span>
+
+    <div class="status-bar__mid">
+      <div class="wcag-badge" role="status" aria-label="WCAG 2.1 nivel AA — Conforme">
+        <div class="wcag-badge__dot" aria-hidden="true"></div>
+        WCAG 2.1 AA · Conforme
+      </div>
+    </div>
+
+    <span style="font-size:10px;color:var(--text-muted);">
+      NVDA · JAWS compatible &nbsp;·&nbsp; Syne + DM Sans
+    </span>
+    <span class="status-live" id="statusLive" aria-live="polite" aria-atomic="true"></span>
+  </footer>
+
+</div><!-- /app-shell -->
+
+<!-- Flutter overlay -->
+<div class="flutter-overlay" id="flutterOverlay" aria-hidden="true">
+  <div class="flutter-box" style="top:0;left:0;right:0;height:56px;">
+    <span class="flutter-tag">AppBar › Row(logo + nav + search + notif + avatar)</span>
+  </div>
+  <div class="flutter-box" style="top:56px;left:0;right:0;bottom:36px;">
+    <span class="flutter-tag">SingleChildScrollView › Column</span>
+  </div>
+  <div class="flutter-box" style="bottom:0;left:0;right:0;height:36px;">
+    <span class="flutter-tag">BottomAppBar › Row</span>
+  </div>
+</div>
+
+<!-- Toast feedback -->
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<!-- ════════════════════════════════════
+     JAVASCRIPT
+════════════════════════════════════ -->
+<script src="utils.js"></script>
+<script src="seed_data.js"></script>
+<script>
+const session = requireAuth();
+if (session) {
+  document.getElementById('userAvatar').textContent = session.name.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase();
+  document.getElementById('userAvatar').title = session.name + ' (Click para cerrar sesión)';
+  document.getElementById('heroName').textContent = session.name.split(' ')[0];
+}
+
+/* ════════════════════════
+   DATA
+════════════════════════ */
+const COLORS = [
+  { name:'Hueso',     hex:'#F5F0E0', ref:'PMS Warm Gray 1' },
+  { name:'Terracota', hex:'#C8741A', ref:'PMS 166 C' },
+  { name:'Granito',   hex:'#1A1A2E', ref:'PMS Black 6 C' },
+  { name:'Gris',      hex:'#8B8B8B', ref:'PMS Cool Gray 7' },
+  { name:'Azul Cielo',hex:'#4A9EBF', ref:'PMS 7459 C' },
+  { name:'Verde',     hex:'#2E6E4E', ref:'PMS 7734 C' },
+  { name:'Ámbar',     hex:'#D4A843', ref:'PMS 1235 C' },
+  { name:'Rojo',      hex:'#B91C1C', ref:'PMS 7621 C' },
+];
+
+const LINES = [
+  {
+    code:'TRAD', name:'Línea Tradicional',
+    sizes:'20×20 · 30×30 · 40×40 · 60×60',
+    color:'#C8741A', pattern:'tradicional',
+    desc:'Terrazo clásico pulido, alta resistencia'
+  },
+  {
+    code:'L-64', name:'Línea 64',
+    sizes:'40×40 · 60×60 · 64×64',
+    color:'#1A4B8C', pattern:'palladiana',
+    desc:'Formato grande premium, espacios abiertos'
+  },
+  {
+    code:'COL', name:'Línea Colonial',
+    sizes:'20×20 · 30×30',
+    color:'#2E6E4E', pattern:'trencadis',
+    desc:'Diseño ornamental geométrico, artesanal'
+  },
+];
+
+const ACTIVITY = (function(){
+  if (typeof CreacionesStore === 'undefined' || !session) return [
+    { title:'Sin actividad', sub:'Inicia sesión para ver tu actividad', time:'—', dot:'#8B8B8B' }
+  ];
+  const mine = CreacionesStore.getByUser(session.email);
+  return mine.slice(0, 6).map(c => {
+    const ago = Date.now() - c.ts;
+    let time;
+    if (ago < 1000*60*60) time = 'hace ' + Math.max(1, Math.round(ago/(1000*60))) + ' min';
+    else if (ago < 1000*60*60*24) time = 'hace ' + Math.round(ago/(1000*60*60)) + ' h';
+    else if (ago < 1000*60*60*48) time = 'ayer';
+    else time = 'hace ' + Math.round(ago/(1000*60*60*24)) + ' días';
+    return { title: c.name, sub: c.code + ' — ' + (c.pattern || 'tradicional'), time, dot: c.color };
+  });
+})();
+
+/* ════════════════════════
+   RENDER HELPERS
+════════════════════════ */
+
+/* Tradicional */
+function renderTradicional(ctx, cw, ch, hex) {
+  const T=6;
+  for(let r=0;r<Math.floor(ch/T);r++){
+    for(let c2=0;c2<Math.floor(cw/T);c2++){
+      const wave=Math.sin((c2/Math.floor(cw/T)-0.5)*3+(r/Math.floor(ch/T)-0.5)*2)*0.5+0.5;
+      const v=Math.floor(wave*30-15);
+      ctx.fillStyle=v>=0?lighten(hex,v):darken(hex,-v);
+      ctx.globalAlpha=0.85+Math.random()*0.15;
+      ctx.fillRect(c2*T,r*T,T-1,T-1);
+    }
+  }
+  ctx.globalAlpha=1;
+}
+
+/* Palladiana */
+function renderPalladiana(ctx, cw, ch, hex) {
+  ctx.fillStyle=darken(hex,50); ctx.fillRect(0,0,cw,ch);
+  let x=2,y=2;
+  for(let i=0;i<200&&y<ch;i++){
+    const w=15+Math.random()*25, h=15+Math.random()*20;
+    if(x+w>cw-2){x=2;y+=h+2;}
+    const v=Math.floor(Math.random()*30-15);
+    ctx.fillStyle=v>=0?lighten(hex,v):darken(hex,-v);
+    ctx.globalAlpha=0.88+Math.random()*0.12;
+    ctx.beginPath();
+    for(let j=0;j<6;j++){
+      const a=(j/6)*2*Math.PI+Math.random()*0.4;
+      const rx=(w/2)*(0.7+Math.random()*0.5), ry=(h/2)*(0.7+Math.random()*0.5);
+      j===0?ctx.moveTo(x+w/2+rx*Math.cos(a),y+h/2+ry*Math.sin(a)):ctx.lineTo(x+w/2+rx*Math.cos(a),y+h/2+ry*Math.sin(a));
+    }
+    ctx.closePath();ctx.fill();
+    x+=w+2;
+  }
+  ctx.globalAlpha=1;
+}
+
+/* Trencadís */
+function renderTrencadis(ctx, cw, ch, hex) {
+  ctx.fillStyle=darken(hex,45); ctx.fillRect(0,0,cw,ch);
+  const base=8;
+  for(let y=2;y<ch;y+=base+2){
+    for(let x=2;x<cw;x+=base+2){
+      const fw=base*(0.7+Math.random()*0.6);
+      const fh=base*(0.7+Math.random()*0.6);
+      const angle=(Math.random()-0.5)*(Math.PI/3);
+      const v=Math.floor(Math.random()*40-20);
+      ctx.fillStyle=v>=0?lighten(hex,v):darken(hex,-v);
+      ctx.globalAlpha=0.85+Math.random()*0.15;
+      ctx.save(); ctx.translate(x+fw/2,y+fh/2); ctx.rotate(angle);
+      ctx.fillRect(-fw/2,-fh/2,fw-2,fh-2);
+      ctx.restore();
+    }
+  }
+  ctx.globalAlpha=1;
+}
+
+function dispatchRender(ctx, cw, ch, hex, pattern) {
+  if(pattern==='tradicional') renderTradicional(ctx,cw,ch,hex);
+  else if(pattern==='palladiana') renderPalladiana(ctx,cw,ch,hex);
+  else renderTrencadis(ctx,cw,ch,hex);
+}
+
+/* ════════════════════════
+   BUILD LINE CARDS
+════════════════════════ */
+const linesScroll = document.querySelector('.lines-scroll');
+
+LINES.forEach(line => {
+  const card = document.createElement('div');
+  card.className = 'line-card';
+  card.setAttribute('role','listitem');
+  card.setAttribute('tabindex','0');
+  card.setAttribute('aria-label', `${line.name} — ${line.sizes} — ${line.desc}`);
+
+  card.innerHTML = `
+    <div class="line-card__canvas-wrap">
+      <canvas width="174" height="80"></canvas>
+    </div>
+    <div>
+      <div class="line-card__code">${line.code}</div>
+      <div class="line-card__name">${line.name}</div>
+      <div class="line-card__sizes">${line.sizes}</div>
+    </div>
+    <div class="line-card__arrow">
+      <span style="font-size:10px;color:var(--text-muted);">${line.desc}</span>
+      <button class="line-card__btn" aria-label="Explorar ${line.name}">Ver →</button>
+    </div>
+  `;
+
+  const cv = card.querySelector('canvas');
+  const ctx2 = cv.getContext('2d');
+  dispatchRender(ctx2, cv.width, cv.height, line.color, line.pattern);
+
+  card.querySelector('.line-card__btn').addEventListener('click', e => {
+    e.stopPropagation();
+    window.location.href = 'catalogo.html';
+  });
+  card.addEventListener('click', () => { window.location.href = 'catalogo.html'; });
+  card.addEventListener('keydown', e => { if(e.key==='Enter'||e.key===' '){ e.preventDefault(); window.location.href = 'catalogo.html'; }});
+  linesScroll.appendChild(card);
+});
+
+/* ════════════════════════
+   BUILD ACTIVITY LIST
+════════════════════════ */
+const activityList = document.getElementById('activityList');
+
+ACTIVITY.forEach((item, i) => {
+  const el = document.createElement('div');
+  el.className = 'activity-item';
+  el.setAttribute('role','listitem');
+  el.innerHTML = `
+    <div class="activity-item__dot" style="background:${item.dot};" aria-hidden="true"></div>
+    <div class="activity-item__content">
+      <div class="activity-item__title">${item.title}</div>
+      <div class="activity-item__sub">${item.sub}</div>
+    </div>
+    <span class="activity-item__time">${item.time}</span>
+    <button
+      class="activity-item__action"
+      data-index="${i}"
+      aria-label="Cargar configuración: ${item.title}"
+    >Cargar</button>
+  `;
+  activityList.appendChild(el);
+});
+
+activityList.addEventListener('click', e => {
+  const btn = e.target.closest('.activity-item__action');
+  if(!btn) return;
+  const idx = +btn.dataset.index;
+  btn.textContent = '✓ Cargado';
+  btn.classList.add('loaded');
+  btn.disabled = true;
+  btn.setAttribute('aria-label', `${ACTIVITY[idx].title} cargado correctamente`);
+  showToast(`"${ACTIVITY[idx].title}" — abriendo configurador…`);
+  setTimeout(() => { window.location.href = 'configurador.html'; }, 900);
+});
+
+/* ════════════════════════
+   SIDEBAR TABS
+════════════════════════ */
+document.getElementById('tabWidgetTree').addEventListener('click', function() {
+  activateTab(this, 'panelWidgetTree');
+});
+document.getElementById('tabWcag').addEventListener('click', function() {
+  activateTab(this, 'panelWcag');
+});
+
+function activateTab(btn, panelId) {
+  document.querySelectorAll('.sidebar-tab').forEach(t => {
+    t.classList.remove('active');
+    t.setAttribute('aria-selected','false');
+  });
+  document.querySelectorAll('.sidebar-body').forEach(p => {
+    p.setAttribute('hidden', '');
+    p.classList.remove('active');
+    if(p.classList.contains('wcag-panel')) p.style.display='none';
+  });
+  btn.classList.add('active');
+  btn.setAttribute('aria-selected','true');
+  const panel = document.getElementById(panelId);
+  panel.removeAttribute('hidden');
+  if(panel.classList.contains('wcag-panel')) panel.style.display='block';
+}
+
+/* ════════════════════════
+   FLUTTER OVERLAY
+════════════════════════ */
+document.getElementById('btnFlutter').addEventListener('click', function() {
+  const active = this.getAttribute('aria-pressed') === 'true';
+  this.setAttribute('aria-pressed', !active);
+  this.classList.toggle('active', !active);
+  const overlay = document.getElementById('flutterOverlay');
+  overlay.classList.toggle('visible', !active);
+  overlay.setAttribute('aria-hidden', active ? 'true' : 'false');
+  showToast(active ? 'Anotaciones Flutter ocultas' : 'Anotaciones Flutter visibles');
+});
+
+/* ════════════════════════
+   QUICK CARDS interaction
+════════════════════════ */
+const QUICK_ROUTES = {
+  'Catálogo':               'catalogo.html',
+  'Configurador':           'configurador.html',
+  'Mis Creaciones':         'creaciones.html',
+  'Vista Previa Avanzada':  'vista_previa.html',
+  'Simulación en Ambiente': 'simulacion.html',
+  'Accesibilidad':          'accesibilidad.html',
+  'Módulo IA':              '16)admin_modulo_ia.html',
+  'Administración':         '11)admin_dashboard.html',
+};
+
+function handleQuickCard(card) {
+  const label = card.querySelector('.quick-card__label').textContent.trim();
+  const target = QUICK_ROUTES[label];
+
+  if (!target) { showToast(`Módulo "${label}" próximamente`); return; }
+
+  // Administración y Módulo IA requieren rol admin
+  if ((label === 'Administración' || label === 'Módulo IA') && session && session.role !== 'admin') {
+    showToast('Acceso restringido — solo administradores', 'er');
+    return;
+  }
+
+  showToast(`Navegando a ${label}…`);
+  setTimeout(() => { window.location.href = target; }, 300);
+}
+
+document.querySelectorAll('.quick-card').forEach(card => {
+  card.addEventListener('click', () => handleQuickCard(card));
+  card.addEventListener('keydown', e => {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleQuickCard(card); }
+  });
+});
+
+/* ════════════════════════
+   SEARCH — Ctrl+K
+════════════════════════ */
+document.addEventListener('keydown', e => {
+  if((e.ctrlKey||e.metaKey) && e.key==='k') {
+    e.preventDefault();
+    document.querySelector('.search-bar__input').focus();
+  }
+});
+</script>
+</body>
+</html>

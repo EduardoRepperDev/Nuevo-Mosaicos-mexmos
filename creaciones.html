@@ -1,0 +1,1534 @@
+<!DOCTYPE html>
+<html lang="es" dir="ltr">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mexicana de Mosaicos — Mis Creaciones</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap"
+    rel="stylesheet" />
+  <style>
+    /* ═══════════════════════════════════════
+   DESIGN TOKENS
+═══════════════════════════════════════ */
+    :root {
+      --brand-navy: #0D1B2A;
+      --brand-cobalt: #1A4B8C;
+      --brand-cobalt2: #1E5FAD;
+      --brand-terra: #C8741A;
+      --brand-terra2: #A85E12;
+      --brand-gold: #D4A843;
+      --brand-stone: #F5F2EC;
+      --brand-stone2: #EDE9E0;
+      --brand-green: #2E6E4E;
+
+      --surface-dark: #0D1B2A;
+      --surface-panel: #112236;
+      --surface-card: #162E45;
+      --surface-hover: #1E3A54;
+      --surface-deep: #0A1520;
+
+      --text-primary: #F0EDE8;
+      --text-secondary: #94A3B8;
+      --text-muted: #5B7A99;
+      --text-dark: #1A1A2E;
+      --text-dark-sec: #4A5568;
+
+      --border-subtle: rgba(255, 255, 255, 0.06);
+      --border-panel: rgba(255, 255, 255, 0.10);
+      --border-accent: rgba(200, 116, 26, 0.35);
+
+      --focus-ring: #1A6BBF;
+      --focus-shadow: 0 0 0 3px rgba(26, 107, 191, 0.5);
+
+      --sp-xs: 4px;
+      --sp-sm: 8px;
+      --sp-md: 16px;
+      --sp-lg: 24px;
+      --sp-xl: 32px;
+      --sp-2xl: 48px;
+
+      --r-sm: 4px;
+      --r-md: 8px;
+      --r-lg: 12px;
+      --r-xl: 16px;
+      --r-2xl: 24px;
+      --r-full: 9999px;
+
+      --font-display: 'Syne', sans-serif;
+      --font-body: 'DM Sans', sans-serif;
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html,
+    body {
+      height: 100%;
+      overflow: hidden;
+    }
+
+    body {
+      font-family: var(--font-body);
+      background: var(--surface-dark);
+      color: var(--text-primary);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    :focus-visible {
+      outline: 3px solid var(--focus-ring);
+      outline-offset: 2px;
+      border-radius: var(--r-sm);
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    ::-webkit-scrollbar {
+      width: 4px;
+      height: 4px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--surface-hover);
+      border-radius: 2px;
+    }
+
+    /* ══════════════════════════════════════
+   APP SHELL
+   Flutter: Scaffold
+   grid: AppBar | SearchBar | Content | StatusBar
+══════════════════════════════════════ */
+    .app-shell {
+      display: grid;
+      grid-template-rows: 52px auto 1fr 36px;
+      height: 100vh;
+      width: 100vw;
+    }
+
+    /* ══════════════════════════════════════
+   APP BAR
+══════════════════════════════════════ */
+    .app-bar {
+      grid-row: 1;
+      background: var(--surface-panel);
+      border-bottom: 1px solid var(--border-panel);
+      display: flex;
+      align-items: center;
+      padding: 0 var(--sp-lg);
+      gap: var(--sp-md);
+      z-index: 20;
+      flex-shrink: 0;
+    }
+
+    .app-bar__logo {
+      display: flex;
+      align-items: center;
+      gap: var(--sp-sm);
+      text-decoration: none;
+      flex-shrink: 0;
+    }
+
+    .app-bar__mark {
+      width: 32px;
+      height: 32px;
+      background: var(--brand-terra);
+      border-radius: var(--r-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-display);
+      font-size: 15px;
+      font-weight: 800;
+      color: #fff;
+    }
+
+    .app-bar__name {
+      font-family: var(--font-display);
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .app-bar__sub {
+      font-size: 9px;
+      color: var(--text-muted);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .app-bar__div {
+      width: 1px;
+      height: 24px;
+      background: var(--border-panel);
+      flex-shrink: 0;
+    }
+
+    .app-bar__spacer {
+      flex: 1;
+    }
+
+    .breadcrumb {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    .breadcrumb a {
+      color: var(--text-secondary);
+      text-decoration: none;
+      transition: color 0.15s;
+    }
+
+    .breadcrumb a:hover {
+      color: var(--text-primary);
+    }
+
+    .breadcrumb__sep {
+      color: var(--text-muted);
+      font-size: 10px;
+    }
+
+    .breadcrumb__current {
+      color: var(--brand-terra);
+      font-weight: 500;
+    }
+
+    .a11y-btn {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 5px 10px;
+      background: transparent;
+      border: 1px solid var(--border-panel);
+      border-radius: var(--r-sm);
+      color: var(--text-secondary);
+      font-family: var(--font-body);
+      font-size: 11px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .a11y-btn:hover,
+    .a11y-btn.active {
+      background: var(--surface-hover);
+      color: var(--text-primary);
+      border-color: var(--border-accent);
+    }
+
+    .a11y-btn.active {
+      color: var(--brand-terra);
+    }
+
+    .user-avatar {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: var(--brand-cobalt);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 600;
+      color: #fff;
+      cursor: pointer;
+    }
+
+    /* ══════════════════════════════════════
+   SEARCH + SORT BAR
+   Flutter: Container › Row
+══════════════════════════════════════ */
+    .search-sort-bar {
+      grid-row: 2;
+      background: var(--surface-panel);
+      border-bottom: 1px solid var(--border-panel);
+      padding: 10px var(--sp-xl);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-shrink: 0;
+    }
+
+    .search-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--surface-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--r-lg);
+      padding: 8px 12px;
+      flex: 1;
+      max-width: 420px;
+      transition: border-color 0.15s;
+    }
+
+    .search-wrap:focus-within {
+      border-color: var(--brand-terra);
+      box-shadow: 0 0 0 3px rgba(200, 116, 26, 0.10);
+    }
+
+    .search-wrap__icon {
+      font-size: 13px;
+      color: var(--text-muted);
+      flex-shrink: 0;
+    }
+
+    .search-wrap__input {
+      background: none;
+      border: none;
+      outline: none;
+      color: var(--text-primary);
+      font-family: var(--font-body);
+      font-size: 12px;
+      width: 100%;
+    }
+
+    .search-wrap__input::placeholder {
+      color: var(--text-muted);
+    }
+
+    .search-wrap__clear {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 12px;
+      padding: 0;
+      flex-shrink: 0;
+      display: none;
+      transition: color 0.15s;
+    }
+
+    .search-wrap__clear.visible {
+      display: block;
+    }
+
+    .search-wrap__clear:hover {
+      color: var(--text-primary);
+    }
+
+    /* Sort selector */
+    .sort-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+
+    .sort-select {
+      background: var(--surface-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--r-md);
+      padding: 7px 10px;
+      color: var(--text-primary);
+      font-family: var(--font-body);
+      font-size: 12px;
+      cursor: pointer;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    .sort-select:focus {
+      border-color: var(--brand-terra);
+    }
+
+    option {
+      background: var(--surface-card);
+    }
+
+    /* View toggle */
+    .view-toggle {
+      display: flex;
+      gap: 3px;
+      margin-left: auto;
+    }
+
+    .view-btn {
+      width: 32px;
+      height: 32px;
+      background: var(--surface-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--r-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: var(--text-muted);
+      font-size: 13px;
+      transition: all 0.15s;
+    }
+
+    .view-btn:hover {
+      background: var(--surface-hover);
+      color: var(--text-primary);
+    }
+
+    .view-btn.active {
+      background: rgba(200, 116, 26, 0.15);
+      border-color: var(--brand-terra);
+      color: var(--brand-terra);
+    }
+
+    /* Results count */
+    .results-count {
+      font-size: 12px;
+      color: var(--text-muted);
+      white-space: nowrap;
+      padding-left: 4px;
+      border-left: 1px solid var(--border-subtle);
+      margin-left: 4px;
+    }
+
+    .results-count strong {
+      color: var(--text-primary);
+    }
+
+    /* ══════════════════════════════════════
+   MAIN CONTENT
+   Flutter: Expanded › GridView / ListView
+══════════════════════════════════════ */
+    .main-content {
+      grid-row: 3;
+      display: grid;
+      grid-template-columns: 1fr 380px;
+      overflow: hidden;
+    }
+
+    /* LIST AREA */
+    .list-area {
+      overflow-y: auto;
+      padding: var(--sp-lg) var(--sp-xl);
+      display: flex;
+      flex-direction: column;
+      gap: var(--sp-md);
+    }
+
+    /* ── GRID VIEW — 3 columns ── */
+    .items-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: var(--sp-md);
+    }
+
+    /* ── LIST VIEW — full width rows ── */
+    .items-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    /* ── GRID CARD ── */
+    .grid-card {
+      background: var(--surface-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--r-xl);
+      overflow: hidden;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      animation: cardIn 0.35s ease both;
+    }
+
+    @keyframes cardIn {
+      from {
+        opacity: 0;
+        transform: translateY(12px) scale(0.97);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    .grid-card:hover {
+      border-color: rgba(200, 116, 26, 0.35);
+      transform: translateY(-3px);
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(200, 116, 26, 0.1);
+    }
+
+    .grid-card.selected {
+      border-color: var(--brand-terra);
+      box-shadow: 0 0 0 2px rgba(200, 116, 26, 0.25);
+    }
+
+    .grid-card__thumb {
+      width: 100%;
+      height: 120px;
+      overflow: hidden;
+      background: var(--surface-deep);
+      position: relative;
+    }
+
+    .grid-card__thumb canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+      transition: transform 0.35s ease;
+    }
+
+    .grid-card:hover .grid-card__thumb canvas {
+      transform: scale(1.05);
+    }
+
+    /* Pattern badge */
+    .card-pat-badge {
+      position: absolute;
+      bottom: 8px;
+      left: 8px;
+      padding: 2px 8px;
+      background: rgba(13, 27, 42, 0.82);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: var(--r-full);
+      font-size: 8px;
+      color: var(--text-secondary);
+      backdrop-filter: blur(4px);
+      letter-spacing: 0.06em;
+    }
+
+    /* Color dot on thumb */
+    .card-color-dot {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      border: 2px solid rgba(255, 255, 255, 0.25);
+    }
+
+    .grid-card__body {
+      padding: 12px 14px;
+    }
+
+    .grid-card__name {
+      font-family: var(--font-display);
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-primary);
+      line-height: 1.2;
+      margin-bottom: 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .grid-card__meta {
+      font-size: 10px;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+
+    .grid-card__tags {
+      display: flex;
+      gap: 4px;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+
+    .tag {
+      padding: 2px 7px;
+      border-radius: var(--r-full);
+      font-size: 9px;
+      font-weight: 500;
+      letter-spacing: 0.04em;
+    }
+
+    .tag--line {
+      background: rgba(26, 75, 140, 0.18);
+      color: #7EB3E8;
+      border: 1px solid rgba(26, 75, 140, 0.25);
+    }
+
+    .tag--size {
+      background: var(--surface-hover);
+      color: var(--text-secondary);
+      border: 1px solid var(--border-subtle);
+      font-family: monospace;
+    }
+
+    .tag--pat {
+      background: rgba(200, 116, 26, 0.12);
+      color: var(--brand-terra);
+      border: 1px solid rgba(200, 116, 26, 0.2);
+    }
+
+    /* Card actions */
+    .grid-card__actions {
+      display: flex;
+      gap: 5px;
+      padding: 0 14px 12px;
+    }
+
+    .card-action {
+      flex: 1;
+      padding: 7px 6px;
+      background: transparent;
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--r-sm);
+      font-size: 10px;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.15s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      font-family: var(--font-body);
+    }
+
+    .card-action:hover {
+      background: var(--surface-hover);
+      color: var(--text-primary);
+    }
+
+    .card-action--primary {
+      background: rgba(200, 116, 26, 0.1);
+      border-color: rgba(200, 116, 26, 0.2);
+      color: var(--brand-terra);
+    }
+
+    .card-action--primary:hover {
+      background: var(--brand-terra);
+      color: #fff;
+      border-color: var(--brand-terra);
+    }
+
+    .card-action--danger:hover {
+      background: rgba(239, 68, 68, 0.12);
+      color: #FCA5A5;
+      border-color: rgba(239, 68, 68, 0.2);
+    }
+
+    /* ── LIST ITEM ── */
+    .list-item {
+      background: var(--surface-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--r-lg);
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 10px 14px;
+      cursor: pointer;
+      transition: all 0.18s;
+      animation: cardIn 0.3s ease both;
+      position: relative;
+    }
+
+    .list-item:hover {
+      background: var(--surface-hover);
+      border-color: rgba(200, 116, 26, 0.25);
+      transform: translateX(2px);
+    }
+
+    .list-item.selected {
+      border-color: var(--brand-terra);
+      box-shadow: 0 0 0 1px rgba(200, 116, 26, 0.15);
+    }
+
+    .list-item__thumb {
+      width: 60px;
+      height: 60px;
+      flex-shrink: 0;
+      border-radius: var(--r-md);
+      overflow: hidden;
+      background: var(--surface-deep);
+    }
+
+    .list-item__thumb canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .list-item__info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .list-item__name {
+      font-family: var(--font-display);
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-primary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .list-item__tags {
+      display: flex;
+      gap: 4px;
+      flex-wrap: wrap;
+      margin-top: 4px;
+    }
+
+    .list-item__meta {
+      font-size: 10px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .list-item__actions {
+      display: flex;
+      gap: 5px;
+      flex-shrink: 0;
+    }
+
+    .list-action {
+      width: 32px;
+      height: 32px;
+      background: var(--surface-hover);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--r-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: var(--text-muted);
+      font-size: 13px;
+      transition: all 0.15s;
+    }
+
+    .list-action:hover {
+      background: var(--surface-card);
+      color: var(--text-primary);
+      border-color: var(--border-accent);
+    }
+
+    .list-action--primary:hover {
+      background: var(--brand-terra);
+      color: #fff;
+      border-color: var(--brand-terra);
+    }
+
+    .list-action--danger:hover {
+      background: rgba(239, 68, 68, 0.15);
+      color: #FCA5A5;
+      border-color: rgba(239, 68, 68, 0.2);
+    }
+
+    .list-action--load {
+      background: rgba(200, 116, 26, 0.10);
+      border-color: rgba(200, 116, 26, 0.2);
+      color: var(--brand-terra);
+    }
+
+    .list-action--load:hover {
+      background: var(--brand-terra);
+      color: #fff;
+    }
+
+    /* ── EMPTY STATE ── */
+    .empty-state {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: var(--sp-2xl);
+      text-align: center;
+      gap: var(--sp-md);
+      min-height: 60vh;
+    }
+
+    .empty-state.visible {
+      display: flex;
+    }
+
+    .empty-state__icon {
+      font-size: 72px;
+      opacity: 0.18;
+      animation: float 3s ease-in-out infinite;
+    }
+
+    @keyframes float {
+
+      0%,
+      100% {
+        transform: translateY(0)
+      }
+
+      50% {
+        transform: translateY(-10px)
+      }
+    }
+
+    .empty-state__title {
+      font-family: var(--font-display);
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text-secondary);
+    }
+
+    .empty-state__sub {
+      font-size: 13px;
+      color: var(--text-muted);
+      max-width: 340px;
+      line-height: 1.6;
+    }
+
+    .btn-empty-cta {
+      margin-top: 4px;
+      padding: 12px 28px;
+      background: var(--brand-terra);
+      border: none;
+      border-radius: var(--r-md);
+      font-family: var(--font-display);
+      font-size: 13px;
+      font-weight: 700;
+      color: #fff;
+      cursor: pointer;
+      transition: all 0.18s;
+    }
+
+    .btn-empty-cta:hover {
+      background: var(--brand-terra2);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(200, 116, 26, 0.3);
+    }
+
+    /* ══════════════════════════════════════
+   PREVIEW PANEL (right side)
+   Flutter: AnimatedContainer › SizedBox(w:380)
+══════════════════════════════════════ */
+    .preview-panel {
+      background: var(--surface-panel);
+      border-left: 1px solid var(--border-panel);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      transform: translateX(0);
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .preview-panel.hidden {
+      transform: translateX(100%);
+    }
+
+    .preview-panel__header {
+      padding: var(--sp-md);
+      border-bottom: 1px solid var(--border-panel);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+
+    .preview-panel__title {
+      font-family: var(--font-display);
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .panel-close {
+      width: 28px;
+      height: 28px;
+      border-radius: var(--r-sm);
+      background: var(--surface-card);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-secondary);
+      cursor: pointer;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s;
+    }
+
+    .panel-close:hover {
+      background: var(--surface-hover);
+      color: var(--text-primary);
+    }
+
+    .preview-panel__body {
+      flex: 1;
+      overflow-y: auto;
+      padding: var(--sp-md);
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    /* Big preview canvas */
+    .preview-big {
+      width: 100%;
+      border-radius: var(--r-lg);
+      overflow: hidden;
+      background: var(--surface-deep);
+      aspect-ratio: 1;
+      flex-shrink: 0;
+    }
+
+    .preview-big canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    /* Preview info */
+    .preview-name {
+      font-family: var(--font-display);
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--text-primary);
+      line-height: 1.2;
+    }
+
+    .preview-tags {
+      display: flex;
+      gap: 5px;
+      flex-wrap: wrap;
+      margin-top: 6px;
+    }
+
+    /* Spec rows in preview */
+    .preview-spec-card {
+      background: var(--surface-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--r-lg);
+      padding: 12px;
+    }
+
+    .preview-spec-card__title {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.10em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+    }
+
+    .pspec-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 5px 0;
+      border-bottom: 1px solid var(--border-subtle);
+      font-size: 11px;
+    }
+
+    .pspec-row:last-child {
+      border-bottom: none;
+    }
+
+    .pspec-row__key {
+      color: var(--text-muted);
+    }
+
+    .pspec-row__val {
+      color: var(--text-secondary);
+      font-family: monospace;
+    }
+
+    .pspec-row__val.hi {
+      color: var(--brand-terra);
+      font-weight: 600;
+    }
+
+    /* Preview footer actions */
+    .preview-panel__footer {
+      padding: var(--sp-md);
+      border-top: 1px solid var(--border-panel);
+      display: flex;
+      flex-direction: column;
+      gap: var(--sp-sm);
+      flex-shrink: 0;
+    }
+
+    .btn-prim {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      padding: 13px;
+      background: var(--brand-terra);
+      border: none;
+      border-radius: var(--r-md);
+      font-family: var(--font-display);
+      font-size: 13px;
+      font-weight: 700;
+      color: #fff;
+      cursor: pointer;
+      transition: all 0.2s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn-prim:hover {
+      background: var(--brand-terra2);
+      transform: translateY(-1px);
+      box-shadow: 0 8px 24px rgba(200, 116, 26, 0.3);
+    }
+
+    .btn-prim::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.08), transparent);
+      transform: translateX(-100%);
+      transition: transform 0.5s;
+    }
+
+    .btn-prim:hover::after {
+      transform: translateX(100%);
+    }
+
+    .btn-sec-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 6px;
+    }
+
+    .btn-sec {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      padding: 9px 8px;
+      background: transparent;
+      border: 1px solid var(--border-panel);
+      border-radius: var(--r-md);
+      font-family: var(--font-body);
+      font-size: 11px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .btn-sec:hover {
+      background: var(--surface-hover);
+      color: var(--text-primary);
+      border-color: var(--border-accent);
+    }
+
+    .btn-sec--danger:hover {
+      background: rgba(239, 68, 68, 0.12);
+      color: #FCA5A5;
+      border-color: rgba(239, 68, 68, 0.25);
+    }
+
+    /* ══════════════════════════════════════
+   RENAME MODAL
+══════════════════════════════════════ */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.65);
+      backdrop-filter: blur(4px);
+      z-index: 60;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s;
+    }
+
+    .modal-overlay.open {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .modal-box {
+      background: var(--surface-panel);
+      border: 1px solid var(--border-panel);
+      border-radius: var(--r-2xl);
+      padding: var(--sp-xl);
+      width: 360px;
+      max-width: 90vw;
+      transform: scale(0.94) translateY(10px);
+      transition: transform 0.25s;
+      box-shadow: 0 24px 64px rgba(0, 0, 0, 0.55);
+    }
+
+    .modal-overlay.open .modal-box {
+      transform: scale(1) translateY(0);
+    }
+
+    .modal-title {
+      font-family: var(--font-display);
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 6px;
+    }
+
+    .modal-sub {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 18px;
+    }
+
+    .modal-input {
+      width: 100%;
+      background: var(--surface-card);
+      border: 1px solid var(--border-panel);
+      border-radius: var(--r-md);
+      padding: 11px 14px;
+      color: var(--text-primary);
+      font-family: var(--font-body);
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.15s;
+      margin-bottom: 16px;
+    }
+
+    .modal-input:focus {
+      border-color: var(--brand-terra);
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+    }
+
+    .modal-cancel {
+      padding: 9px 18px;
+      background: transparent;
+      border: 1px solid var(--border-panel);
+      border-radius: var(--r-md);
+      color: var(--text-secondary);
+      font-family: var(--font-body);
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .modal-cancel:hover {
+      background: var(--surface-hover);
+      color: var(--text-primary);
+    }
+
+    .modal-confirm {
+      padding: 9px 22px;
+      background: var(--brand-terra);
+      border: none;
+      border-radius: var(--r-md);
+      font-family: var(--font-display);
+      font-size: 13px;
+      font-weight: 700;
+      color: #fff;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .modal-confirm:hover {
+      background: var(--brand-terra2);
+    }
+
+    /* DELETE CONFIRM modal */
+    .modal-box--danger .modal-confirm {
+      background: #DC2626;
+    }
+
+    .modal-box--danger .modal-confirm:hover {
+      background: #B91C1C;
+    }
+
+    /* ══════════════════════════════════════
+   STATUS BAR
+══════════════════════════════════════ */
+    .status-bar {
+      grid-row: 4;
+      background: var(--surface-panel);
+      border-top: 1px solid var(--border-panel);
+      display: flex;
+      align-items: center;
+      gap: var(--sp-md);
+      padding: 0 var(--sp-lg);
+      flex-shrink: 0;
+    }
+
+    .kbd-hint {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 10px;
+      color: var(--text-muted);
+    }
+
+    .kbd {
+      padding: 1px 5px;
+      background: var(--surface-card);
+      border: 1px solid var(--border-panel);
+      border-radius: 3px;
+      font-family: monospace;
+      font-size: 9px;
+      color: var(--text-secondary);
+    }
+
+    .status-bar__mid {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+    }
+
+    .wcag-badge {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 10px;
+      color: #4CAF50;
+      font-weight: 600;
+    }
+
+    .wcag-badge__dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #4CAF50;
+      animation: wpulse 2.5s ease-in-out infinite;
+    }
+
+    @keyframes wpulse {
+
+      0%,
+      100% {
+        box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.4)
+      }
+
+      50% {
+        box-shadow: 0 0 0 4px rgba(76, 175, 80, 0)
+      }
+    }
+
+    .status-live {
+      font-size: 10px;
+      color: var(--text-muted);
+      font-family: monospace;
+    }
+
+    /* ══════════════════════════════════════
+   FLUTTER OVERLAY
+══════════════════════════════════════ */
+    .flutter-overlay {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 100;
+      display: none;
+    }
+
+    .flutter-overlay.visible {
+      display: block;
+    }
+
+    .flutter-box {
+      position: absolute;
+      border: 1.5px dashed rgba(100, 200, 255, 0.45);
+      border-radius: 2px;
+    }
+
+    .flutter-tag {
+      position: absolute;
+      top: -18px;
+      left: 0;
+      background: rgba(0, 140, 255, 0.88);
+      color: #fff;
+      font-size: 9px;
+      font-family: monospace;
+      padding: 1px 6px;
+      border-radius: 3px;
+      white-space: nowrap;
+    }
+
+    /* TOAST */
+    .toast {
+      position: fixed;
+      bottom: 52px;
+      left: 50%;
+      transform: translateX(-50%) translateY(16px);
+      background: var(--surface-card);
+      border: 1px solid var(--border-panel);
+      border-radius: var(--r-lg);
+      padding: 10px 20px;
+      font-size: 12px;
+      color: var(--text-primary);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.25s;
+      z-index: 50;
+      white-space: nowrap;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- ════════════════════════════════════════
+     Flutter: Scaffold
+════════════════════════════════════════ -->
+  <div class="app-shell" role="application" aria-label="Mis Creaciones — Mexicana de Mosaicos">
+
+    <!-- ══ APP BAR ══ -->
+    <header class="app-bar" role="banner">
+      <a class="app-bar__logo" href="dashboard.html" aria-label="Inicio — Mexicana de Mosaicos">
+        <div class="app-bar__mark" aria-hidden="true">M</div>
+        <div>
+          <div class="app-bar__name">Mexicana de Mosaicos</div>
+          <div class="app-bar__sub">Sistema privado</div>
+        </div>
+      </a>
+      <div class="app-bar__div" aria-hidden="true"></div>
+      <nav class="breadcrumb" aria-label="Ruta de navegación">
+        <a href="dashboard.html">Inicio</a>
+        <span class="breadcrumb__sep" aria-hidden="true">›</span>
+        <span class="breadcrumb__current" aria-current="page">Mis Creaciones</span>
+      </nav>
+      <div class="app-bar__spacer"></div>
+      <div role="group" aria-label="Controles" style="display:flex;gap:4px;">
+        <button class="a11y-btn" id="btnContrast" aria-pressed="false" aria-label="Activar alto contraste">
+          <span aria-hidden="true">◑</span> Contraste
+        </button>
+        <button class="a11y-btn" id="btnFlutter" aria-pressed="false" aria-label="Mostrar anotaciones Flutter">
+          <span aria-hidden="true">⬡</span> Flutter
+        </button>
+      </div>
+      <div class="app-bar__div" aria-hidden="true"></div>
+      <div class="user-avatar" id="userAvatar" role="img" aria-label="Usuario" title="" onclick="doLogout()"></div>
+    </header>
+
+    <!-- ══ SEARCH + SORT BAR ══ -->
+    <div class="search-sort-bar" role="search" aria-label="Buscar y ordenar creaciones">
+
+      <!-- Search -->
+      <div class="search-wrap" aria-label="Buscar en Mis Creaciones">
+        <span class="search-wrap__icon" aria-hidden="true">🔍</span>
+        <input class="search-wrap__input" type="search" id="searchInput"
+          placeholder="Buscar por nombre, patrón o color…" aria-label="Buscar creaciones por nombre, patrón o color"
+          autocomplete="off" />
+        <button class="search-wrap__clear" id="btnClear" aria-label="Limpiar búsqueda">✕</button>
+      </div>
+
+      <!-- Sort -->
+      <label class="sort-label" for="sortSelect">Ordenar por:</label>
+      <select class="sort-select" id="sortSelect" aria-label="Criterio de ordenamiento">
+        <option value="fecha-desc">Más reciente</option>
+        <option value="fecha-asc">Más antiguo</option>
+        <option value="nombre-asc">Nombre A–Z</option>
+        <option value="nombre-desc">Nombre Z–A</option>
+        <option value="patron">Por patrón</option>
+      </select>
+
+      <!-- View toggle -->
+      <div class="view-toggle" role="group" aria-label="Modo de vista">
+        <button class="view-btn active" id="btnViewGrid" aria-pressed="true" aria-label="Vista en cuadrícula">⊞</button>
+        <button class="view-btn" id="btnViewList" aria-pressed="false" aria-label="Vista en lista">☰</button>
+      </div>
+
+      <!-- Results -->
+      <div class="results-count" role="status" aria-live="polite" aria-atomic="true">
+        <strong id="resultsNum">0</strong> <span id="resultsLabel">creaciones</span>
+      </div>
+
+    </div>
+
+    <!-- ══ MAIN CONTENT ══ -->
+    <div class="main-content">
+
+      <!-- LIST AREA -->
+      <div class="list-area" id="listArea" role="main" aria-label="Lista de tus creaciones guardadas">
+
+        <!-- Grid container (default) -->
+        <div class="items-grid" id="itemsGrid" role="list" aria-label="Creaciones en modo cuadrícula"></div>
+
+        <!-- List container (alt) -->
+        <div class="items-list" id="itemsList" role="list" aria-label="Creaciones en modo lista" style="display:none;">
+        </div>
+
+        <!-- Empty state -->
+        <div class="empty-state" id="emptyState" role="status" aria-live="polite">
+          <div class="empty-state__icon" aria-hidden="true">🪴</div>
+          <div class="empty-state__title" id="emptyTitle">Aún no tienes creaciones</div>
+          <div class="empty-state__sub" id="emptySubtitle">
+            Guarda tus diseños desde el Configurador Visual para verlos aquí.
+            Cada configuración es privada y solo tú puedes verla.
+          </div>
+          <button class="btn-empty-cta" id="btnEmptyCTA" aria-label="Ir al Configurador Visual">
+            🎨 Ir al Configurador →
+          </button>
+        </div>
+
+      </div>
+
+      <!-- PREVIEW PANEL (right) -->
+      <aside class="preview-panel hidden" id="previewPanel" role="complementary"
+        aria-label="Vista previa ampliada de la creación seleccionada" aria-hidden="true">
+        <div class="preview-panel__header">
+          <div class="preview-panel__title" id="panelTitle">Vista previa</div>
+          <button class="panel-close" id="btnClosePanel" aria-label="Cerrar vista previa">✕</button>
+        </div>
+
+        <div class="preview-panel__body">
+
+          <!-- Big canvas preview -->
+          <div class="preview-big">
+            <canvas id="previewCanvas" aria-label="Vista previa ampliada del diseño seleccionado"></canvas>
+          </div>
+
+          <!-- Name + tags -->
+          <div>
+            <div class="preview-name" id="pvName">—</div>
+            <div class="preview-tags" id="pvTags"></div>
+          </div>
+
+          <!-- Config spec card -->
+          <div class="preview-spec-card" role="region" aria-label="Configuración del diseño">
+            <div class="preview-spec-card__title">Configuración</div>
+            <div class="pspec-row"><span class="pspec-row__key">Línea</span><span class="pspec-row__val hi"
+                id="pvLine">—</span></div>
+            <div class="pspec-row"><span class="pspec-row__key">Patrón</span><span class="pspec-row__val hi"
+                id="pvPattern">—</span></div>
+            <div class="pspec-row"><span class="pspec-row__key">Color</span><span class="pspec-row__val"
+                id="pvColor">—</span></div>
+            <div class="pspec-row"><span class="pspec-row__key">Tamaño</span><span class="pspec-row__val"
+                id="pvSize">—</span></div>
+            <div class="pspec-row" id="pvGrainRow"><span class="pspec-row__key">Grano</span><span class="pspec-row__val"
+                id="pvGrain">—</span></div>
+          </div>
+
+          <!-- Date / code spec card -->
+          <div class="preview-spec-card" role="region" aria-label="Información de registro">
+            <div class="preview-spec-card__title">Registro</div>
+            <div class="pspec-row"><span class="pspec-row__key">Guardada</span><span class="pspec-row__val"
+                id="pvDate">—</span></div>
+            <div class="pspec-row"><span class="pspec-row__key">Código</span><span class="pspec-row__val" id="pvCode"
+                style="font-family:monospace;">—</span></div>
+            <div class="pspec-row"><span class="pspec-row__key">Usuario</span><span class="pspec-row__val">Hannia G.
+                (privado)</span></div>
+          </div>
+
+        </div>
+
+        <!-- Panel footer CTAs -->
+        <div class="preview-panel__footer">
+          <button class="btn-prim" id="pvBtnLoad" aria-label="Cargar esta creación en el Configurador Visual">
+            <span aria-hidden="true">🎨</span> Cargar en configurador →
+          </button>
+          <div class="btn-sec-row">
+            <button class="btn-sec" id="pvBtnPNG" aria-label="Descargar vista previa como imagen PNG">
+              <span aria-hidden="true">🖼</span> PNG
+            </button>
+            <button class="btn-sec" id="pvBtnPDF" aria-label="Descargar ficha técnica como PDF">
+              <span aria-hidden="true">📄</span> PDF
+            </button>
+            <button class="btn-sec btn-sec--danger" id="pvBtnDelete"
+              aria-label="Eliminar esta creación permanentemente">
+              <span aria-hidden="true">🗑</span> Eliminar
+            </button>
+          </div>
+        </div>
+      </aside>
+
+    </div><!-- /main-content -->
+
+    <!-- STATUS BAR -->
+    <footer class="status-bar" role="contentinfo" aria-label="Atajos de teclado y estado">
+      <span class="kbd-hint"><kbd class="kbd">Tab</kbd> Navegar</span>
+      <span class="kbd-hint"><kbd class="kbd">Enter</kbd> Previsualizar</span>
+      <span class="kbd-hint"><kbd class="kbd">/</kbd> Buscar</span>
+      <span class="kbd-hint"><kbd class="kbd">Del</kbd> Eliminar selec.</span>
+      <span class="kbd-hint"><kbd class="kbd">Esc</kbd> Cerrar panel</span>
+      <div class="status-bar__mid">
+        <div class="wcag-badge" role="status" aria-label="WCAG 2.1 AA conforme">
+          <div class="wcag-badge__dot" aria-hidden="true"></div>
+          WCAG 2.1 AA · Conforme
+        </div>
+      </div>
+      <span style="font-size:10px;color:var(--text-muted);">
+        Flutter: Scaffold › Column(SearchBar + GridView.builder)
+      </span>
+      <span class="status-live" id="statusLive" aria-live="polite" aria-atomic="true"></span>
+    </footer>
+
+  </div><!-- /app-shell -->
+
+  <!-- ══ RENAME MODAL ══ -->
+  <div class="modal-overlay" id="renameModal" role="dialog" aria-modal="true" aria-labelledby="renameModalTitle">
+    <div class="modal-box">
+      <div class="modal-title" id="renameModalTitle">Renombrar creación</div>
+      <div class="modal-sub">Escribe el nuevo nombre para este diseño.</div>
+      <input class="modal-input" type="text" id="renameInput" placeholder="Nombre de la creación…"
+        aria-label="Nuevo nombre de la creación" maxlength="50" />
+      <div class="modal-actions">
+        <button class="modal-cancel" id="renameCancelBtn" aria-label="Cancelar renombrado">Cancelar</button>
+        <button class="modal-confirm" id="renameConfirmBtn" aria-label="Guardar nuevo nombre">Guardar nombre</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ DELETE CONFIRM MODAL ══ -->
+  <div class="modal-overlay" id="deleteModal" role="dialog" aria-modal="true" aria-labelledby="deleteModalTitle">
+    <div class="modal-box modal-box--danger">
+      <div class="modal-title" id="deleteModalTitle">Eliminar creación</div>
+      <div class="modal-sub" id="deleteModalSub">¿Eliminar este diseño? Esta acción no se puede deshacer.</div>
+      <div class="modal-actions" style="margin-top:0;">
+        <button class="modal-cancel" id="deleteCancelBtn" aria-label="Cancelar eliminación">Cancelar</button>
+        <button class="modal-confirm" id="deleteConfirmBtn"
+          aria-label="Confirmar eliminación permanente">Eliminar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Flutter overlay -->
+  <div class="flutter-overlay" id="flutterOverlay" aria-hidden="true">
+    <div class="flutter-box" style="top:0;left:0;right:0;height:52px;">
+      <span class="flutter-tag">AppBar › Row(logo + breadcrumb + a11y + avatar)</span>
+    </div>
+    <div class="flutter-box" id="flSearchBox" style="top:52px;left:0;right:0;">
+      <span class="flutter-tag">Container › Row(SearchBar + SortDropdown + ViewToggle)</span>
+    </div>
+    <div class="flutter-box" id="flGridBox" style="left:0;bottom:36px;">
+      <span class="flutter-tag">Expanded › GridView.builder(crossAxisCount:3)</span>
+    </div>
+    <div class="flutter-box" style="top:52px;right:0;width:380px;bottom:36px;">
+      <span class="flutter-tag">AnimatedContainer › SizedBox(w:380) › Column(body+footer)</span>
+    </div>
+    <div class="flutter-box" style="bottom:0;left:0;right:0;height:36px;">
+      <span class="flutter-tag">BottomAppBar › Row</span>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <!-- ════════════════════════════════════
+     JAVASCRIPT
+════════════════════════════════════ -->
+  <script src="utils.js"></script>
+  <script src="seed_data.js"></script>
+  <script src="creaciones_app.js"></script>
+</body>
+
+</html>

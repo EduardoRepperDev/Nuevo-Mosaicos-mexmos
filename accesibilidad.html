@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="es" dir="ltr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Mexicana de Mosaicos — Centro de Accesibilidad</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --brand-terra:   #C8741A;
+  --brand-terra2:  #A85E12;
+  --brand-cobalt:  #1A4B8C;
+  --brand-gold:    #D4A843;
+  --brand-green:   #2E6E4E;
+  --surface-dark:  #0D1B2A;
+  --surface-panel: #112236;
+  --surface-card:  #162E45;
+  --surface-hover: #1E3A54;
+  --text-primary:   #F0EDE8;
+  --text-secondary: #94A3B8;
+  --text-muted:     #5B7A99;
+  --border-subtle: rgba(255,255,255,0.06);
+  --border-panel:  rgba(255,255,255,0.10);
+  --border-accent: rgba(200,116,26,0.35);
+  --focus-ring:   #1A6BBF;
+  --focus-shadow: 0 0 0 3px rgba(26,107,191,0.5);
+  --font-size-base: 14px;
+  --font-display: 'Syne', sans-serif;
+  --font-body:    'DM Sans', sans-serif;
+  --sp-md: 16px; --sp-lg: 24px; --sp-xl: 32px; --sp-2xl: 48px;
+  --r-sm: 4px; --r-md: 8px; --r-lg: 12px; --r-xl: 16px; --r-2xl: 24px; --r-full: 9999px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;}
+body{font-family:var(--font-body);background:var(--surface-dark);color:var(--text-primary);font-size:var(--font-size-base);line-height:1.5;height:100%;overflow:hidden;transition:background .3s,color .3s;}
+:focus-visible{outline:3px solid var(--focus-ring);outline-offset:2px;border-radius:var(--r-sm);}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;}
+::-webkit-scrollbar{width:4px;}::-webkit-scrollbar-track{background:transparent;}::-webkit-scrollbar-thumb{background:var(--surface-hover);border-radius:2px;}
+body.rm *,body.rm *::before,body.rm *::after{animation-duration:.001ms!important;transition-duration:.001ms!important;}
+.app-shell{display:grid;grid-template-rows:52px 1fr 36px;height:100vh;width:100vw;}
+.app-bar{grid-row:1;background:var(--surface-panel);border-bottom:1px solid var(--border-panel);display:flex;align-items:center;padding:0 var(--sp-lg);gap:var(--sp-md);z-index:20;flex-shrink:0;}
+.app-bar__logo{display:flex;align-items:center;gap:8px;text-decoration:none;flex-shrink:0;}
+.app-bar__mark{width:32px;height:32px;background:var(--brand-terra);border-radius:var(--r-sm);display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:15px;font-weight:800;color:#fff;transition:background .3s;}
+.app-bar__name{font-family:var(--font-display);font-size:13px;font-weight:600;color:var(--text-primary);}
+.app-bar__sub{font-size:9px;color:var(--text-muted);letter-spacing:.08em;text-transform:uppercase;}
+.app-bar__div{width:1px;height:24px;background:var(--border-panel);flex-shrink:0;}
+.app-bar__spacer{flex:1;}
+.breadcrumb{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-secondary);}
+.breadcrumb a{color:var(--text-secondary);text-decoration:none;}
+.breadcrumb__sep{color:var(--text-muted);font-size:10px;}
+.breadcrumb__current{color:var(--brand-terra);font-weight:500;transition:color .3s;}
+.btn-back{display:flex;align-items:center;gap:6px;padding:5px 12px;background:var(--surface-card);border:1px solid var(--border-subtle);border-radius:var(--r-md);color:var(--text-secondary);font-family:var(--font-body);font-size:12px;cursor:pointer;transition:all .15s;}
+.btn-back:hover{background:var(--surface-hover);color:var(--text-primary);border-color:var(--border-accent);}
+.flutter-btn{display:flex;align-items:center;gap:5px;padding:5px 10px;background:rgba(0,150,255,.08);border:1px solid rgba(0,150,255,.2);border-radius:var(--r-sm);color:rgba(100,200,255,.7);font-family:monospace;font-size:10px;cursor:pointer;transition:all .15s;}
+.flutter-btn.active{background:rgba(0,150,255,.25);color:#7DE8FF;}
+.user-avatar{width:30px;height:30px;border-radius:50%;background:var(--brand-cobalt);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:#fff;cursor:pointer;}
+.main-layout{grid-row:2;display:grid;grid-template-columns:1fr 360px;overflow:hidden;}
+.settings-scroll{overflow-y:auto;overflow-x:hidden;padding:var(--sp-xl);display:flex;flex-direction:column;gap:var(--sp-2xl);scrollbar-width:thin;scrollbar-color:var(--surface-hover) transparent;}
+.settings-block{display:flex;flex-direction:column;gap:var(--sp-md);}
+.section-heading{font-family:var(--font-display);font-size:18px;font-weight:800;color:var(--text-primary);display:flex;align-items:center;gap:10px;padding-bottom:10px;border-bottom:1px solid var(--border-subtle);}
+.section-heading__icon{font-size:20px;}
+.section-heading__badge{margin-left:auto;padding:2px 10px;background:rgba(200,116,26,.12);border:1px solid rgba(200,116,26,.25);border-radius:var(--r-full);font-size:9px;font-weight:700;color:var(--brand-terra);letter-spacing:.06em;font-family:var(--font-body);transition:color .3s;}
+.section-desc{font-size:13px;color:var(--text-muted);line-height:1.7;margin-top:-6px;}
+/* Slider card */
+.slider-card{background:var(--surface-card);border:1px solid var(--border-subtle);border-radius:var(--r-xl);padding:20px 22px;display:flex;flex-direction:column;gap:14px;position:relative;overflow:hidden;}
+.slider-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--brand-terra);border-radius:var(--r-xl) 0 0 var(--r-xl);transition:background .3s;}
+.slider-card__header{display:flex;align-items:flex-start;gap:14px;}
+.slider-icon{width:44px;height:44px;border-radius:var(--r-lg);flex-shrink:0;background:rgba(200,116,26,.12);display:flex;align-items:center;justify-content:center;font-size:22px;}
+.slider-title{font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--text-primary);margin-bottom:4px;display:flex;align-items:center;gap:8px;}
+.wcag-pill{font-family:var(--font-body);font-size:9px;font-weight:600;padding:2px 7px;border-radius:var(--r-full);background:rgba(76,175,80,.10);color:#81C784;border:1px solid rgba(76,175,80,.2);}
+.slider-sub{font-size:12px;color:var(--text-secondary);line-height:1.65;}
+.slider-ctrl{display:flex;flex-direction:column;gap:8px;}
+.slider-header-row{display:flex;align-items:center;justify-content:space-between;gap:10px;}
+.slider-val{font-family:var(--font-display);font-size:20px;font-weight:800;color:var(--brand-terra);transition:color .3s;}
+.btn-rst{padding:4px 10px;background:transparent;border:1px solid var(--border-panel);border-radius:var(--r-full);font-size:10px;color:var(--text-muted);cursor:pointer;transition:all .15s;}
+.btn-rst:hover{background:var(--surface-hover);color:var(--text-primary);border-color:var(--border-accent);}
+input[type="range"]{-webkit-appearance:none;appearance:none;width:100%;height:6px;border-radius:3px;background:var(--surface-hover);outline:none;cursor:pointer;}
+input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;background:var(--brand-terra);border-radius:50%;border:3px solid var(--surface-panel);cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.3);transition:background .3s,transform .15s;}
+input[type="range"]::-webkit-slider-thumb:hover{transform:scale(1.15);}
+input[type="range"]:focus-visible::-webkit-slider-thumb{box-shadow:var(--focus-shadow);}
+.tick-row{display:flex;justify-content:space-between;padding:0 2px;}
+.tick{font-size:9px;color:var(--text-muted);}
+.tick.on{color:var(--brand-terra);font-weight:700;transition:color .3s;}
+.preview-strip{background:var(--surface-hover);border:1px solid var(--border-subtle);border-radius:var(--r-md);padding:12px 14px;display:flex;align-items:center;gap:12px;transition:all .25s;}
+.pv-main{font-family:var(--font-display);font-weight:700;color:var(--text-primary);transition:font-size .25s,color .25s;}
+.pv-sub{font-size:11px;color:var(--text-secondary);transition:font-size .25s,color .25s;}
+/* Accent grid */
+.accent-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;}
+.acc-sw{width:36px;height:36px;border-radius:50%;border:3px solid transparent;cursor:pointer;transition:all .18s;position:relative;flex-shrink:0;display:flex;align-items:center;justify-content:center;}
+.acc-sw:hover{transform:scale(1.12);}
+.acc-sw.on{border-color:#fff;box-shadow:0 0 0 3px var(--brand-terra);transform:scale(1.12);}
+.acc-sw__ck{display:none;font-size:14px;color:rgba(255,255,255,.9);font-weight:700;}
+.acc-sw.on .acc-sw__ck{display:block;}
+.custom-wrap{display:flex;align-items:center;gap:8px;padding:6px 10px;background:var(--surface-hover);border:1px solid var(--border-panel);border-radius:var(--r-full);cursor:pointer;}
+.custom-wrap input[type="color"]{width:24px;height:24px;border:none;border-radius:50%;cursor:pointer;background:none;padding:0;-webkit-appearance:none;}
+.custom-wrap input[type="color"]::-webkit-color-swatch-wrapper{padding:0;border-radius:50%;}
+.custom-wrap input[type="color"]::-webkit-color-swatch{border:none;border-radius:50%;}
+.custom-lbl{font-size:11px;color:var(--text-muted);}
+.acc-preview{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px;}
+.ap-p{padding:8px 16px;background:var(--brand-terra);border:none;border-radius:var(--r-md);font-family:var(--font-display);font-size:12px;font-weight:700;color:#fff;cursor:default;transition:background .3s;}
+.ap-s{padding:8px 14px;background:transparent;border:1px solid var(--brand-terra);border-radius:var(--r-md);font-size:12px;color:var(--brand-terra);cursor:default;transition:all .3s;}
+.ap-b{padding:4px 10px;border-radius:var(--r-full);background:rgba(200,116,26,.12);border:1px solid rgba(200,116,26,.25);font-size:10px;color:var(--brand-terra);font-weight:600;transition:all .3s;}
+/* Toggle */
+.toggle-card{background:var(--surface-card);border:1px solid var(--border-subtle);border-radius:var(--r-xl);padding:18px 20px;display:flex;align-items:flex-start;gap:16px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden;}
+.toggle-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:transparent;border-radius:var(--r-xl) 0 0 var(--r-xl);transition:background .3s;}
+.toggle-card.on::before{background:var(--brand-terra);}
+.toggle-card:hover{background:var(--surface-hover);}
+.toggle-card.on{background:rgba(200,116,26,.06);border-color:rgba(200,116,26,.25);}
+.t-icon{width:44px;height:44px;flex-shrink:0;border-radius:var(--r-lg);display:flex;align-items:center;justify-content:center;font-size:22px;background:var(--surface-hover);}
+.toggle-card.on .t-icon{background:rgba(200,116,26,.15);}
+.t-body{flex:1;}
+.t-label{font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--text-primary);margin-bottom:4px;display:flex;align-items:center;gap:8px;}
+.t-sub{font-size:12px;color:var(--text-secondary);line-height:1.65;}
+.t-sw{position:relative;flex-shrink:0;margin-top:4px;}
+.t-sw input{position:absolute;opacity:0;width:0;height:0;}
+.t-track{display:block;width:52px;height:28px;background:var(--surface-hover);border:1.5px solid var(--border-panel);border-radius:var(--r-full);cursor:pointer;position:relative;transition:all .28s;}
+.t-track::before{content:'';position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:var(--text-muted);transition:all .28s cubic-bezier(.34,1.56,.64,1);box-shadow:0 1px 4px rgba(0,0,0,.3);}
+.t-sw input:checked+.t-track{background:var(--brand-terra);border-color:var(--brand-terra2);}
+.t-sw input:checked+.t-track::before{left:calc(100% - 23px);background:#fff;}
+/* CVD */
+.cvd-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;}
+.cvd-card{background:var(--surface-card);border:1px solid var(--border-subtle);border-radius:var(--r-xl);padding:14px;cursor:pointer;transition:all .2s;display:flex;flex-direction:column;gap:8px;position:relative;}
+.cvd-card:hover{background:var(--surface-hover);}
+.cvd-card.on{border-color:var(--brand-cobalt);background:rgba(26,75,140,.12);}
+.cvd-card.on::after{content:'✓';position:absolute;top:10px;right:12px;font-size:11px;font-weight:700;color:#7EB3E8;}
+.cvd-top{display:flex;align-items:center;gap:10px;}
+.cvd-circle{width:36px;height:36px;border-radius:50%;flex-shrink:0;border:2px solid rgba(255,255,255,.1);}
+.cvd-name{font-family:var(--font-display);font-size:13px;font-weight:700;color:var(--text-primary);}
+.cvd-card.on .cvd-name{color:#7EB3E8;}
+.cvd-pct{font-size:10px;color:var(--text-muted);font-family:monospace;}
+.cvd-desc{font-size:11px;color:var(--text-secondary);line-height:1.55;}
+.cvd-strip{display:flex;gap:3px;height:7px;}
+.cvd-sw{flex:1;border-radius:2px;}
+/* Info panel */
+.info-panel{background:var(--surface-panel);border-left:1px solid var(--border-panel);overflow-y:auto;display:flex;flex-direction:column;transition:background .3s;scrollbar-width:thin;scrollbar-color:var(--surface-hover) transparent;}
+.info-block{padding:var(--sp-lg) var(--sp-md);border-bottom:1px solid var(--border-subtle);}
+.info-block:last-child{border-bottom:none;}
+.info-lbl{font-family:var(--font-display);font-size:9px;font-weight:700;letter-spacing:.13em;text-transform:uppercase;color:var(--text-muted);margin-bottom:12px;display:flex;align-items:center;gap:6px;}
+.wcag-hero{background:rgba(76,175,80,.08);border:1px solid rgba(76,175,80,.2);border-radius:var(--r-xl);padding:20px;text-align:center;margin-bottom:14px;}
+.wcag-lv{font-family:var(--font-display);font-size:44px;font-weight:800;color:#4CAF50;line-height:1;}
+.wcag-tl{font-family:var(--font-display);font-size:13px;font-weight:700;color:#81C784;margin-top:4px;}
+.wcag-sb{font-size:10px;color:var(--text-muted);margin-top:2px;}
+.pour-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.pour-card{background:var(--surface-card);border:1px solid var(--border-subtle);border-radius:var(--r-lg);padding:12px;position:relative;overflow:hidden;}
+.pour-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
+.pour-card.p::before{background:var(--brand-terra);}
+.pour-card.o::before{background:var(--brand-cobalt);}
+.pour-card.u::before{background:var(--brand-gold);}
+.pour-card.r::before{background:var(--brand-green);}
+.pour-ltr{font-family:var(--font-display);font-size:28px;font-weight:800;line-height:1;}
+.pour-card.p .pour-ltr{color:var(--brand-terra);}
+.pour-card.o .pour-ltr{color:#7EB3E8;}
+.pour-card.u .pour-ltr{color:var(--brand-gold);}
+.pour-card.r .pour-ltr{color:#81C784;}
+.pour-word{font-size:10px;font-weight:700;color:var(--text-secondary);margin-top:2px;text-transform:uppercase;letter-spacing:.06em;}
+.pour-desc{font-size:9px;color:var(--text-muted);margin-top:5px;line-height:1.5;}
+.sr-list{display:flex;flex-direction:column;gap:6px;}
+.sr-item{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--surface-card);border:1px solid var(--border-subtle);border-radius:var(--r-md);}
+.sr-icon{font-size:18px;flex-shrink:0;}
+.sr-name{font-size:12px;font-weight:600;color:var(--text-primary);}
+.sr-status{font-size:10px;display:flex;align-items:center;gap:5px;margin-top:2px;}
+.sr-dot{width:6px;height:6px;border-radius:50%;animation:blink 2s ease-in-out infinite;flex-shrink:0;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.kbd-list{display:flex;flex-direction:column;gap:5px;}
+.kbd-item{display:flex;align-items:center;justify-content:space-between;padding:7px 10px;background:var(--surface-card);border:1px solid var(--border-subtle);border-radius:var(--r-md);}
+.kbd-keys{display:flex;gap:3px;align-items:center;}
+.kbd-key{padding:2px 7px;background:var(--surface-hover);border:1px solid var(--border-panel);border-radius:3px;font-family:monospace;font-size:10px;font-weight:600;color:var(--text-secondary);}
+.kbd-sep{font-size:10px;color:var(--text-muted);}
+.kbd-act{font-size:11px;color:var(--text-muted);}
+.focus-wrap{background:var(--surface-card);border:1px solid var(--border-subtle);border-radius:var(--r-lg);padding:16px;display:flex;flex-direction:column;gap:10px;}
+.focus-btn{padding:9px 18px;background:var(--brand-terra);border:none;border-radius:var(--r-md);font-family:var(--font-display);font-size:12px;font-weight:700;color:#fff;cursor:pointer;outline:3px solid var(--focus-ring);outline-offset:2px;align-self:flex-start;transition:background .3s;}
+.focus-code{font-family:monospace;font-size:10px;color:var(--brand-gold);line-height:1.9;background:var(--surface-hover);border-radius:var(--r-sm);padding:8px 12px;}
+.tools-list{display:flex;flex-direction:column;gap:6px;}
+.tool-item{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--surface-card);border:1px solid var(--border-subtle);border-radius:var(--r-md);}
+.tool-icon{font-size:18px;flex-shrink:0;}
+.tool-name{font-size:12px;font-weight:600;color:var(--text-primary);}
+.tool-sub{font-size:10px;color:var(--text-muted);}
+.status-bar{grid-row:3;background:var(--surface-panel);border-top:1px solid var(--border-panel);display:flex;align-items:center;gap:16px;padding:0 var(--sp-lg);flex-shrink:0;}
+.kbd-hint{display:inline-flex;align-items:center;gap:4px;font-size:10px;color:var(--text-muted);}
+.kbd{padding:1px 5px;background:var(--surface-card);border:1px solid var(--border-panel);border-radius:3px;font-family:monospace;font-size:9px;color:var(--text-secondary);}
+.status-bar__mid{flex:1;display:flex;justify-content:center;}
+.wcag-badge{display:flex;align-items:center;gap:5px;font-size:10px;color:#4CAF50;font-weight:600;}
+.wcag-badge__dot{width:6px;height:6px;border-radius:50%;background:#4CAF50;animation:wpulse 2.5s ease-in-out infinite;}
+@keyframes wpulse{0%,100%{box-shadow:0 0 0 0 rgba(76,175,80,.4)}50%{box-shadow:0 0 0 4px rgba(76,175,80,0)}}
+.flutter-overlay{position:fixed;inset:0;pointer-events:none;z-index:100;display:none;}
+.flutter-overlay.visible{display:block;}
+.flutter-box{position:absolute;border:1.5px dashed rgba(100,200,255,.45);border-radius:2px;}
+.flutter-tag{position:absolute;top:-18px;left:0;background:rgba(0,140,255,.88);color:#fff;font-size:9px;font-family:monospace;padding:1px 6px;border-radius:3px;white-space:nowrap;}
+.toast{position:fixed;bottom:52px;left:50%;transform:translateX(-50%) translateY(16px);background:var(--surface-card);border:1px solid var(--border-panel);border-radius:var(--r-lg);padding:10px 20px;font-size:12px;color:var(--text-primary);box-shadow:0 8px 32px rgba(0,0,0,.4);opacity:0;pointer-events:none;transition:all .25s;z-index:50;white-space:nowrap;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.a1{animation:fadeUp .4s ease .05s both;}
+.a2{animation:fadeUp .4s ease .14s both;}
+.a3{animation:fadeUp .4s ease .22s both;}
+</style>
+</head>
+<body id="bodyEl">
+<svg style="position:absolute;width:0;height:0;overflow:hidden;" aria-hidden="true">
+  <defs>
+    <filter id="f-protan"><feColorMatrix type="matrix" values="0.567 0.433 0 0 0  0.558 0.442 0 0 0  0 0.242 0.758 0 0  0 0 0 1 0"/></filter>
+    <filter id="f-deuter"><feColorMatrix type="matrix" values="0.625 0.375 0 0 0  0.7 0.3 0 0 0  0 0.3 0.7 0 0  0 0 0 1 0"/></filter>
+    <filter id="f-tritan"><feColorMatrix type="matrix" values="0.95 0.05 0 0 0  0 0.433 0.567 0 0  0 0.475 0.525 0 0  0 0 0 1 0"/></filter>
+  </defs>
+</svg>
+
+<div class="app-shell" role="application" aria-label="Centro de Accesibilidad — Mexicana de Mosaicos">
+  <header class="app-bar" role="banner">
+    <a class="app-bar__logo" href="#" aria-label="Inicio — Mexicana de Mosaicos">
+      <div class="app-bar__mark" id="appMark" aria-hidden="true">M</div>
+      <div><div class="app-bar__name">Mexicana de Mosaicos</div><div class="app-bar__sub">Sistema privado</div></div>
+    </a>
+    <div class="app-bar__div" aria-hidden="true"></div>
+    <nav class="breadcrumb" aria-label="Ruta de navegación">
+      <a href="#">Inicio</a>
+      <span class="breadcrumb__sep" aria-hidden="true">›</span>
+      <span class="breadcrumb__current" id="bcCurrent" aria-current="page">Centro de Accesibilidad</span>
+    </nav>
+    <div class="app-bar__spacer"></div>
+    <button class="btn-back" id="btnBack" aria-label="Volver al Dashboard">← Inicio</button>
+    <div class="app-bar__div" aria-hidden="true"></div>
+    <button class="flutter-btn" id="btnFlutter" aria-pressed="false" aria-label="Mostrar anotaciones Flutter">⬡ Flutter</button>
+    <div style="width:1px;height:24px;background:var(--border-panel);flex-shrink:0;margin-left:4px;" aria-hidden="true"></div>
+    <div class="user-avatar" role="img" aria-label="Usuario: HG" style="margin-left:8px;">HG</div>
+  </header>
+
+  <div class="main-layout" role="main">
+    <div class="settings-scroll" id="settingsScroll">
+
+      <!-- BLOQUE 1: APARIENCIA -->
+      <section class="settings-block a1" aria-labelledby="h-ap">
+        <h2 class="section-heading" id="h-ap">
+          <span class="section-heading__icon" aria-hidden="true">🎛</span>
+          Apariencia y legibilidad
+          <span class="section-heading__badge">WCAG 1.4</span>
+        </h2>
+        <p class="section-desc">Ajusta contraste, tamaño de letra y color de acento. Los cambios se aplican de inmediato en toda la aplicación.</p>
+
+        <!-- CONTRASTE -->
+        <div class="slider-card" role="group" aria-labelledby="lbl-c">
+          <div class="slider-card__header">
+            <div class="slider-icon" aria-hidden="true">◑</div>
+            <div>
+              <div class="slider-title" id="lbl-c">Contraste <span class="wcag-pill">WCAG 1.4.6</span></div>
+              <div class="slider-sub">Ajusta la intensidad del contraste entre texto y fondo. El mínimo mantiene WCAG AA (4.5:1). El máximo alcanza AAA (7:1+).</div>
+            </div>
+          </div>
+          <div class="slider-ctrl">
+            <div class="slider-header-row">
+              <label for="slC" class="sr-only">Nivel de contraste</label>
+              <span style="font-size:11px;color:var(--text-secondary);">Nivel de contraste</span>
+              <div style="display:flex;align-items:center;gap:8px;">
+                <span class="slider-val" id="valC" aria-live="polite">3</span>
+                <button class="btn-rst" id="rstC" aria-label="Restablecer contraste">↺ Reest.</button>
+              </div>
+            </div>
+            <input type="range" id="slC" min="1" max="5" value="3" step="1"
+                   aria-label="Contraste de 1 a 5, actualmente en 3"
+                   aria-valuemin="1" aria-valuemax="5" aria-valuenow="3"/>
+            <div class="tick-row" aria-hidden="true">
+              <span class="tick">Bajo</span><span class="tick">Normal</span>
+              <span class="tick on" id="tickC">Medio</span>
+              <span class="tick">Alto</span><span class="tick">Máximo</span>
+            </div>
+          </div>
+          <div class="preview-strip" id="pvC" role="img" aria-label="Vista previa del contraste">
+            <div>
+              <div class="pv-main" id="pvCMain">Aa Mosaico de terrazo</div>
+              <div class="pv-sub" id="pvCSub">Texto secundario de apoyo visual</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAMAÑO LETRA -->
+        <div class="slider-card" role="group" aria-labelledby="lbl-f">
+          <div class="slider-card__header">
+            <div class="slider-icon" aria-hidden="true">Aa</div>
+            <div>
+              <div class="slider-title" id="lbl-f">Tamaño de letra <span class="wcag-pill">WCAG 1.4.4</span></div>
+              <div class="slider-sub">Escala la tipografía de toda la aplicación. Base: 14 px. Aumentar mejora la legibilidad para usuarios con baja visión.</div>
+            </div>
+          </div>
+          <div class="slider-ctrl">
+            <div class="slider-header-row">
+              <label for="slF" class="sr-only">Tamaño de letra</label>
+              <span style="font-size:11px;color:var(--text-secondary);">Tamaño de letra</span>
+              <div style="display:flex;align-items:center;gap:8px;">
+                <span class="slider-val" id="valF" aria-live="polite">14 px</span>
+                <button class="btn-rst" id="rstF" aria-label="Restablecer tamaño de letra a 14 px">↺ Reest.</button>
+              </div>
+            </div>
+            <input type="range" id="slF" min="12" max="22" value="14" step="1"
+                   aria-label="Tamaño de letra de 12 a 22 px, actualmente en 14"
+                   aria-valuemin="12" aria-valuemax="22" aria-valuenow="14"/>
+            <div class="tick-row" aria-hidden="true">
+              <span class="tick">12 px</span><span class="tick on" id="tickF">14 px</span>
+              <span class="tick">16 px</span><span class="tick">18 px</span><span class="tick">22 px</span>
+            </div>
+          </div>
+          <div class="preview-strip" role="img" aria-label="Vista previa del tamaño de letra">
+            <div>
+              <div class="pv-main" id="pvFMain">Texto principal</div>
+              <div class="pv-sub" id="pvFSub">Texto secundario de apoyo</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- COLOR DE ACENTO -->
+        <div class="slider-card" role="group" aria-labelledby="lbl-a">
+          <div class="slider-card__header">
+            <div class="slider-icon" id="iconAcc" aria-hidden="true">🎨</div>
+            <div>
+              <div class="slider-title" id="lbl-a">Color de acento <span class="wcag-pill">WCAG 1.4.3</span></div>
+              <div class="slider-sub">Personaliza el color de acción principal. Predeterminado: Terracota <code style="font-size:10px;color:var(--brand-gold);">#C8741A</code>. Cada opción mantiene contraste ≥ 4.5:1.</div>
+            </div>
+          </div>
+          <div class="accent-row" role="radiogroup" aria-label="Seleccionar color de acento" id="accGroup"></div>
+          <div class="acc-preview" aria-label="Vista previa con el color de acento seleccionado">
+            <button class="ap-p" id="apP" aria-hidden="true">Generar pedido →</button>
+            <button class="ap-s" id="apS" aria-hidden="true">Guardar</button>
+            <span class="ap-b" id="apB">WCAG AA</span>
+            <span style="font-size:11px;color:var(--text-muted);" id="apHex">#C8741A</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- BLOQUE 2: MOVIMIENTO Y CVD -->
+      <section class="settings-block a2" aria-labelledby="h-mv">
+        <h2 class="section-heading" id="h-mv">
+          <span class="section-heading__icon" aria-hidden="true">🎨</span>
+          Movimiento y percepción del color
+          <span class="section-heading__badge">WCAG 2.3 · 1.4.1</span>
+        </h2>
+
+        <!-- Reducir movimiento -->
+        <div class="toggle-card" id="cardMov" role="switch" aria-checked="false" tabindex="0"
+             aria-label="Reducir movimiento: desactivado">
+          <div class="t-icon" aria-hidden="true">⏸</div>
+          <div class="t-body">
+            <div class="t-label">Reducir movimiento <span class="wcag-pill">WCAG 2.3.3</span></div>
+            <div class="t-sub">Elimina animaciones y transiciones. Respeta la preferencia del sistema <code style="font-size:10px;color:var(--brand-gold);">prefers-reduced-motion</code>. Ideal para usuarios con sensibilidad vestibular.</div>
+          </div>
+          <div class="t-sw" aria-hidden="true">
+            <input type="checkbox" id="chkMov" tabindex="-1"/>
+            <label class="t-track" for="chkMov"><span class="sr-only">Reducir movimiento</span></label>
+          </div>
+        </div>
+
+        <!-- CVD -->
+        <p style="font-size:12px;color:var(--text-muted);line-height:1.6;margin-top:4px;">
+          Simula la percepción del color. El filtro se aplica sobre el canvas del mosaico en el Configurador, Vista Previa Avanzada y Simulación en Ambiente.
+        </p>
+        <div class="cvd-grid" role="radiogroup" aria-label="Simulación de percepción del color" id="cvdGroup">
+          <div class="cvd-card on" data-cvd="normal" role="radio" aria-checked="true" tabindex="0" aria-label="Normal — sin simulación">
+            <div class="cvd-top">
+              <div class="cvd-circle" style="background:linear-gradient(135deg,#C8741A,#4A9EBF,#2E6E4E,#D4A843);" aria-hidden="true"></div>
+              <div><div class="cvd-name">Normal</div><div class="cvd-pct">Sin filtro</div></div>
+            </div>
+            <div class="cvd-desc">Percepción estándar de colores.</div>
+            <div class="cvd-strip" aria-label="Colores en vista normal">
+              <div class="cvd-sw" style="background:#C8741A;"></div>
+              <div class="cvd-sw" style="background:#4A9EBF;"></div>
+              <div class="cvd-sw" style="background:#2E6E4E;"></div>
+              <div class="cvd-sw" style="background:#D4A843;"></div>
+              <div class="cvd-sw" style="background:#B91C1C;"></div>
+            </div>
+          </div>
+          <div class="cvd-card" data-cvd="protan" role="radio" aria-checked="false" tabindex="-1" aria-label="Protanopía — canal rojo, 8% hombres">
+            <div class="cvd-top">
+              <div class="cvd-circle" style="background:linear-gradient(135deg,#6B6B00,#4A6E9E,#3A5E30);" aria-hidden="true"></div>
+              <div><div class="cvd-name">Protanopía</div><div class="cvd-pct">~8% hombres · Rojo</div></div>
+            </div>
+            <div class="cvd-desc">Deficiencia en la percepción del rojo.</div>
+            <div class="cvd-strip" id="sp" aria-label="Colores simulando protanopía"></div>
+          </div>
+          <div class="cvd-card" data-cvd="deuter" role="radio" aria-checked="false" tabindex="-1" aria-label="Deuteranopía — canal verde, la más común">
+            <div class="cvd-top">
+              <div class="cvd-circle" style="background:linear-gradient(135deg,#9A8000,#3A7AB8,#6A6A20);" aria-hidden="true"></div>
+              <div><div class="cvd-name">Deuteranopía</div><div class="cvd-pct">~6% hombres · Verde</div></div>
+            </div>
+            <div class="cvd-desc">Deficiencia en la percepción del verde. La más común.</div>
+            <div class="cvd-strip" id="sd" aria-label="Colores simulando deuteranopía"></div>
+          </div>
+          <div class="cvd-card" data-cvd="tritan" role="radio" aria-checked="false" tabindex="-1" aria-label="Tritanopía — canal azul, poco frecuente">
+            <div class="cvd-top">
+              <div class="cvd-circle" style="background:linear-gradient(135deg,#C86E00,#2A9898,#C8A020);" aria-hidden="true"></div>
+              <div><div class="cvd-name">Tritanopía</div><div class="cvd-pct">~0.01% · Azul</div></div>
+            </div>
+            <div class="cvd-desc">Deficiencia en la percepción del azul. Poco frecuente.</div>
+            <div class="cvd-strip" id="st" aria-label="Colores simulando tritanopía"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- BLOQUE 3: ATAJOS -->
+      <section class="settings-block a3" aria-labelledby="h-kbd">
+        <h2 class="section-heading" id="h-kbd">
+          <span class="section-heading__icon" aria-hidden="true">⌨</span>
+          Atajos de teclado
+          <span class="section-heading__badge">WCAG 2.1.1</span>
+        </h2>
+        <p class="section-desc">La aplicación es completamente navegable con teclado. No se requiere ratón.</p>
+        <div style="background:var(--surface-card);border:1px solid var(--border-subtle);border-radius:var(--r-xl);overflow:hidden;">
+          <div style="display:grid;grid-template-columns:1fr 1fr;" role="list" aria-label="Atajos de teclado">
+            <div style="border-right:1px solid var(--border-subtle);">
+              <div style="padding:10px 14px;font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text-muted);border-bottom:1px solid var(--border-subtle);">Global</div>
+              <div class="kbd-list" style="padding:10px 14px;">
+                <div class="kbd-item" role="listitem"><div class="kbd-keys"><span class="kbd-key">Tab</span></div><span class="kbd-act">Avanzar controles</span></div>
+                <div class="kbd-item" role="listitem"><div class="kbd-keys"><span class="kbd-key">Shift</span><span class="kbd-sep">+</span><span class="kbd-key">Tab</span></div><span class="kbd-act">Retroceder</span></div>
+                <div class="kbd-item" role="listitem"><div class="kbd-keys"><span class="kbd-key">Enter</span></div><span class="kbd-act">Seleccionar</span></div>
+                <div class="kbd-item" role="listitem"><div class="kbd-keys"><span class="kbd-key">Espacio</span></div><span class="kbd-act">Activar toggle</span></div>
+                <div class="kbd-item" role="listitem"><div class="kbd-keys"><span class="kbd-key">↑</span><span class="kbd-key">↓</span><span class="kbd-key">←</span><span class="kbd-key">→</span></div><span class="kbd-act">Navegar grids</span></div>
+                <div class="kbd-item" role="listitem"><div class="kbd-keys"><span class="kbd-key">Esc</span></div><span class="kbd-act">Cerrar panel</span></div>
+              </div>
+            </div>
+            <div>
+              <div style="padding:10px 14px;font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text-muted);border-bottom:1px solid var(--border-subtle);">Módulos</div>
+              <div class="kbd-list" style="padding:10px 14px;">
+                <div class="kbd-item" role="listitem"><div class="kbd-keys"><span class="kbd-key">/</span></div><span class="kbd-act">Enfocar buscador</span></div>
+                <div class="kbd-item" role="listitem"><div class="kbd-keys"><span class="kbd-key">Ctrl</span><span class="kbd-sep">+</span><span class="kbd-key">S</span></div><span class="kbd-act">Guardar creación</span></div>
+                <div class="kbd-item" role="listitem"><div class="kbd-keys"><span class="kbd-key">P</span></div><span class="kbd-act">Siguiente patrón</span></div>
+                <div class="kbd-item" role="listitem"><div class="kbd-keys"><span class="kbd-key">+</span><span class="kbd-sep">/</span><span class="kbd-key">−</span></div><span class="kbd-act">Zoom canvas</span></div>
+                <div class="kbd-item" role="listitem"><div class="kbd-keys"><span class="kbd-key">R</span></div><span class="kbd-act">Restablecer zoom</span></div>
+                <div class="kbd-item" role="listitem"><div class="kbd-keys"><span class="kbd-key">Del</span></div><span class="kbd-act">Eliminar</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div><!-- /settings-scroll -->
+
+    <!-- RIGHT PANEL -->
+    <aside class="info-panel" role="complementary" aria-label="Información sobre accesibilidad WCAG 2.1">
+
+      <div class="info-block">
+        <div class="info-lbl">✓ Certificación</div>
+        <div class="wcag-hero" role="img" aria-label="WCAG 2.1 Nivel AA — Conforme">
+          <div class="wcag-lv">AA</div>
+          <div class="wcag-tl">WCAG 2.1 — Nivel AA</div>
+          <div class="wcag-sb">Web Content Accessibility Guidelines</div>
+        </div>
+        <p style="font-size:12px;color:var(--text-secondary);line-height:1.65;">Esta aplicación implementa los 4 principios del estándar WCAG 2.1 nivel AA, garantizando accesibilidad para usuarios con discapacidades visuales, motoras y cognitivas.</p>
+      </div>
+
+      <div class="info-block">
+        <div class="info-lbl">📐 Principios POUR</div>
+        <div class="pour-grid" role="list">
+          <div class="pour-card p" role="listitem"><div class="pour-ltr">P</div><div class="pour-word">Perceptible</div><div class="pour-desc">Alt. texto, contraste ≥4.5:1, no solo color</div></div>
+          <div class="pour-card o" role="listitem"><div class="pour-ltr">O</div><div class="pour-word">Operable</div><div class="pour-desc">Teclado completo, foco visible 3px</div></div>
+          <div class="pour-card u" role="listitem"><div class="pour-ltr">U</div><div class="pour-word">Comprensible</div><div class="pour-desc">Etiquetas ARIA, mensajes claros</div></div>
+          <div class="pour-card r" role="listitem"><div class="pour-ltr">R</div><div class="pour-word">Robusto</div><div class="pour-desc">Compatible con NVDA, JAWS</div></div>
+        </div>
+      </div>
+
+      <div class="info-block">
+        <div class="info-lbl">🔊 Lectores de pantalla</div>
+        <div class="sr-list" role="list">
+          <div class="sr-item" role="listitem"><div class="sr-icon" aria-hidden="true">🖥</div><div style="flex:1;"><div class="sr-name">NVDA (Windows)</div><div class="sr-status" style="color:#81C784;"><div class="sr-dot" style="background:#4CAF50;" aria-hidden="true"></div>Compatible · Firefox</div></div></div>
+          <div class="sr-item" role="listitem"><div class="sr-icon" aria-hidden="true">🖥</div><div style="flex:1;"><div class="sr-name">JAWS (Windows)</div><div class="sr-status" style="color:#81C784;"><div class="sr-dot" style="background:#4CAF50;" aria-hidden="true"></div>Compatible · Chrome</div></div></div>
+          <div class="sr-item" role="listitem"><div class="sr-icon" aria-hidden="true">🍎</div><div style="flex:1;"><div class="sr-name">VoiceOver (macOS/iOS)</div><div class="sr-status" style="color:#FCD34D;"><div class="sr-dot" style="background:#F59E0B;" aria-hidden="true"></div>Parcialmente probado</div></div></div>
+          <div class="sr-item" role="listitem"><div class="sr-icon" aria-hidden="true">🤖</div><div style="flex:1;"><div class="sr-name">TalkBack (Android)</div><div class="sr-status" style="color:#FCD34D;"><div class="sr-dot" style="background:#F59E0B;" aria-hidden="true"></div>Parcialmente probado</div></div></div>
+        </div>
+      </div>
+
+      <div class="info-block">
+        <div class="info-lbl">🔬 Herramientas de evaluación</div>
+        <div class="tools-list" role="list">
+          <div class="tool-item" role="listitem"><div class="tool-icon" aria-hidden="true">🌊</div><div><div class="tool-name">WAVE</div><div class="tool-sub">Web Accessibility Evaluation Tool</div></div></div>
+          <div class="tool-item" role="listitem"><div class="tool-icon" aria-hidden="true">🔦</div><div><div class="tool-name">Lighthouse</div><div class="tool-sub">Chrome DevTools · Auditoría automática</div></div></div>
+          <div class="tool-item" role="listitem"><div class="tool-icon" aria-hidden="true">🎨</div><div><div class="tool-name">CCA</div><div class="tool-sub">Color Contrast Analyzer</div></div></div>
+        </div>
+      </div>
+
+      <div class="info-block">
+        <div class="info-lbl">🎯 Foco visible (WCAG 2.4.11)</div>
+        <div class="focus-wrap">
+          <button class="focus-btn" id="focusBtn" aria-label="Ejemplo visual del anillo de foco">Ejemplo con foco</button>
+          <code class="focus-code" id="focusCode">outline: 3px solid #1A6BBF;<br>outline-offset: 2px;<br>border-radius: 4px;</code>
+          <p style="font-size:11px;color:var(--text-muted);line-height:1.55;">Visible en todos los controles interactivos. Contraste ≥ 3:1 respecto al entorno.</p>
+        </div>
+      </div>
+
+    </aside>
+  </div>
+
+  <footer class="status-bar" role="contentinfo" aria-label="Estado de accesibilidad">
+    <span class="kbd-hint"><kbd class="kbd">Tab</kbd> Navegar</span>
+    <span class="kbd-hint"><kbd class="kbd">Espacio</kbd> Toggle</span>
+    <span class="kbd-hint"><kbd class="kbd">↑↓</kbd> Sliders</span>
+    <span class="kbd-hint"><kbd class="kbd">Esc</kbd> Volver</span>
+    <div class="status-bar__mid">
+      <div class="wcag-badge" role="status" aria-label="WCAG 2.1 AA Conforme">
+        <div class="wcag-badge__dot" aria-hidden="true"></div>
+        WCAG 2.1 AA · Conforme
+      </div>
+    </div>
+    <span style="font-size:10px;color:var(--text-muted);">Flutter: Scaffold › ListView(SettingSections)</span>
+    <span style="font-size:10px;color:var(--text-muted);font-family:monospace;" id="statusLive" aria-live="polite" aria-atomic="true"></span>
+  </footer>
+</div>
+
+<div class="flutter-overlay" id="flutterOverlay" aria-hidden="true">
+  <div class="flutter-box" style="top:0;left:0;right:0;height:52px;"><span class="flutter-tag">AppBar › Row</span></div>
+  <div class="flutter-box" style="top:52px;left:0;right:360px;bottom:36px;"><span class="flutter-tag">Expanded › SingleChildScrollView › Column(SettingsBlocks × 3)</span></div>
+  <div class="flutter-box" style="top:52px;right:0;width:360px;bottom:36px;"><span class="flutter-tag">SizedBox(w:360) › ListView(InfoBlocks)</span></div>
+  <div class="flutter-box" style="bottom:0;left:0;right:0;height:36px;"><span class="flutter-tag">BottomAppBar › Row</span></div>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+/* ACCENTS */
+const ACCENTS=[
+  {name:'Terracota',hex:'#C8741A',dark:'#A85E12'},
+  {name:'Cobalto',hex:'#1A6BBF',dark:'#1055A0'},
+  {name:'Esmeralda',hex:'#2E8B5A',dark:'#1E6B42'},
+  {name:'Púrpura',hex:'#7C3AED',dark:'#5B21B6'},
+  {name:'Carmín',hex:'#B91C1C',dark:'#991818'},
+  {name:'Dorado',hex:'#B58B00',dark:'#8A6800'},
+  {name:'Cian',hex:'#0891B2',dark:'#0670A0'},
+  {name:'Rosa',hex:'#BE185D',dark:'#9D1550'},
+];
+
+function hexRgb(h){return[parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)];}
+
+function buildAccents(){
+  const g=document.getElementById('accGroup');
+  g.innerHTML='';
+  ACCENTS.forEach((a,i)=>{
+    const s=document.createElement('div');
+    s.className='acc-sw'+(i===0?' on':'');
+    s.style.background=a.hex;
+    s.setAttribute('role','radio');
+    s.setAttribute('aria-checked',i===0?'true':'false');
+    s.setAttribute('tabindex',i===0?'0':'-1');
+    s.setAttribute('aria-label',`Acento ${a.name} — ${a.hex}`);
+    s.innerHTML='<span class="acc-sw__ck" aria-hidden="true">✓</span>';
+    s.addEventListener('click',()=>pickAccent(i));
+    s.addEventListener('keydown',e=>{
+      if(e.key==='Enter'||e.key===' '){e.preventDefault();pickAccent(i);}
+      const sw=g.querySelectorAll('.acc-sw');
+      if(e.key==='ArrowRight') sw[Math.min(i+1,sw.length-2)].focus();
+      if(e.key==='ArrowLeft')  sw[Math.max(i-1,0)].focus();
+    });
+    g.appendChild(s);
+  });
+  // Custom color
+  const cw=document.createElement('div');
+  cw.className='custom-wrap';
+  const ci=document.createElement('input');
+  ci.type='color'; ci.value='#C8741A';
+  ci.setAttribute('aria-label','Color de acento personalizado');
+  const cl=document.createElement('span');
+  cl.className='custom-lbl'; cl.textContent='Personalizado';
+  cw.appendChild(ci); cw.appendChild(cl);
+  g.appendChild(cw);
+  ci.addEventListener('input',function(){
+    applyAccent({name:'Personalizado',hex:this.value,dark:this.value});
+    g.querySelectorAll('.acc-sw').forEach(s=>{s.classList.remove('on');s.setAttribute('aria-checked','false');});
+    setLive(`Color personalizado: ${this.value}`);
+  });
+}
+
+function pickAccent(i){
+  const g=document.getElementById('accGroup');
+  g.querySelectorAll('.acc-sw').forEach((s,j)=>{
+    s.classList.toggle('on',j===i);
+    s.setAttribute('aria-checked',j===i?'true':'false');
+    s.setAttribute('tabindex',j===i?'0':'-1');
+  });
+  applyAccent(ACCENTS[i]);
+}
+
+function applyAccent(a){
+  const r=document.documentElement;
+  r.style.setProperty('--brand-terra',a.hex);
+  r.style.setProperty('--brand-terra2',a.dark||a.hex);
+  const [rv,gv,bv]=hexRgb(a.hex);
+  r.style.setProperty('--border-accent',`rgba(${rv},${gv},${bv},0.35)`);
+  document.getElementById('apP').style.background=a.hex;
+  document.getElementById('apS').style.borderColor=a.hex;
+  document.getElementById('apS').style.color=a.hex;
+  document.getElementById('apB').style.color=a.hex;
+  document.getElementById('apB').style.borderColor=`rgba(${rv},${gv},${bv},0.25)`;
+  document.getElementById('apB').style.background=`rgba(${rv},${gv},${bv},0.12)`;
+  document.getElementById('apHex').textContent=a.hex;
+  document.getElementById('appMark').style.background=a.hex;
+  document.getElementById('bcCurrent').style.color=a.hex;
+  document.getElementById('iconAcc').style.color=a.hex;
+  document.getElementById('focusBtn').style.background=a.hex;
+  document.querySelectorAll('.slider-val,.section-heading__badge').forEach(el=>el.style.color=a.hex);
+  document.querySelectorAll('.slider-card::before').forEach(el=>{}); // handled via CSS var
+  showToast(`Acento: ${a.name||a.hex}`);
+  setLive(`Color de acento: ${a.name||a.hex}`);
+}
+
+/* CONTRASTE */
+const CONTRAST_LVL=[
+  {lbl:'Bajo',   surf:'#1A2E42',card:'#243848',txt:'#B0B8C4',mut:'#6A8090'},
+  {lbl:'Normal', surf:'#0D1B2A',card:'#162E45',txt:'#F0EDE8',mut:'#5B7A99'},
+  {lbl:'Medio',  surf:'#0A1520',card:'#112233',txt:'#F5F2EE',mut:'#7090A8'},
+  {lbl:'Alto',   surf:'#060E18',card:'#0C1B2E',txt:'#FAFAFA',mut:'#90A8C0'},
+  {lbl:'Máximo', surf:'#000000',card:'#0A0A0A',txt:'#FFFFFF',mut:'#BBBBBB'},
+];
+const slC=document.getElementById('slC');
+slC.addEventListener('input',function(){
+  const lv=CONTRAST_LVL[+this.value-1];
+  document.getElementById('valC').textContent=this.value;
+  this.setAttribute('aria-valuenow',this.value);
+  this.setAttribute('aria-valuetext',`Contraste ${lv.lbl} nivel ${this.value}`);
+  const r=document.documentElement;
+  r.style.setProperty('--surface-dark',lv.surf);
+  r.style.setProperty('--surface-panel',lv.card);
+  r.style.setProperty('--surface-card',lv.card);
+  r.style.setProperty('--text-primary',lv.txt);
+  r.style.setProperty('--text-muted',lv.mut);
+  document.querySelectorAll('.tick').forEach((t,i)=>t.classList.toggle('on',i+1===+this.value));
+  const pv=document.getElementById('pvC');
+  pv.style.background=lv.card;
+  document.getElementById('pvCMain').style.color=lv.txt;
+  document.getElementById('pvCSub').style.color=lv.mut;
+  setLive(`Contraste: ${lv.lbl}`);
+});
+document.getElementById('rstC').addEventListener('click',()=>{slC.value=3;slC.dispatchEvent(new Event('input'));showToast('Contraste restablecido');});
+
+/* TAMAÑO FUENTE */
+const slF=document.getElementById('slF');
+slF.addEventListener('input',function(){
+  const sz=+this.value;
+  document.getElementById('valF').textContent=sz+' px';
+  this.setAttribute('aria-valuenow',sz);
+  this.setAttribute('aria-valuetext',sz+' píxeles');
+  document.documentElement.style.setProperty('--font-size-base',sz+'px');
+  document.getElementById('bodyEl').style.fontSize=sz+'px';
+  document.getElementById('pvFMain').style.fontSize=sz+'px';
+  document.getElementById('pvFSub').style.fontSize=Math.max(10,sz-3)+'px';
+  const TICKS=[12,14,16,18,22];
+  document.querySelectorAll('#slF~.tick-row .tick').forEach((t,i)=>t.classList.toggle('on',TICKS[i]===sz));
+  setLive(`Letra: ${sz} px`);
+});
+document.getElementById('rstF').addEventListener('click',()=>{slF.value=14;slF.dispatchEvent(new Event('input'));showToast('Tamaño restablecido a 14 px');});
+
+/* REDUCIR MOVIMIENTO */
+const cardMov=document.getElementById('cardMov');
+const chkMov=document.getElementById('chkMov');
+let movOn=false;
+function toggleMov(){
+  movOn=!movOn;
+  cardMov.classList.toggle('on',movOn);
+  cardMov.setAttribute('aria-checked',movOn?'true':'false');
+  chkMov.checked=movOn;
+  document.getElementById('bodyEl').classList.toggle('rm',movOn);
+  showToast(movOn?'Movimiento reducido':'Movimiento normal');
+  setLive(movOn?'Reducir movimiento activado':'Reducir movimiento desactivado');
+}
+cardMov.addEventListener('click',toggleMov);
+cardMov.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();toggleMov();}});
+if(window.matchMedia('(prefers-reduced-motion: reduce)').matches) toggleMov();
+
+/* CVD */
+const CVD_MTX={
+  protan:[[.567,.433,0,0,0],[.558,.442,0,0,0],[0,.242,.758,0,0],[0,0,0,1,0]],
+  deuter:[[.625,.375,0,0,0],[.7,.3,0,0,0],[0,.3,.7,0,0],[0,0,0,1,0]],
+  tritan:[[.95,.05,0,0,0],[0,.433,.567,0,0],[0,.475,.525,0,0],[0,0,0,1,0]],
+};
+const SC=['#C8741A','#4A9EBF','#2E6E4E','#D4A843','#B91C1C'];
+function h2r(h){return[parseInt(h.slice(1,3),16)/255,parseInt(h.slice(3,5),16)/255,parseInt(h.slice(5,7),16)/255];}
+function r2h(r,g,b){const c=v=>Math.min(255,Math.max(0,Math.round(v*255))).toString(16).padStart(2,'0');return'#'+c(r)+c(g)+c(b);}
+function apMtx(hex,m){const[r,g,b]=h2r(hex);return r2h(m[0][0]*r+m[0][1]*g+m[0][2]*b,m[1][0]*r+m[1][1]*g+m[1][2]*b,m[2][0]*r+m[2][1]*g+m[2][2]*b);}
+function buildStrip(id,key){
+  const el=document.getElementById(id);
+  if(!el)return;
+  el.innerHTML='';
+  SC.forEach(c=>{const s=document.createElement('div');s.className='cvd-sw';s.style.background=apMtx(c,CVD_MTX[key]);el.appendChild(s);});
+}
+document.querySelectorAll('.cvd-card').forEach(card=>{
+  card.addEventListener('click',()=>pickCVD(card.dataset.cvd));
+  card.addEventListener('keydown',e=>{
+    if(e.key==='Enter'||e.key===' '){e.preventDefault();pickCVD(card.dataset.cvd);}
+    const cards=[...document.querySelectorAll('.cvd-card')];
+    const i=cards.indexOf(card);
+    if(e.key==='ArrowRight'||e.key==='ArrowDown'){e.preventDefault();cards[(i+1)%cards.length].focus();}
+    if(e.key==='ArrowLeft'||e.key==='ArrowUp'){e.preventDefault();cards[(i+3)%cards.length].focus();}
+  });
+});
+const CVD_N={normal:'Normal',protan:'Protanopía',deuter:'Deuteranopía',tritan:'Tritanopía'};
+function pickCVD(k){
+  document.querySelectorAll('.cvd-card').forEach(c=>{
+    const a=c.dataset.cvd===k;
+    c.classList.toggle('on',a);
+    c.setAttribute('aria-checked',a?'true':'false');
+    c.setAttribute('tabindex',a?'0':'-1');
+  });
+  showToast(`CVD: ${CVD_N[k]}`);
+  setLive(`Simulación CVD: ${CVD_N[k]}`);
+}
+
+/* FLUTTER */
+document.getElementById('btnFlutter').addEventListener('click',function(){
+  const a=this.getAttribute('aria-pressed')==='true';
+  this.setAttribute('aria-pressed',!a);this.classList.toggle('active',!a);
+  const o=document.getElementById('flutterOverlay');
+  o.classList.toggle('visible',!a);o.setAttribute('aria-hidden',a?'true':'false');
+  setLive(a?'Flutter oculto':'Flutter visible');
+});
+
+/* KBD */
+document.addEventListener('keydown',e=>{if(e.key==='Escape')document.getElementById('btnBack').click();});
+document.getElementById('btnBack').addEventListener('click',()=>{showToast('← Volviendo...');setLive('Navegando al Dashboard');});
+
+/* TOAST + LIVE */
+let tt=null;
+function showToast(m){const el=document.getElementById('toast');el.textContent=m;el.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>el.classList.remove('show'),2600);}
+function setLive(m){const el=document.getElementById('statusLive');el.textContent='';requestAnimationFrame(()=>{el.textContent=m;});}
+
+/* INIT */
+buildAccents();
+buildStrip('sp','protan');
+buildStrip('sd','deuter');
+buildStrip('st','tritan');
+</script>
+</body>
+</html>

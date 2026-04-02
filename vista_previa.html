@@ -1,0 +1,2195 @@
+<!DOCTYPE html>
+<html lang="es" dir="ltr">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mexicana de Mosaicos — Vista Previa Avanzada</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap"
+    rel="stylesheet" />
+  <style>
+    /* ═══════════════════════════════════════
+   DESIGN TOKENS
+═══════════════════════════════════════ */
+    :root {
+      --brand-navy: #0D1B2A;
+      --brand-cobalt: #1A4B8C;
+      --brand-cobalt2: #1E5FAD;
+      --brand-terra: #C8741A;
+      --brand-terra2: #A85E12;
+      --brand-gold: #D4A843;
+      --brand-stone: #F5F2EC;
+      --brand-stone2: #EDE9E0;
+      --brand-green: #2E6E4E;
+
+      --surface-dark: #0D1B2A;
+      --surface-panel: #112236;
+      --surface-card: #162E45;
+      --surface-hover: #1E3A54;
+      --surface-deep: #0A1520;
+
+      --text-primary: #F0EDE8;
+      --text-secondary: #94A3B8;
+      --text-muted: #5B7A99;
+      --text-dark: #1A1A2E;
+      --text-dark-sec: #4A5568;
+
+      --border-subtle: rgba(255, 255, 255, 0.06);
+      --border-panel: rgba(255, 255, 255, 0.10);
+      --border-accent: rgba(200, 116, 26, 0.35);
+
+      --focus-ring: #1A6BBF;
+      --focus-shadow: 0 0 0 3px rgba(26, 107, 191, 0.5);
+
+      --sp-xs: 4px;
+      --sp-sm: 8px;
+      --sp-md: 16px;
+      --sp-lg: 24px;
+      --sp-xl: 32px;
+
+      --r-sm: 4px;
+      --r-md: 8px;
+      --r-lg: 12px;
+      --r-xl: 16px;
+      --r-2xl: 24px;
+      --r-full: 9999px;
+
+      --font-display: 'Syne', sans-serif;
+      --font-body: 'DM Sans', sans-serif;
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html,
+    body {
+      height: 100%;
+      overflow: hidden;
+    }
+
+    body {
+      font-family: var(--font-body);
+      background: var(--surface-dark);
+      color: var(--text-primary);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    :focus-visible {
+      outline: 3px solid var(--focus-ring);
+      outline-offset: 2px;
+      border-radius: var(--r-sm);
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    ::-webkit-scrollbar {
+      width: 3px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--surface-hover);
+      border-radius: 2px;
+    }
+
+    /* ══════════════════════════════════════
+   APP SHELL
+   Flutter: Scaffold
+   grid: AppBar | Main(Row) | StatusBar
+══════════════════════════════════════ */
+    .app-shell {
+      display: grid;
+      grid-template-rows: 52px 1fr 36px;
+      height: 100vh;
+      width: 100vw;
+    }
+
+    /* ══════════════════════════════════════
+   APP BAR
+══════════════════════════════════════ */
+    .app-bar {
+      grid-row: 1;
+      background: var(--surface-panel);
+      border-bottom: 1px solid var(--border-panel);
+      display: flex;
+      align-items: center;
+      padding: 0 var(--sp-lg);
+      gap: var(--sp-md);
+      z-index: 20;
+      flex-shrink: 0;
+    }
+
+    .app-bar__logo {
+      display: flex;
+      align-items: center;
+      gap: var(--sp-sm);
+      text-decoration: none;
+      flex-shrink: 0;
+    }
+
+    .app-bar__mark {
+      width: 32px;
+      height: 32px;
+      background: var(--brand-terra);
+      border-radius: var(--r-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-display);
+      font-size: 15px;
+      font-weight: 800;
+      color: #fff;
+    }
+
+    .app-bar__name {
+      font-family: var(--font-display);
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .app-bar__sub {
+      font-size: 9px;
+      color: var(--text-muted);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .app-bar__div {
+      width: 1px;
+      height: 24px;
+      background: var(--border-panel);
+      flex-shrink: 0;
+    }
+
+    .app-bar__spacer {
+      flex: 1;
+    }
+
+    .breadcrumb {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    .breadcrumb a {
+      color: var(--text-secondary);
+      text-decoration: none;
+      transition: color 0.15s;
+    }
+
+    .breadcrumb a:hover {
+      color: var(--text-primary);
+    }
+
+    .breadcrumb__sep {
+      color: var(--text-muted);
+      font-size: 10px;
+    }
+
+    .breadcrumb__current {
+      color: var(--brand-terra);
+      font-weight: 500;
+    }
+
+    .btn-back {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 12px;
+      background: var(--surface-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--r-md);
+      color: var(--text-secondary);
+      font-family: var(--font-body);
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .btn-back:hover {
+      background: var(--surface-hover);
+      color: var(--text-primary);
+      border-color: var(--border-accent);
+    }
+
+    .a11y-btn {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 5px 10px;
+      background: transparent;
+      border: 1px solid var(--border-panel);
+      border-radius: var(--r-sm);
+      color: var(--text-secondary);
+      font-family: var(--font-body);
+      font-size: 11px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .a11y-btn:hover,
+    .a11y-btn.active {
+      background: var(--surface-hover);
+      color: var(--text-primary);
+      border-color: var(--border-accent);
+    }
+
+    .a11y-btn.active {
+      color: var(--brand-terra);
+    }
+
+    .user-avatar {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: var(--brand-cobalt);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 600;
+      color: #fff;
+      cursor: pointer;
+    }
+
+    /* ══════════════════════════════════════
+   MAIN LAYOUT
+   Flutter: Scaffold › Row(ControlPanel + Expanded(Canvas))
+══════════════════════════════════════ */
+    .main-layout {
+      grid-row: 2;
+      display: grid;
+      grid-template-columns: 290px 1fr;
+      overflow: hidden;
+    }
+
+    /* ══════════════════════════════════════
+   LEFT CONTROL PANEL
+   Flutter: SizedBox(w:290) › ListView
+══════════════════════════════════════ */
+    .control-panel {
+      background: var(--surface-panel);
+      border-right: 1px solid var(--border-panel);
+      overflow-y: auto;
+      overflow-x: hidden;
+      display: flex;
+      flex-direction: column;
+      scrollbar-width: thin;
+      scrollbar-color: var(--surface-hover) transparent;
+    }
+
+    .cp-section {
+      padding: 12px var(--sp-md);
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .cp-section:last-child {
+      border-bottom: none;
+    }
+
+    .cp-label {
+      font-family: var(--font-display);
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.13em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .cp-label__hint {
+      font-size: 9px;
+      color: var(--text-muted);
+      background: var(--surface-card);
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-family: monospace;
+      font-weight: 400;
+    }
+
+    /* ── Slider row ── */
+    .slider-row {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 4px;
+    }
+
+    .slider-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .slider-label {
+      font-size: 11px;
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+
+    .slider-val {
+      font-family: var(--font-display);
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--brand-terra);
+      min-width: 48px;
+      text-align: right;
+    }
+
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 4px;
+      background: var(--surface-hover);
+      border-radius: 2px;
+      outline: none;
+      cursor: pointer;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 16px;
+      height: 16px;
+      background: var(--brand-terra);
+      border-radius: 50%;
+      border: 2px solid var(--surface-panel);
+      cursor: pointer;
+      transition: transform 0.1s;
+    }
+
+    input[type="range"]::-webkit-slider-thumb:hover {
+      transform: scale(1.2);
+    }
+
+    input[type="range"]:focus-visible::-webkit-slider-thumb {
+      box-shadow: var(--focus-shadow);
+    }
+
+    .slider-note {
+      font-size: 9px;
+      color: var(--text-muted);
+    }
+
+    /* ── Color de junta ── */
+    .grout-color-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 8px;
+    }
+
+    .grout-preview {
+      width: 32px;
+      height: 32px;
+      border-radius: var(--r-sm);
+      border: 2px solid rgba(255, 255, 255, 0.15);
+      flex-shrink: 0;
+      transition: background 0.25s;
+    }
+
+    .grout-chips {
+      display: flex;
+      gap: 5px;
+      flex-wrap: wrap;
+      flex: 1;
+    }
+
+    .grout-chip {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      border: 2px solid transparent;
+      cursor: pointer;
+      transition: all 0.15s;
+      flex-shrink: 0;
+    }
+
+    .grout-chip:hover {
+      transform: scale(1.15);
+    }
+
+    .grout-chip.active {
+      border-color: #fff;
+      box-shadow: 0 0 0 2px var(--brand-terra);
+    }
+
+    /* ── Acabado toggle ── */
+    .acabado-toggle {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+    }
+
+    .acabado-btn {
+      padding: 10px 8px;
+      background: var(--surface-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--r-md);
+      cursor: pointer;
+      transition: all 0.18s;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      font-family: var(--font-body);
+    }
+
+    .acabado-btn:hover {
+      background: var(--surface-hover);
+      border-color: rgba(200, 116, 26, 0.25);
+    }
+
+    .acabado-btn.active {
+      background: rgba(200, 116, 26, 0.12);
+      border-color: var(--brand-terra);
+    }
+
+    .acabado-btn__icon {
+      font-size: 20px;
+    }
+
+    .acabado-btn__label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+
+    .acabado-btn.active .acabado-btn__label {
+      color: var(--brand-terra);
+    }
+
+    .acabado-btn__sub {
+      font-size: 9px;
+      color: var(--text-muted);
+    }
+
+    /* ── Incrustaciones ── */
+    .incrust-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+    }
+
+    .incrust-btn {
+      padding: 8px 4px;
+      background: var(--surface-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--r-md);
+      cursor: pointer;
+      transition: all 0.18s;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      font-family: var(--font-body);
+      position: relative;
+    }
+
+    .incrust-btn:hover {
+      background: var(--surface-hover);
+      border-color: rgba(200, 116, 26, 0.25);
+    }
+
+    .incrust-btn.active {
+      background: rgba(200, 116, 26, 0.12);
+      border-color: var(--brand-terra);
+    }
+
+    .incrust-btn.active::after {
+      content: '✓';
+      position: absolute;
+      top: 3px;
+      right: 5px;
+      font-size: 8px;
+      color: var(--brand-terra);
+      font-weight: 700;
+    }
+
+    .incrust-btn__icon {
+      font-size: 18px;
+    }
+
+    .incrust-btn__label {
+      font-size: 9px;
+      color: var(--text-secondary);
+      text-align: center;
+    }
+
+    .incrust-btn.active .incrust-btn__label {
+      color: var(--brand-terra);
+    }
+
+    /* Densidad (visible solo si hay incrustaciones) */
+    .density-row {
+      margin-top: 10px;
+      overflow: hidden;
+      max-height: 0;
+      transition: max-height 0.35s ease, opacity 0.3s ease, margin 0.3s ease;
+      opacity: 0;
+    }
+
+    .density-row.visible {
+      max-height: 80px;
+      opacity: 1;
+    }
+
+    /* ── Vista en ambiente ── */
+    .ambiente-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+    }
+
+    .ambiente-btn {
+      background: var(--surface-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--r-md);
+      overflow: hidden;
+      cursor: pointer;
+      transition: all 0.18s;
+      position: relative;
+    }
+
+    .ambiente-btn:hover {
+      border-color: rgba(200, 116, 26, 0.35);
+      transform: translateY(-1px);
+    }
+
+    .ambiente-btn.active {
+      border-color: var(--brand-terra);
+      box-shadow: 0 0 0 1px rgba(200, 116, 26, 0.2);
+    }
+
+    .ambiente-btn.active::after {
+      content: '✓';
+      position: absolute;
+      top: 3px;
+      right: 5px;
+      font-size: 8px;
+      color: var(--brand-terra);
+      font-weight: 700;
+      background: rgba(13, 27, 42, 0.7);
+      border-radius: 50%;
+      width: 14px;
+      height: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .ambiente-thumb {
+      width: 100%;
+      height: 38px;
+      overflow: hidden;
+    }
+
+    .ambiente-thumb canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .ambiente-label {
+      padding: 4px;
+      font-size: 9px;
+      color: var(--text-muted);
+      text-align: center;
+      font-weight: 500;
+    }
+
+    .ambiente-btn.active .ambiente-label {
+      color: var(--brand-terra);
+    }
+
+    /* ══════════════════════════════════════
+   CANVAS AREA
+   Flutter: Expanded › Stack
+══════════════════════════════════════ */
+    .canvas-area {
+      background: #060F1A;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* Toolbar */
+    .canvas-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px var(--sp-md);
+      background: rgba(11, 22, 36, 0.92);
+      border-bottom: 1px solid var(--border-subtle);
+      backdrop-filter: blur(4px);
+      z-index: 5;
+      flex-shrink: 0;
+    }
+
+    .canvas-toolbar__left,
+    .canvas-toolbar__right {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .toolbar-btn {
+      width: 30px;
+      height: 30px;
+      background: var(--surface-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--r-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: var(--text-secondary);
+      font-size: 13px;
+      transition: all 0.15s;
+    }
+
+    .toolbar-btn:hover {
+      background: var(--surface-hover);
+      color: var(--text-primary);
+    }
+
+    .toolbar-btn.active {
+      background: rgba(200, 116, 26, 0.2);
+      border-color: var(--brand-terra);
+      color: var(--brand-terra);
+    }
+
+    .zoom-indicator {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-family: monospace;
+      padding: 4px 8px;
+      background: var(--surface-card);
+      border-radius: var(--r-sm);
+      border: 1px solid var(--border-subtle);
+    }
+
+    .live-badge {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 10px;
+      color: #4CAF50;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .live-badge::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #4CAF50;
+      animation: blink 1.5s infinite;
+    }
+
+    @keyframes blink {
+
+      0%,
+      100% {
+        opacity: 1
+      }
+
+      50% {
+        opacity: 0.3
+      }
+    }
+
+    /* Canvas viewport */
+    .canvas-viewport {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      position: relative;
+      cursor: crosshair;
+    }
+
+    /* Dot grid background */
+    .canvas-viewport::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: radial-gradient(circle, rgba(255, 255, 255, 0.06) 1px, transparent 1px);
+      background-size: 28px 28px;
+      pointer-events: none;
+    }
+
+    /* Mosaic stage — el contenedor que se puede hacer zoom/drag */
+    .mosaic-stage {
+      position: relative;
+      transform-origin: center center;
+      transition: transform 0.2s ease;
+      user-select: none;
+    }
+
+    /* Main canvas de la cuadrícula */
+    #mosaicCanvas {
+      display: block;
+      border-radius: var(--r-md);
+      box-shadow:
+        0 0 0 1px rgba(255, 255, 255, 0.08),
+        0 24px 64px rgba(0, 0, 0, 0.7),
+        0 0 80px rgba(200, 116, 26, 0.06);
+      cursor: grab;
+    }
+
+    #mosaicCanvas:active {
+      cursor: grabbing;
+    }
+
+    /* Ambiente overlay (fondo foto) */
+    .ambiente-overlay {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.5s ease;
+      z-index: -1;
+      border-radius: var(--r-md);
+      background-size: cover;
+      background-position: center;
+    }
+
+    .ambiente-overlay.visible {
+      opacity: 1;
+    }
+
+    /* Zoom controls floating */
+    .zoom-controls {
+      position: absolute;
+      bottom: 16px;
+      right: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      z-index: 10;
+    }
+
+    .zoom-fab {
+      width: 36px;
+      height: 36px;
+      background: rgba(22, 46, 69, 0.92);
+      border: 1px solid var(--border-panel);
+      border-radius: var(--r-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: var(--text-secondary);
+      font-size: 16px;
+      transition: all 0.15s;
+      backdrop-filter: blur(4px);
+    }
+
+    .zoom-fab:hover {
+      background: var(--surface-hover);
+      color: var(--text-primary);
+      border-color: var(--border-accent);
+    }
+
+    /* ── Bottom CTA bar ── */
+    .cta-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px var(--sp-lg);
+      background: rgba(11, 22, 36, 0.94);
+      border-top: 1px solid var(--border-subtle);
+      backdrop-filter: blur(4px);
+      flex-shrink: 0;
+      z-index: 5;
+    }
+
+    .cta-bar__info {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .cta-bar__config {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-primary);
+    }
+
+    .cta-bar__specs {
+      font-size: 10px;
+      color: var(--text-muted);
+      font-family: monospace;
+    }
+
+    .btn-cta-primary {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 11px 20px;
+      background: var(--brand-terra);
+      border: none;
+      border-radius: var(--r-md);
+      font-family: var(--font-display);
+      font-size: 12px;
+      font-weight: 700;
+      color: #fff;
+      cursor: pointer;
+      transition: all 0.18s;
+      white-space: nowrap;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn-cta-primary:hover {
+      background: var(--brand-terra2);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(200, 116, 26, 0.35);
+    }
+
+    .btn-cta-primary::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.08), transparent);
+      transform: translateX(-100%);
+      transition: transform 0.5s;
+    }
+
+    .btn-cta-primary:hover::after {
+      transform: translateX(100%);
+    }
+
+    .btn-cta-secondary {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 11px 16px;
+      background: transparent;
+      border: 1px solid var(--border-panel);
+      border-radius: var(--r-md);
+      font-family: var(--font-body);
+      font-size: 12px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+
+    .btn-cta-secondary:hover {
+      background: var(--surface-hover);
+      color: var(--text-primary);
+      border-color: var(--border-accent);
+    }
+
+    /* ══════════════════════════════════════
+   STATUS BAR
+══════════════════════════════════════ */
+    .status-bar {
+      grid-row: 3;
+      background: var(--surface-panel);
+      border-top: 1px solid var(--border-panel);
+      display: flex;
+      align-items: center;
+      gap: var(--sp-md);
+      padding: 0 var(--sp-lg);
+      flex-shrink: 0;
+    }
+
+    .kbd-hint {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 10px;
+      color: var(--text-muted);
+    }
+
+    .kbd {
+      padding: 1px 5px;
+      background: var(--surface-card);
+      border: 1px solid var(--border-panel);
+      border-radius: 3px;
+      font-family: monospace;
+      font-size: 9px;
+      color: var(--text-secondary);
+    }
+
+    .status-bar__mid {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+    }
+
+    .wcag-badge {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 10px;
+      color: #4CAF50;
+      font-weight: 600;
+    }
+
+    .wcag-badge__dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #4CAF50;
+      animation: wpulse 2.5s ease-in-out infinite;
+    }
+
+    @keyframes wpulse {
+
+      0%,
+      100% {
+        box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.4)
+      }
+
+      50% {
+        box-shadow: 0 0 0 4px rgba(76, 175, 80, 0)
+      }
+    }
+
+    .status-live {
+      font-size: 10px;
+      color: var(--text-muted);
+      font-family: monospace;
+    }
+
+    /* ══════════════════════════════════════
+   FLUTTER OVERLAY
+══════════════════════════════════════ */
+    .flutter-overlay {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 100;
+      display: none;
+    }
+
+    .flutter-overlay.visible {
+      display: block;
+    }
+
+    .flutter-box {
+      position: absolute;
+      border: 1.5px dashed rgba(100, 200, 255, 0.45);
+      border-radius: 2px;
+    }
+
+    .flutter-tag {
+      position: absolute;
+      top: -18px;
+      left: 0;
+      background: rgba(0, 140, 255, 0.88);
+      color: #fff;
+      font-size: 9px;
+      font-family: monospace;
+      padding: 1px 6px;
+      border-radius: 3px;
+      white-space: nowrap;
+    }
+
+    /* TOAST */
+    .toast {
+      position: fixed;
+      bottom: 52px;
+      left: 50%;
+      transform: translateX(-50%) translateY(16px);
+      background: var(--surface-card);
+      border: 1px solid var(--border-panel);
+      border-radius: var(--r-lg);
+      padding: 10px 20px;
+      font-size: 12px;
+      color: var(--text-primary);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.25s;
+      z-index: 50;
+      white-space: nowrap;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- ════════════════════════════════════════
+     Flutter: Scaffold
+════════════════════════════════════════ -->
+  <div class="app-shell" role="application" aria-label="Vista Previa Avanzada — Mexicana de Mosaicos">
+
+    <!-- ══ APP BAR ══ -->
+    <header class="app-bar" role="banner">
+      <a class="app-bar__logo" href="#" aria-label="Inicio — Mexicana de Mosaicos">
+        <div class="app-bar__mark" aria-hidden="true">M</div>
+        <div>
+          <div class="app-bar__name">Mexicana de Mosaicos</div>
+          <div class="app-bar__sub">Sistema privado</div>
+        </div>
+      </a>
+      <div class="app-bar__div" aria-hidden="true"></div>
+
+      <nav class="breadcrumb" aria-label="Ruta de navegación">
+        <a href="#">Inicio</a>
+        <span class="breadcrumb__sep" aria-hidden="true">›</span>
+        <a href="#">Configurador</a>
+        <span class="breadcrumb__sep" aria-hidden="true">›</span>
+        <span class="breadcrumb__current" aria-current="page">Vista Previa Avanzada</span>
+      </nav>
+
+      <div class="app-bar__spacer"></div>
+      <button class="btn-back" id="btnBack" aria-label="Volver al configurador">← Configurador</button>
+      <div class="app-bar__div" aria-hidden="true"></div>
+
+      <div role="group" aria-label="Controles de accesibilidad" style="display:flex;gap:4px;">
+        <button class="a11y-btn" id="btnContrast" aria-pressed="false" aria-label="Activar alto contraste">
+          <span aria-hidden="true">◑</span> Contraste
+        </button>
+        <button class="a11y-btn" id="btnFlutter" aria-pressed="false" aria-label="Mostrar anotaciones Flutter">
+          <span aria-hidden="true">⬡</span> Flutter
+        </button>
+      </div>
+      <div class="app-bar__div" aria-hidden="true"></div>
+      <div class="user-avatar" role="img" aria-label="Usuario: HG" title="Hannia G.">HG</div>
+    </header>
+
+    <!-- ══ MAIN LAYOUT ══ -->
+    <main class="main-layout" role="main">
+
+      <!-- LEFT — Control Panel -->
+      <aside class="control-panel" role="complementary" aria-label="Panel de controles de la vista previa avanzada">
+
+        <!-- ─── 1. ANCHO DE JUNTA ─── -->
+        <div class="cp-section">
+          <div class="cp-label">
+            Ancho de junta
+            <span class="cp-label__hint">0–20 mm</span>
+          </div>
+          <div class="slider-row">
+            <div class="slider-header">
+              <label class="slider-label" for="sliderJunta">Separación entre piezas</label>
+              <span class="slider-val" id="juntaVal" aria-live="polite">5 mm</span>
+            </div>
+            <input type="range" id="sliderJunta" min="0" max="20" value="5" step="1"
+              aria-label="Ancho de junta entre mosaicos en milímetros" aria-valuemin="0" aria-valuemax="20"
+              aria-valuenow="5" aria-valuetext="5 milímetros" />
+            <span class="slider-note">0 = sin junta · 20 mm = junta máxima</span>
+          </div>
+        </div>
+
+        <!-- ─── 2. COLOR DE JUNTA ─── -->
+        <div class="cp-section">
+          <div class="cp-label">Color de junta (lechada)</div>
+          <div class="grout-color-row">
+            <div class="grout-preview" id="groutPreview" aria-label="Color de junta seleccionado"
+              style="background:#D4CFC8;"></div>
+            <div class="grout-chips" role="radiogroup" aria-label="Seleccionar color de lechada" id="groutChips">
+              <!-- Renderizado por JS -->
+            </div>
+          </div>
+          <div style="margin-top:8px;font-size:10px;color:var(--text-muted);" id="groutColorName" aria-live="polite">
+            Lechada: Gris Arena · #D4CFC8
+          </div>
+        </div>
+
+        <!-- ─── 3. ACABADO SUPERFICIAL ─── -->
+        <div class="cp-section">
+          <div class="cp-label">Acabado superficial</div>
+          <div class="acabado-toggle" role="radiogroup" aria-label="Seleccionar acabado superficial del mosaico">
+            <button class="acabado-btn active" data-acabado="pulido" role="radio" aria-checked="true"
+              aria-label="Acabado Pulido — superficie brillante, espejo">
+              <span class="acabado-btn__icon" aria-hidden="true">✨</span>
+              <span class="acabado-btn__label">Pulido</span>
+              <span class="acabado-btn__sub">Brillante · 400 grit</span>
+            </button>
+            <button class="acabado-btn" data-acabado="mate" role="radio" aria-checked="false"
+              aria-label="Acabado Mate — superficie difusa, antideslizante">
+              <span class="acabado-btn__icon" aria-hidden="true">🪨</span>
+              <span class="acabado-btn__label">Mate</span>
+              <span class="acabado-btn__sub">Difuso · antideslizante</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- ─── 4. INCRUSTACIONES ─── -->
+        <div class="cp-section">
+          <div class="cp-label">
+            Granos de mármol
+            <span class="cp-label__hint" id="incrusCount">0 sel.</span>
+          </div>
+          <div class="incrust-grid" role="group" aria-label="Seleccionar tipo de grano de mármol para incrustaciones"
+            id="incrusGrid">
+            <button class="incrust-btn" data-incrust="blanco" aria-pressed="false"
+              aria-label="Grano de mármol Blanco Carrara">
+              <span class="incrust-btn__icon" aria-hidden="true"
+                style="font-size:14px;width:22px;height:22px;background:#F0EDE6;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,0.2);"></span>
+              <span class="incrust-btn__label">Blanco<br><span
+                  style="font-size:8px;color:var(--text-muted);">Carrara</span></span>
+            </button>
+            <button class="incrust-btn" data-incrust="gris" aria-pressed="false"
+              aria-label="Grano de mármol Gris Marquina">
+              <span class="incrust-btn__icon" aria-hidden="true"
+                style="font-size:14px;width:22px;height:22px;background:#7A7A7A;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,0.15);"></span>
+              <span class="incrust-btn__label">Gris<br><span
+                  style="font-size:8px;color:var(--text-muted);">Marquina</span></span>
+            </button>
+            <button class="incrust-btn" data-incrust="negro" aria-pressed="false"
+              aria-label="Grano de mármol Negro Absoluto">
+              <span class="incrust-btn__icon" aria-hidden="true"
+                style="font-size:14px;width:22px;height:22px;background:#1A1A1A;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,0.1);"></span>
+              <span class="incrust-btn__label">Negro<br><span
+                  style="font-size:8px;color:var(--text-muted);">Absoluto</span></span>
+            </button>
+            <button class="incrust-btn" data-incrust="rosa" aria-pressed="false"
+              aria-label="Grano de mármol Rosa Portugal">
+              <span class="incrust-btn__icon" aria-hidden="true"
+                style="font-size:14px;width:22px;height:22px;background:#C4907A;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,0.15);"></span>
+              <span class="incrust-btn__label">Rosa<br><span
+                  style="font-size:8px;color:var(--text-muted);">Portugal</span></span>
+            </button>
+            <button class="incrust-btn" data-incrust="verde" aria-pressed="false"
+              aria-label="Grano de mármol Verde Guatemala">
+              <span class="incrust-btn__icon" aria-hidden="true"
+                style="font-size:14px;width:22px;height:22px;background:#3D6048;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,0.15);"></span>
+              <span class="incrust-btn__label">Verde<br><span
+                  style="font-size:8px;color:var(--text-muted);">Guatemala</span></span>
+            </button>
+            <button class="incrust-btn" data-incrust="dorado" aria-pressed="false"
+              aria-label="Grano de mármol Dorado Noche">
+              <span class="incrust-btn__icon" aria-hidden="true"
+                style="font-size:14px;width:22px;height:22px;background:#B8922A;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,0.15);"></span>
+              <span class="incrust-btn__label">Dorado<br><span
+                  style="font-size:8px;color:var(--text-muted);">Noche</span></span>
+            </button>
+          </div>
+
+          <!-- Densidad — visible solo si hay selección -->
+          <div class="density-row" id="densityRow">
+            <div class="slider-row" style="margin-top:2px;">
+              <div class="slider-header">
+                <label class="slider-label" for="sliderDensidad">Densidad de grano de mármol</label>
+                <span class="slider-val" id="densidadVal" aria-live="polite">30%</span>
+              </div>
+              <input type="range" id="sliderDensidad" min="0" max="100" value="30" step="5"
+                aria-label="Densidad de incrustaciones en porcentaje" aria-valuemin="0" aria-valuemax="100"
+                aria-valuenow="30" />
+              <span class="slider-note">Frecuencia de aparición en el mosaico</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ─── 5. VISTA EN AMBIENTE ─── -->
+        <div class="cp-section">
+          <div class="cp-label">Vista en ambiente</div>
+          <div class="ambiente-grid" role="radiogroup" aria-label="Seleccionar fondo de ambiente para la simulación"
+            id="ambienteGrid">
+            <div class="ambiente-btn active" data-ambiente="none" role="radio" aria-checked="true" tabindex="0"
+              aria-label="Sin fondo de ambiente">
+              <div class="ambiente-thumb">
+                <canvas id="ambNone"></canvas>
+              </div>
+              <div class="ambiente-label">Neutro</div>
+            </div>
+            <div class="ambiente-btn" data-ambiente="piso" role="radio" aria-checked="false" tabindex="-1"
+              aria-label="Fondo: Piso de sala">
+              <div class="ambiente-thumb">
+                <canvas id="ambPiso"></canvas>
+              </div>
+              <div class="ambiente-label">Piso</div>
+            </div>
+            <div class="ambiente-btn" data-ambiente="pared" role="radio" aria-checked="false" tabindex="-1"
+              aria-label="Fondo: Pared de baño">
+              <div class="ambiente-thumb">
+                <canvas id="ambPared"></canvas>
+              </div>
+              <div class="ambiente-label">Pared</div>
+            </div>
+            <div class="ambiente-btn" data-ambiente="exterior" role="radio" aria-checked="false" tabindex="-1"
+              aria-label="Fondo: Exterior jardín">
+              <div class="ambiente-thumb">
+                <canvas id="ambExterior"></canvas>
+              </div>
+              <div class="ambiente-label">Exterior</div>
+            </div>
+            <div class="ambiente-btn" data-ambiente="cocina" role="radio" aria-checked="false" tabindex="-1"
+              aria-label="Fondo: Cocina">
+              <div class="ambiente-thumb">
+                <canvas id="ambCocina"></canvas>
+              </div>
+              <div class="ambiente-label">Cocina</div>
+            </div>
+            <div class="ambiente-btn" data-ambiente="entrada" role="radio" aria-checked="false" tabindex="-1"
+              aria-label="Fondo: Entrada principal">
+              <div class="ambiente-thumb">
+                <canvas id="ambEntrada"></canvas>
+              </div>
+              <div class="ambiente-label">Entrada</div>
+            </div>
+          </div>
+        </div>
+
+      </aside><!-- /control-panel -->
+
+      <!-- RIGHT — Canvas -->
+      <div class="canvas-area" aria-label="Área de vista previa avanzada del mosaico">
+
+        <!-- Toolbar -->
+        <div class="canvas-toolbar" role="toolbar" aria-label="Herramientas de vista previa">
+          <div class="canvas-toolbar__left">
+            <button class="toolbar-btn" id="btnZoomIn" aria-label="Acercar">+</button>
+            <button class="toolbar-btn" id="btnZoomOut" aria-label="Alejar">−</button>
+            <span class="zoom-indicator" id="zoomIndicator" aria-label="Nivel de zoom actual">100%</span>
+            <button class="toolbar-btn" id="btnZoomReset" aria-label="Restaurar zoom">⊡</button>
+            <button class="toolbar-btn" id="btnGrid" aria-pressed="false"
+              aria-label="Mostrar líneas de cuadrícula">⊞</button>
+          </div>
+          <div class="live-badge" role="status" aria-label="Vista en tiempo real activa">
+            Vista en tiempo real
+          </div>
+          <div class="canvas-toolbar__right">
+            <button class="toolbar-btn" id="btnUndo" aria-label="Deshacer">↩</button>
+            <button class="toolbar-btn" id="btnRedo" aria-label="Rehacer">↪</button>
+          </div>
+        </div>
+
+        <!-- Viewport -->
+        <div class="canvas-viewport" id="canvasViewport">
+
+          <!-- Ambiente background -->
+          <div class="ambiente-overlay" id="ambienteOverlay" aria-hidden="true"></div>
+
+          <!-- Stage (zoom/drag container) -->
+          <div class="mosaic-stage" id="mosaicStage">
+            <canvas id="mosaicCanvas" role="img"
+              aria-label="Cuadrícula de mosaicos 4×4 con los parámetros actuales de junta, acabado e incrustaciones"></canvas>
+          </div>
+
+          <!-- Zoom floating controls -->
+          <div class="zoom-controls" role="group" aria-label="Controles de zoom rápido">
+            <button class="zoom-fab" id="zoomPlus2" aria-label="Acercar">+</button>
+            <button class="zoom-fab" id="zoomMinus2" aria-label="Alejar">−</button>
+          </div>
+
+        </div><!-- /canvas-viewport -->
+
+        <!-- CTA Bar — Aplicar + Guardar variante + Descargar -->
+        <div class="cta-bar" role="region" aria-label="Acciones de vista previa">
+          <div class="cta-bar__info">
+            <div class="cta-bar__config" id="ctaConfig">
+              Terracota Palladiana · Junta 5 mm · Pulido
+            </div>
+            <div class="cta-bar__specs" id="ctaSpecs">
+              Línea Tradicional · 40×40 cm · Sin grano de mármol
+            </div>
+          </div>
+
+          <!-- Descargar PNG -->
+          <button class="btn-cta-secondary" id="btnDownloadPNG" aria-label="Descargar vista previa como imagen PNG">
+            <span aria-hidden="true">🖼</span> PNG
+          </button>
+
+          <!-- Descargar PDF -->
+          <button class="btn-cta-secondary" id="btnDownloadPDF"
+            aria-label="Descargar ficha técnica con vista previa como PDF">
+            <span aria-hidden="true">📄</span> PDF
+          </button>
+
+          <button class="btn-cta-secondary" id="btnGuardarVariante"
+            aria-label="Guardar variante actual en Mis Creaciones">
+            <span aria-hidden="true">♡</span> Guardar variante
+          </button>
+          <button class="btn-cta-primary" id="btnAplicar"
+            aria-label="Aplicar los parámetros actuales al Configurador Visual">
+            <span aria-hidden="true">🎨</span> Aplicar al configurador →
+          </button>
+        </div>
+
+      </div><!-- /canvas-area -->
+
+    </main>
+
+    <!-- STATUS BAR -->
+    <footer class="status-bar" role="contentinfo" aria-label="Atajos de teclado y estado">
+      <span class="kbd-hint"><kbd class="kbd">Tab</kbd> Navegar</span>
+      <span class="kbd-hint"><kbd class="kbd">+/−</kbd> Zoom</span>
+      <span class="kbd-hint"><kbd class="kbd">Drag</kbd> Mover</span>
+      <span class="kbd-hint"><kbd class="kbd">R</kbd> Restablecer</span>
+      <div class="status-bar__mid">
+        <div class="wcag-badge" role="status" aria-label="WCAG 2.1 AA conforme">
+          <div class="wcag-badge__dot" aria-hidden="true"></div>
+          WCAG 2.1 AA · Conforme
+        </div>
+      </div>
+      <span style="font-size:10px;color:var(--text-muted);">
+        Flutter: Scaffold › Row(ControlPanel + Expanded(Canvas))
+      </span>
+      <span class="status-live" id="statusLive" aria-live="polite" aria-atomic="true"></span>
+    </footer>
+
+  </div>
+
+  <!-- Flutter overlay -->
+  <div class="flutter-overlay" id="flutterOverlay" aria-hidden="true">
+    <div class="flutter-box" style="top:0;left:0;right:0;height:52px;">
+      <span class="flutter-tag">AppBar › Row(logo + breadcrumb + back + a11y)</span>
+    </div>
+    <div class="flutter-box" style="top:52px;left:0;width:290px;bottom:36px;">
+      <span class="flutter-tag">SizedBox(w:290) › ListView(ControlSections)</span>
+    </div>
+    <div class="flutter-box" id="flCanvasBox" style="top:52px;left:290px;right:0;bottom:36px;">
+      <span class="flutter-tag">Expanded › Stack(AmbienteOverlay + CustomPaint + ZoomControls + CTABar)</span>
+    </div>
+    <div class="flutter-box" style="bottom:0;left:0;right:0;height:36px;">
+      <span class="flutter-tag">BottomAppBar › Row</span>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <!-- ════════════════════════════════════
+     JAVASCRIPT
+════════════════════════════════════ -->
+  <script>
+    /* ════════════════════════
+       ESTADO
+    ════════════════════════ */
+    const state = {
+      junta: 5,          // mm  0–20
+      groutColor: '#D4CFC8',  // lechada
+      groutName: 'Gris Arena',
+      acabado: 'pulido',   // 'pulido' | 'mate'
+      incrustaciones: new Set(),
+      densidad: 30,         // %
+      ambiente: 'none',
+      zoomLevel: 1.0,
+      showGrid: false,
+      // Configuración del mosaico base (herencia del configurador)
+      tileColor: '#C8741A',
+      pattern: 'palladiana',
+      tileSize: 40,         // cm
+    };
+
+    /* Historiales de incrustaciones (posiciones aleatorias fijas por sesión) */
+    let incrusPositions = [];
+
+    /* ════════════════════════
+       COLORES DE LECHADA
+    ════════════════════════ */
+    const GROUT_COLORS = [
+      { name: 'Gris Arena', hex: '#D4CFC8' },
+      { name: 'Blanco', hex: '#F5F0E8' },
+      { name: 'Gris Oscuro', hex: '#5A5A5A' },
+      { name: 'Negro', hex: '#1A1A1A' },
+      { name: 'Beige', hex: '#C8BCA8' },
+      { name: 'Terracota', hex: '#A85E12' },
+      { name: 'Azul Gris', hex: '#4A6478' },
+      { name: 'Verde Musgo', hex: '#3D5A3E' },
+    ];
+
+    /* ════════════════════════
+       BUILD GROUT CHIPS
+    ════════════════════════ */
+    function buildGroutChips() {
+      const wrap = document.getElementById('groutChips');
+      wrap.innerHTML = '';
+      GROUT_COLORS.forEach((gc, i) => {
+        const chip = document.createElement('div');
+        chip.className = 'grout-chip' + (gc.hex === state.groutColor ? ' active' : '');
+        chip.style.background = gc.hex;
+        chip.setAttribute('role', 'radio');
+        chip.setAttribute('aria-checked', gc.hex === state.groutColor ? 'true' : 'false');
+        chip.setAttribute('tabindex', gc.hex === state.groutColor ? '0' : '-1');
+        chip.setAttribute('aria-label', `Lechada ${gc.name}`);
+        chip.addEventListener('click', () => selectGroutColor(gc));
+        chip.addEventListener('keydown', e => {
+          if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectGroutColor(gc); }
+          if (e.key === 'ArrowRight') wrap.children[Math.min(i + 1, wrap.children.length - 1)].focus();
+          if (e.key === 'ArrowLeft') wrap.children[Math.max(i - 1, 0)].focus();
+        });
+        wrap.appendChild(chip);
+      });
+    }
+
+    function selectGroutColor(gc) {
+      state.groutColor = gc.hex;
+      state.groutName = gc.name;
+      document.getElementById('groutPreview').style.background = gc.hex;
+      document.getElementById('groutColorName').textContent = `Lechada: ${gc.name} · ${gc.hex}`;
+      document.querySelectorAll('.grout-chip').forEach(c => {
+        const active = c.style.background === gc.hex ||
+          hexNorm(c.style.background) === gc.hex.toLowerCase();
+        c.classList.toggle('active', active);
+        c.setAttribute('aria-checked', active ? 'true' : 'false');
+      });
+      scheduleRender();
+      setLive(`Color de junta cambiado a ${gc.name}`);
+    }
+
+    function hexNorm(rgb) {
+      // convert "rgb(r,g,b)" to hex for comparison
+      const m = rgb.match(/\d+/g);
+      if (!m) return rgb;
+      return '#' + m.map(v => parseInt(v).toString(16).padStart(2, '0')).join('');
+    }
+
+    /* ════════════════════════
+       BUILD AMBIENTE THUMBNAILS
+    ════════════════════════ */
+    const AMBIENTES = {
+      none: { label: 'Neutro', colors: ['#060F1A', '#0A1520'] },
+      piso: { label: 'Piso', colors: ['#8B7355', '#A08060', '#6E5B45'] },
+      pared: { label: 'Pared', colors: ['#E8E4DC', '#D4CFC8', '#F0ECE4'] },
+      exterior: { label: 'Exterior', colors: ['#4A7040', '#3D5A3A', '#607858'] },
+      cocina: { label: 'Cocina', colors: ['#C8C0B4', '#B4AC9E', '#DCD8D0'] },
+      entrada: { label: 'Entrada', colors: ['#7A6E64', '#968A80', '#645A50'] },
+    };
+
+    function drawAmbiente(cv, key) {
+      const ctx = cv.getContext('2d');
+      const cw = cv.width = cv.parentElement.offsetWidth || 60;
+      const ch = cv.height = cv.parentElement.offsetHeight || 38;
+      const amb = AMBIENTES[key];
+      // Gradient background
+      const grd = ctx.createLinearGradient(0, 0, cw, ch);
+      grd.addColorStop(0, amb.colors[0]);
+      grd.addColorStop(1, amb.colors[1] || amb.colors[0]);
+      ctx.fillStyle = grd;
+      ctx.fillRect(0, 0, cw, ch);
+      // Simple texture strokes
+      if (key !== 'none') {
+        ctx.strokeStyle = amb.colors[2] || 'rgba(255,255,255,0.08)';
+        ctx.lineWidth = 1; ctx.globalAlpha = 0.3;
+        for (let i = 0; i < 6; i++) {
+          ctx.beginPath();
+          ctx.moveTo(0, ch * i / 5); ctx.lineTo(cw, ch * i / 5 + 5);
+          ctx.stroke();
+        }
+        ctx.globalAlpha = 1;
+      }
+    }
+
+    function buildAmbienteThumbs() {
+      Object.keys(AMBIENTES).forEach(key => {
+        const cv = document.getElementById('amb' + key.charAt(0).toUpperCase() + key.slice(1));
+        if (cv) setTimeout(() => drawAmbiente(cv, key), 50);
+      });
+    }
+
+    /* ════════════════════════
+       CANVAS SETUP
+    ════════════════════════ */
+    const mosaicCanvas = document.getElementById('mosaicCanvas');
+    const ctx = mosaicCanvas.getContext('2d');
+    let renderTimer = null;
+
+    function sizeCanvas() {
+      const vp = document.getElementById('canvasViewport');
+      const vpW = vp.offsetWidth, vpH = vp.offsetHeight;
+      // 4 tiles × tile visual size in px
+      const tileVis = Math.min(Math.floor(Math.min(vpW, vpH) * 0.82 / 4), 130);
+      const juntaPx = Math.round(state.junta * tileVis / 80);
+      const grid = 4;
+      const total = grid * tileVis + (grid + 1) * juntaPx;
+      mosaicCanvas.width = total;
+      mosaicCanvas.height = total;
+      return { tileVis, juntaPx, grid };
+    }
+
+    /* ════════════════════════
+       RENDER HELPERS
+    ════════════════════════ */
+    function hexToRgb(h) { return { r: parseInt(h.slice(1, 3), 16), g: parseInt(h.slice(3, 5), 16), b: parseInt(h.slice(5, 7), 16) }; }
+    function lighten(h, a) { const c = hexToRgb(h); return `rgb(${Math.min(255, c.r + a)},${Math.min(255, c.g + a)},${Math.min(255, c.b + a)})`; }
+    function darken(h, a) { const c = hexToRgb(h); return `rgb(${Math.max(0, c.r - a)},${Math.max(0, c.g - a)},${Math.max(0, c.b - a)})`; }
+    function jitter(v, p) { return v * (1 - p / 2 + Math.random() * p); }
+
+    /* Render one tile */
+    let latestRenderImg = null;
+    function renderTile(cx, cy, tw, th, color, pattern) {
+      if (latestRenderImg) {
+        ctx.drawImage(latestRenderImg, cx, cy, tw, th);
+        return;
+      }
+      switch (pattern) {
+        case 'tradicional':
+        case 'traditional': {
+          const T = 6, cols = Math.floor(tw / T), rows = Math.floor(th / T);
+          for (let r = 0; r < rows; r++) for (let c2 = 0; c2 < cols; c2++) {
+            const wave = Math.sin((c2 / cols - 0.5) * 3 + (r / rows - 0.5) * 2) * 0.5 + 0.5;
+            const v = Math.floor(wave * 24 - 12);
+            ctx.fillStyle = v >= 0 ? lighten(color, v) : darken(color, -v);
+            ctx.globalAlpha = 0.9 + Math.random() * 0.1;
+            ctx.fillRect(cx + c2 * T, cy + r * T, T - 1, T - 1);
+          }
+          ctx.globalAlpha = 1;
+          break;
+        }
+        case 'palladiana': {
+          ctx.fillStyle = darken(color, 50); ctx.fillRect(cx, cy, tw, th);
+          let x = cx + 2, y = cy + 2, safe = 0;
+          while (y < cy + th && safe < 400) {
+            safe++;
+            const w = jitter(tw * 0.35, 0.7), h = jitter(th * 0.3, 0.7);
+            if (x + w > cx + tw - 2) { x = cx + 2; y += h + 2; continue; }
+            if (y + h > cy + th) break;
+            const sides = 5 + Math.floor(Math.random() * 3);
+            const cx2 = x + w / 2, cy2 = y + h / 2;
+            const v = Math.floor(Math.random() * 28 - 14);
+            ctx.fillStyle = v >= 0 ? lighten(color, v) : darken(color, -v);
+            ctx.globalAlpha = 0.88 + Math.random() * 0.12;
+            ctx.beginPath();
+            for (let i = 0; i < sides; i++) {
+              const a = (i / sides) * 2 * Math.PI + Math.random() * 0.38;
+              const rx = (w / 2) * (0.7 + Math.random() * 0.5), ry = (h / 2) * (0.7 + Math.random() * 0.5);
+              i === 0 ? ctx.moveTo(cx2 + rx * Math.cos(a), cy2 + ry * Math.sin(a)) : ctx.lineTo(cx2 + rx * Math.cos(a), cy2 + ry * Math.sin(a));
+            }
+            ctx.closePath(); ctx.fill(); ctx.globalAlpha = 1; x += w + 2;
+          }
+          break;
+        }
+        case 'trencadis': {
+          ctx.fillStyle = darken(color, 46); ctx.fillRect(cx, cy, tw, th);
+          const base = Math.max(5, tw / 9);
+          for (let y = cy + 2; y < cy + th; y += base + 2) for (let x = cx + 2; x < cx + tw; x += base + 2) {
+            const fw = jitter(base, 0.6), fh = jitter(base, 0.6);
+            const angle = (Math.random() - 0.5) * (Math.PI / 4);
+            const v = Math.floor(Math.random() * 34 - 17);
+            ctx.fillStyle = v >= 0 ? lighten(color, v) : darken(color, -v);
+            ctx.globalAlpha = 0.86 + Math.random() * 0.14;
+            ctx.save(); ctx.translate(x + fw / 2, y + fh / 2); ctx.rotate(angle);
+            ctx.fillRect(-fw / 2, -fh / 2, fw - 2, fh - 2);
+            ctx.restore(); ctx.globalAlpha = 1;
+          }
+          break;
+        }
+        case 'opusincertum': {
+          ctx.fillStyle = darken(color, 43); ctx.fillRect(cx, cy, tw, th);
+          const count = Math.floor(tw * th / 220);
+          for (let i = 0; i < count; i++) {
+            const px = cx + Math.random() * tw, py = cy + Math.random() * th;
+            const r1 = jitter(tw / 7, 0.85) * 0.8, r2 = jitter(th / 7, 0.85) * 0.8;
+            const sides = 3 + Math.floor(Math.random() * 5), rot = Math.random() * 2 * Math.PI;
+            const v = Math.floor(Math.random() * 40 - 20);
+            ctx.fillStyle = v >= 0 ? lighten(color, v) : darken(color, -v);
+            ctx.globalAlpha = 0.82 + Math.random() * 0.18;
+            ctx.beginPath();
+            for (let j = 0; j < sides; j++) {
+              const a = rot + (j / sides) * 2 * Math.PI;
+              const ji = 0.65 + Math.random() * 0.7;
+              j === 0 ? ctx.moveTo(px + r1 * ji * Math.cos(a), py + r2 * ji * Math.sin(a)) : ctx.lineTo(px + r1 * ji * Math.cos(a), py + r2 * ji * Math.sin(a));
+            }
+            ctx.closePath(); ctx.fill(); ctx.globalAlpha = 1;
+          }
+          break;
+        }
+      }
+    }
+
+    /* ════════════════════════
+       MAIN RENDER
+    ════════════════════════ */
+    function render() {
+      const { tileVis, juntaPx, grid } = sizeCanvas();
+      const cw = mosaicCanvas.width, ch = mosaicCanvas.height;
+      ctx.clearRect(0, 0, cw, ch);
+
+      // 1. Fondo de junta
+      ctx.fillStyle = state.groutColor;
+      ctx.fillRect(0, 0, cw, ch);
+
+      // 2. Render tiles
+      for (let row = 0; row < grid; row++) {
+        for (let col = 0; col < grid; col++) {
+          const x = juntaPx + col * (tileVis + juntaPx);
+          const y = juntaPx + row * (tileVis + juntaPx);
+
+          // Clip tile
+          ctx.save();
+          ctx.beginPath();
+          ctx.rect(x, y, tileVis, tileVis);
+          ctx.clip();
+
+          renderTile(x, y, tileVis, tileVis, state.tileColor, state.pattern);
+
+          // 3. Acabado: mate overlay
+          if (state.acabado === 'mate') {
+            ctx.fillStyle = 'rgba(255,255,255,0.08)';
+            ctx.fillRect(x, y, tileVis, tileVis);
+            // Textura difusa
+            for (let i = 0; i < 40; i++) {
+              ctx.fillStyle = `rgba(0,0,0,${0.02 + Math.random() * 0.04})`;
+              ctx.fillRect(x + Math.random() * tileVis, y + Math.random() * tileVis, 2 + Math.random() * 4, 1);
+            }
+          } else {
+            // Brillo pulido — línea de reflejo
+            ctx.fillStyle = 'rgba(255,255,255,0.07)';
+            ctx.beginPath();
+            ctx.ellipse(x + tileVis * 0.3, y + tileVis * 0.2, tileVis * 0.35, tileVis * 0.12, -0.3, 0, 2 * Math.PI);
+            ctx.fill();
+          }
+
+          // 4. Granos de mármol incrustados
+          if (state.incrustaciones.size > 0 && incrusPositions.length > 0) {
+            const maxDots = Math.floor((state.densidad / 100) * 10);
+            // Filtrar posiciones para este tile (todas, se usan coordenadas relativas)
+            const dots = incrusPositions.slice(0, maxDots);
+            const MARBLE_COLORS = {
+              blanco: ['#F0EDE6', '#E8E4DC', '#F5F2EC', '#DDD8D0'],
+              gris: ['#7A7A7A', '#888888', '#909090', '#686868'],
+              negro: ['#1A1A1A', '#222222', '#2A2A2A', '#141414'],
+              rosa: ['#C4907A', '#D4A08A', '#B88070', '#C89888'],
+              verde: ['#3D6048', '#486858', '#345040', '#4A7060'],
+              dorado: ['#B8922A', '#C8A030', '#A88020', '#D0B040'],
+            };
+            dots.forEach(p => {
+              if (!state.incrustaciones.has(p.type)) return;
+              const px = x + p.x * tileVis;
+              const py = y + p.y * tileVis;
+              const sz = 2.5 + p.sz * 5;
+              const palette = MARBLE_COLORS[p.type] || MARBLE_COLORS.blanco;
+              const baseColor = palette[Math.floor(p.hue * palette.length)];
+
+              ctx.save();
+              ctx.globalAlpha = 0.72 + p.sz * 0.22;
+
+              // Forma irregular tipo fragmento de mármol
+              const sides = 5 + Math.floor(p.sz * 3);
+              ctx.fillStyle = baseColor;
+              ctx.beginPath();
+              for (let v = 0; v < sides; v++) {
+                const a = p.rot + (v / sides) * 2 * Math.PI;
+                const ji = 0.65 + (Math.sin(v * 7.3 + p.hue * 10) * 0.5 + 0.5) * 0.45;
+                const rx = sz * ji, ry = sz * ji * (0.6 + p.hue * 0.5);
+                v === 0
+                  ? ctx.moveTo(px + rx * Math.cos(a), py + ry * Math.sin(a))
+                  : ctx.lineTo(px + rx * Math.cos(a), py + ry * Math.sin(a));
+              }
+              ctx.closePath();
+              ctx.fill();
+
+              // Venas internas del mármol (líneas finas)
+              ctx.strokeStyle = 'rgba(255,255,255,0.25)';
+              ctx.lineWidth = 0.4;
+              ctx.beginPath();
+              ctx.moveTo(px - sz * 0.4, py - sz * 0.2);
+              ctx.bezierCurveTo(
+                px - sz * 0.1, py + sz * 0.1,
+                px + sz * 0.1, py - sz * 0.1,
+                px + sz * 0.4, py + sz * 0.2
+              );
+              ctx.stroke();
+
+              // Brillo si es pulido
+              if (state.acabado === 'pulido') {
+                ctx.fillStyle = 'rgba(255,255,255,0.18)';
+                ctx.beginPath();
+                ctx.ellipse(px - sz * 0.2, py - sz * 0.2, sz * 0.3, sz * 0.15, -0.5, 0, 2 * Math.PI);
+                ctx.fill();
+              }
+
+              ctx.restore();
+            });
+          }
+
+          ctx.restore();
+
+          // 5. Grid overlay
+          if (state.showGrid) {
+            ctx.strokeStyle = 'rgba(255,255,255,0.12)';
+            ctx.lineWidth = 0.5;
+            ctx.strokeRect(x + 0.5, y + 0.5, tileVis - 1, tileVis - 1);
+          }
+        }
+      }
+
+      // Sombra suave alrededor del canvas
+      ctx.globalAlpha = 1;
+
+      updateCTAInfo();
+      updateCanvasAria();
+    }
+
+    function scheduleRender() {
+      clearTimeout(renderTimer);
+      renderTimer = setTimeout(render, 60);
+    }
+
+    function updateCanvasAria() {
+      const incs = state.incrustaciones.size > 0
+        ? `con ${state.incrustaciones.size} tipo(s) de incrustaciones`
+        : 'sin incrustaciones';
+      mosaicCanvas.setAttribute('aria-label',
+        `Cuadrícula 4×4 de mosaicos: color ${state.tileColor}, ` +
+        `junta ${state.junta} mm color ${state.groutName}, ` +
+        `acabado ${state.acabado}, ${incs}`
+      );
+    }
+
+    function updateCTAInfo() {
+      const MARBLE_NAMES = { blanco: 'Blanco Carrara', gris: 'Gris Marquina', negro: 'Negro Absoluto', rosa: 'Rosa Portugal', verde: 'Verde Guatemala', dorado: 'Dorado Noche' };
+      const granos = state.incrustaciones.size > 0
+        ? [...state.incrustaciones].map(k => MARBLE_NAMES[k] || k).join(', ') + ` · ${state.densidad}%`
+        : 'Sin grano de mármol';
+      document.getElementById('ctaConfig').textContent =
+        `Terracota Palladiana · Junta ${state.junta} mm · ${state.acabado === 'pulido' ? 'Pulido ✨' : 'Mate 🪨'}`;
+      document.getElementById('ctaSpecs').textContent =
+        `Línea Tradicional · 40×40 cm · ${granos}`;
+    }
+
+    /* Generar posiciones de granos de mármol (se fijan al añadir tipo) */
+    function regenerateIncrusPositions() {
+      incrusPositions = [];
+      const types = [...state.incrustaciones];
+      if (!types.length) return;
+      for (let i = 0; i < 150; i++) {
+        incrusPositions.push({
+          x: Math.random(), y: Math.random(),
+          sz: Math.random(), rot: Math.random() * Math.PI * 2,
+          hue: Math.random(),
+          type: types[Math.floor(Math.random() * types.length)],
+        });
+      }
+    }
+
+    /* ════════════════════════
+       CONTROLS EVENTS
+    ════════════════════════ */
+
+    /* Junta */
+    document.getElementById('sliderJunta').addEventListener('input', function () {
+      state.junta = +this.value;
+      document.getElementById('juntaVal').textContent = `${this.value} mm`;
+      this.setAttribute('aria-valuenow', this.value);
+      this.setAttribute('aria-valuetext', `${this.value} milímetros`);
+      scheduleRender();
+      setLive(`Junta: ${this.value} mm`);
+    });
+
+    /* Acabado */
+    document.querySelectorAll('.acabado-btn').forEach(btn => {
+      btn.addEventListener('click', function () {
+        state.acabado = this.dataset.acabado;
+        document.querySelectorAll('.acabado-btn').forEach(b => {
+          b.classList.toggle('active', b === this);
+          b.setAttribute('aria-checked', b === this ? 'true' : 'false');
+        });
+        scheduleRender();
+        setLive(`Acabado: ${state.acabado === 'pulido' ? 'Pulido brillante' : 'Mate difuso'}`);
+      });
+    });
+
+    /* Incrustaciones */
+    document.querySelectorAll('.incrust-btn').forEach(btn => {
+      btn.addEventListener('click', function () {
+        const key = this.dataset.incrust;
+        if (state.incrustaciones.has(key)) {
+          state.incrustaciones.delete(key);
+          this.classList.remove('active');
+          this.setAttribute('aria-pressed', 'false');
+        } else {
+          state.incrustaciones.add(key);
+          this.classList.add('active');
+          this.setAttribute('aria-pressed', 'true');
+        }
+        const count = state.incrustaciones.size;
+        document.getElementById('incrusCount').textContent = `${count} sel.`;
+
+        // Show/hide density
+        const densityRow = document.getElementById('densityRow');
+        densityRow.classList.toggle('visible', count > 0);
+        if (count > 0) document.getElementById('sliderDensidad').setAttribute('aria-hidden', 'false');
+        else document.getElementById('sliderDensidad').setAttribute('aria-hidden', 'true');
+
+        regenerateIncrusPositions();
+        scheduleRender();
+        setLive(count > 0
+          ? `${count} tipo(s) de grano de mármol activo(s)`
+          : 'Sin grano de mármol');
+      });
+    });
+
+    /* Densidad */
+    document.getElementById('sliderDensidad').addEventListener('input', function () {
+      state.densidad = +this.value;
+      document.getElementById('densidadVal').textContent = `${this.value}%`;
+      this.setAttribute('aria-valuenow', this.value);
+      scheduleRender();
+    });
+
+    /* Ambiente */
+    document.querySelectorAll('.ambiente-btn').forEach(btn => {
+      btn.addEventListener('click', () => selectAmbiente(btn.dataset.ambiente));
+      btn.addEventListener('keydown', e => {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectAmbiente(btn.dataset.ambiente); }
+      });
+    });
+
+    function selectAmbiente(key) {
+      state.ambiente = key;
+      document.querySelectorAll('.ambiente-btn').forEach(b => {
+        const active = b.dataset.ambiente === key;
+        b.classList.toggle('active', active);
+        b.setAttribute('aria-checked', active ? 'true' : 'false');
+        b.setAttribute('tabindex', active ? '0' : '-1');
+      });
+      const overlay = document.getElementById('ambienteOverlay');
+      const amb = AMBIENTES[key];
+      if (key === 'none') {
+        overlay.classList.remove('visible');
+        overlay.style.background = '';
+      } else {
+        // Draw simulated background
+        overlay.style.background =
+          `linear-gradient(135deg, ${amb.colors[0]} 0%, ${amb.colors[1] || amb.colors[0]} 100%)`;
+        overlay.classList.add('visible');
+      }
+      setLive(`Ambiente: ${amb.label}`);
+    }
+
+    /* ════════════════════════
+       ZOOM + DRAG
+    ════════════════════════ */
+    const stage = document.getElementById('mosaicStage');
+    let drag = { active: false, sx: 0, sy: 0, tx: 0, ty: 0, cx: 0, cy: 0 };
+
+    function setZoom(z) {
+      state.zoomLevel = Math.max(0.4, Math.min(3.0, z));
+      stage.style.transform =
+        `translate(${drag.tx}px, ${drag.ty}px) scale(${state.zoomLevel})`;
+      document.getElementById('zoomIndicator').textContent =
+        Math.round(state.zoomLevel * 100) + '%';
+      setLive(`Zoom: ${Math.round(state.zoomLevel * 100)}%`);
+    }
+
+    function setupDrag() {
+      stage.addEventListener('mousedown', e => {
+        drag.active = true;
+        drag.sx = e.clientX - drag.tx;
+        drag.sy = e.clientY - drag.ty;
+        stage.style.cursor = 'grabbing';
+      });
+      window.addEventListener('mousemove', e => {
+        if (!drag.active) return;
+        drag.tx = e.clientX - drag.sx;
+        drag.ty = e.clientY - drag.sy;
+        stage.style.transform =
+          `translate(${drag.tx}px, ${drag.ty}px) scale(${state.zoomLevel})`;
+      });
+      window.addEventListener('mouseup', () => {
+        drag.active = false;
+        stage.style.cursor = 'grab';
+      });
+
+      // Wheel zoom
+      document.getElementById('canvasViewport').addEventListener('wheel', e => {
+        e.preventDefault();
+        const delta = e.deltaY > 0 ? -0.12 : 0.12;
+        setZoom(state.zoomLevel + delta);
+      }, { passive: false });
+    }
+
+    /* Zoom buttons */
+    const zoomIn = (delta = 0.2) => setZoom(state.zoomLevel + delta);
+    const zoomOut = (delta = 0.2) => setZoom(state.zoomLevel - delta);
+    const zoomReset = () => {
+      state.zoomLevel = 1; drag.tx = 0; drag.ty = 0;
+      stage.style.transform = 'translate(0,0) scale(1)';
+      document.getElementById('zoomIndicator').textContent = '100%';
+      setLive('Zoom restablecido');
+    };
+
+    document.getElementById('btnZoomIn').addEventListener('click', () => zoomIn());
+    document.getElementById('btnZoomOut').addEventListener('click', () => zoomOut());
+    document.getElementById('btnZoomReset').addEventListener('click', zoomReset);
+    document.getElementById('zoomPlus2').addEventListener('click', () => zoomIn());
+    document.getElementById('zoomMinus2').addEventListener('click', () => zoomOut());
+
+    document.getElementById('btnGrid').addEventListener('click', function () {
+      state.showGrid = !state.showGrid;
+      this.classList.toggle('active', state.showGrid);
+      this.setAttribute('aria-pressed', state.showGrid ? 'true' : 'false');
+      scheduleRender();
+      setLive(state.showGrid ? 'Cuadrícula activada' : 'Cuadrícula desactivada');
+    });
+
+    /* ════════════════════════
+       CTA BUTTONS
+    ════════════════════════ */
+    document.getElementById('btnAplicar').addEventListener('click', function () {
+      this.innerHTML = '<span>✓</span> Aplicado — redirigiendo al configurador…';
+      this.disabled = true;
+      setLive('Parámetros aplicados al configurador');
+      setTimeout(() => {
+        this.innerHTML = '<span>🎨</span> Aplicar al configurador →';
+        this.disabled = false;
+      }, 2800);
+    });
+
+    document.getElementById('btnGuardarVariante').addEventListener('click', function () {
+      showToast('Variante guardada en Mis Creaciones ♡');
+      setLive('Variante guardada en Mis Creaciones');
+    });
+
+    /* ════════════════════════
+       KEYBOARD SHORTCUTS
+    ════════════════════════ */
+    document.addEventListener('keydown', e => {
+      if (e.target.tagName === 'INPUT') return;
+      if (e.key === '+' || e.key === '=') { e.preventDefault(); zoomIn(0.15); }
+      if (e.key === '-') { e.preventDefault(); zoomOut(0.15); }
+      if (e.key === 'r' || e.key === 'R') zoomReset();
+      if (e.key === 'ArrowLeft') document.getElementById('btnBack').click();
+    });
+
+    /* ════════════════════════
+       A11Y TOGGLES
+    ════════════════════════ */
+    document.getElementById('btnContrast').addEventListener('click', function () {
+      const a = this.getAttribute('aria-pressed') === 'true';
+      this.setAttribute('aria-pressed', !a); this.classList.toggle('active');
+      document.documentElement.style.setProperty('--text-secondary', a ? '#94A3B8' : '#C8D8E8');
+      document.documentElement.style.setProperty('--text-muted', a ? '#5B7A99' : '#8BA8C0');
+      setLive(a ? 'Contraste normal' : 'Alto contraste activado');
+    });
+
+    document.getElementById('btnFlutter').addEventListener('click', function () {
+      const a = this.getAttribute('aria-pressed') === 'true';
+      this.setAttribute('aria-pressed', !a); this.classList.toggle('active');
+      const o = document.getElementById('flutterOverlay');
+      o.classList.toggle('visible', !a);
+      o.setAttribute('aria-hidden', a ? 'true' : 'false');
+      setLive(a ? 'Flutter oculto' : 'Flutter visible');
+    });
+
+    document.getElementById('btnBack').addEventListener('click', () => {
+      showToast('← Volviendo al Configurador…');
+      setLive('Navegando al configurador');
+    });
+
+    /* ════════════════════════
+       DESCARGAR PNG
+    ════════════════════════ */
+    document.getElementById('btnDownloadPNG').addEventListener('click', function () {
+      // Capturar el canvas actual y descargarlo como PNG
+      const link = document.createElement('a');
+      const timestamp = new Date().toISOString().slice(0, 10);
+      link.download = `mexicana-mosaicos-preview-${timestamp}.png`;
+      link.href = mosaicCanvas.toDataURL('image/png');
+      link.click();
+      showToast('Imagen PNG descargada correctamente');
+      setLive('Vista previa descargada como PNG');
+    });
+
+    /* ════════════════════════
+       DESCARGAR PDF (ficha técnica + imagen)
+    ════════════════════════ */
+    document.getElementById('btnDownloadPDF').addEventListener('click', function () {
+      const MARBLE_NAMES = { blanco: 'Blanco Carrara', gris: 'Gris Marquina', negro: 'Negro Absoluto', rosa: 'Rosa Portugal', verde: 'Verde Guatemala', dorado: 'Dorado Noche' };
+      const granos = state.incrustaciones.size > 0
+        ? [...state.incrustaciones].map(k => MARBLE_NAMES[k] || k).join(', ')
+        : 'Sin grano de mármol';
+
+      const imgData = mosaicCanvas.toDataURL('image/png');
+      const timestamp = new Date().toLocaleString('es-MX');
+
+      // Crear ventana de impresión con ficha + imagen
+      const w = window.open('', '_blank');
+      w.document.write(`
+    <!DOCTYPE html>
+    <html lang="es">
+    <head>
+      <meta charset="UTF-8"/>
+      <title>Ficha Técnica — Vista Previa Avanzada</title>
+      <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet"/>
+      <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'DM Sans', sans-serif; color: #1A1A2E; background: #fff; padding: 40px; }
+        .header { display: flex; align-items: flex-start; justify-content: space-between; border-bottom: 3px solid #C8741A; padding-bottom: 16px; margin-bottom: 24px; }
+        .header__brand { display: flex; flex-direction: column; gap: 2px; }
+        .header__mark { font-family: 'Syne', sans-serif; font-size: 28px; font-weight: 800; color: #C8741A; }
+        .header__name { font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700; color: #0D1B2A; }
+        .header__sub  { font-size: 11px; color: #5B7A99; letter-spacing: 0.08em; text-transform: uppercase; }
+        .header__date { font-size: 11px; color: #5B7A99; text-align: right; margin-top: 4px; }
+        h1 { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 800; color: #0D1B2A; margin-bottom: 20px; }
+        .layout { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; }
+        .preview-wrap { display: flex; flex-direction: column; gap: 10px; }
+        .preview-label { font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #5B7A99; }
+        .preview-img { width: 100%; border-radius: 10px; border: 1px solid #DDD8CC; box-shadow: 0 4px 16px rgba(0,0,0,0.12); }
+        .specs { display: flex; flex-direction: column; gap: 0; }
+        .spec-section { margin-bottom: 18px; }
+        .spec-section h2 { font-family: 'Syne', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #5B7A99; margin-bottom: 8px; padding-bottom: 4px; border-bottom: 1px solid #EDE9E0; }
+        .spec-row { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid #F5F0EC; font-size: 12px; }
+        .spec-row__key { color: #5B7A99; }
+        .spec-row__val { font-weight: 500; color: #0D1B2A; font-family: 'DM Sans', monospace; }
+        .spec-row__val.hi { color: #C8741A; font-weight: 700; }
+        .footer { margin-top: 32px; padding-top: 12px; border-top: 1px solid #DDD8CC; font-size: 10px; color: #94A3B8; display: flex; justify-content: space-between; }
+        .tech-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 4px; }
+        .tech-item { background: #F5F2EC; border-radius: 8px; padding: 10px; }
+        .tech-item__val { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 800; color: #0D1B2A; }
+        .tech-item__unit { font-size: 10px; color: #5B7A99; }
+        .tech-item__label { font-size: 10px; color: #5B7A99; text-transform: uppercase; letter-spacing: 0.06em; margin-top: 2px; }
+        @media print { body { padding: 20px; } }
+      </style>
+    </head>
+    <body>
+      <div class="header">
+        <div class="header__brand">
+          <div class="header__mark">M</div>
+          <div class="header__name">Mexicana de Mosaicos S.A. de C.V.</div>
+          <div class="header__sub">Tizayuca, Hidalgo · 55 años en el mercado</div>
+        </div>
+        <div class="header__date">
+          <strong>Ficha técnica — Vista Previa Avanzada</strong><br>
+          Generada el ${timestamp}
+        </div>
+      </div>
+
+      <h1>Vista Previa Avanzada — Terracota Palladiana</h1>
+
+      <div class="layout">
+        <div class="preview-wrap">
+          <div class="preview-label">Vista previa del mosaico (4×4)</div>
+          <img class="preview-img" src="${imgData}" alt="Vista previa del mosaico"/>
+        </div>
+        <div class="specs">
+
+          <div class="spec-section">
+            <h2>Configuración del mosaico</h2>
+            <div class="spec-row"><span class="spec-row__key">Línea</span><span class="spec-row__val hi">Tradicional</span></div>
+            <div class="spec-row"><span class="spec-row__key">Patrón</span><span class="spec-row__val hi">Palladiana</span></div>
+            <div class="spec-row"><span class="spec-row__key">Color pasta</span><span class="spec-row__val">Terracota · #C8741A</span></div>
+            <div class="spec-row"><span class="spec-row__key">Tamaño</span><span class="spec-row__val">40 × 40 cm</span></div>
+          </div>
+
+          <div class="spec-section">
+            <h2>Parámetros de instalación</h2>
+            <div class="spec-row"><span class="spec-row__key">Ancho de junta</span><span class="spec-row__val hi">${state.junta} mm</span></div>
+            <div class="spec-row"><span class="spec-row__key">Color de lechada</span><span class="spec-row__val">${state.groutName} · ${state.groutColor}</span></div>
+            <div class="spec-row"><span class="spec-row__key">Acabado superficial</span><span class="spec-row__val">${state.acabado === 'pulido' ? 'Pulido 400 grit' : 'Mate antideslizante'}</span></div>
+            <div class="spec-row"><span class="spec-row__key">Vista ambiente</span><span class="spec-row__val">${state.ambiente === 'none' ? 'Neutro' : state.ambiente}</span></div>
+          </div>
+
+          <div class="spec-section">
+            <h2>Granos de mármol</h2>
+            <div class="spec-row"><span class="spec-row__key">Tipos</span><span class="spec-row__val">${granos}</span></div>
+            ${state.incrustaciones.size > 0 ? `<div class="spec-row"><span class="spec-row__key">Densidad</span><span class="spec-row__val hi">${state.densidad}%</span></div>` : ''}
+          </div>
+
+          <div class="spec-section">
+            <h2>Especificaciones técnicas</h2>
+            <div class="tech-grid">
+              <div class="tech-item">
+                <div class="tech-item__val">21.37</div>
+                <div class="tech-item__unit">MPa</div>
+                <div class="tech-item__label">Resistencia</div>
+              </div>
+              <div class="tech-item">
+                <div class="tech-item__val">2.56</div>
+                <div class="tech-item__unit">%</div>
+                <div class="tech-item__label">Absorción sup.</div>
+              </div>
+              <div class="tech-item">
+                <div class="tech-item__val">2.5</div>
+                <div class="tech-item__unit">cm</div>
+                <div class="tech-item__label">Grosor</div>
+              </div>
+              <div class="tech-item">
+                <div class="tech-item__val">~3.8</div>
+                <div class="tech-item__unit">kg/pieza</div>
+                <div class="tech-item__label">Peso aprox.</div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="footer">
+        <span>Mexicana de Mosaicos S.A. de C.V. · Tizayuca, Hgo. · Documento generado por el sistema de gestión privado</span>
+        <span>WCAG 2.1 AA Conforme</span>
+      </div>
+
+      <script>window.onload = () => { window.print(); }<\/script>
+    </body>
+    </html>
+  `);
+      w.document.close();
+      showToast('Ficha PDF generada — revisando ventana de impresión');
+      setLive('Ficha técnica PDF generada');
+    });
+    /* ════════════════════════
+       TOAST + LIVE
+    ════════════════════════ */
+    function showToast(msg) {
+      const el = document.getElementById('toast');
+      el.textContent = msg; el.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => el.classList.remove('show'), 2600);
+    }
+    function setLive(msg) {
+      const el = document.getElementById('statusLive');
+      el.textContent = '';
+      requestAnimationFrame(() => { el.textContent = msg; });
+    }
+
+    /* ════════════════════════
+       INIT
+    ════════════════════════ */
+    window.addEventListener('load', () => {
+      
+
+      buildGroutChips();
+      buildAmbienteThumbs();
+      setupDrag();
+      render();
+      // Re-render periódico para efecto vivo (sólo si no es imagen fija)
+      setInterval(() => { if (!document.hidden && !latestRenderImg) render(); }, 6000);
+    });
+
+    window.addEventListener('resize', () => {
+      render();
+    });
+  </script>
+</body>
+
+</html>

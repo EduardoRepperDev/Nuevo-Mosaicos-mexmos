@@ -1,0 +1,1338 @@
+<!DOCTYPE html>
+<html lang="es" dir="ltr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Mexicana de Mosaicos — Explorador de Catálogo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet"/>
+<style>
+/* ═══════════════════════════════════════
+   DESIGN TOKENS — Flutter: ThemeData
+═══════════════════════════════════════ */
+:root {
+  --brand-navy:    #0D1B2A;
+  --brand-cobalt:  #1A4B8C;
+  --brand-cobalt2: #1E5FAD;
+  --brand-terra:   #C8741A;
+  --brand-terra2:  #A85E12;
+  --brand-gold:    #D4A843;
+  --brand-stone:   #F5F2EC;
+  --brand-stone2:  #EDE9E0;
+  --brand-green:   #2E6E4E;
+
+  --surface-dark:  #0D1B2A;
+  --surface-panel: #112236;
+  --surface-card:  #162E45;
+  --surface-hover: #1E3A54;
+  --surface-deep:  #0A1520;
+
+  --text-primary:   #F0EDE8;
+  --text-secondary: #94A3B8;
+  --text-muted:     #5B7A99;
+  --text-dark:      #1A1A2E;
+  --text-dark-sec:  #4A5568;
+
+  --border-subtle: rgba(255,255,255,0.06);
+  --border-panel:  rgba(255,255,255,0.10);
+  --border-accent: rgba(200,116,26,0.35);
+
+  --focus-ring:   #1A6BBF;
+  --focus-shadow: 0 0 0 3px rgba(26,107,191,0.5);
+
+  --sp-xs: 4px; --sp-sm: 8px; --sp-md: 16px;
+  --sp-lg: 24px; --sp-xl: 32px; --sp-2xl: 48px;
+
+  --r-sm: 4px; --r-md: 8px; --r-lg: 12px;
+  --r-xl: 16px; --r-2xl: 24px; --r-full: 9999px;
+
+  --font-display: 'Syne', sans-serif;
+  --font-body:    'DM Sans', sans-serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { height: 100%; }
+body {
+  font-family: var(--font-body);
+  background: var(--surface-dark);
+  color: var(--text-primary);
+  font-size: 14px;
+  line-height: 1.5;
+  height: 100%;
+  overflow: hidden;
+}
+
+:focus-visible {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 2px;
+  border-radius: var(--r-sm);
+}
+
+.sr-only {
+  position: absolute; width: 1px; height: 1px;
+  padding: 0; margin: -1px; overflow: hidden;
+  clip: rect(0,0,0,0); white-space: nowrap; border: 0;
+}
+
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--surface-hover); border-radius: 2px; }
+
+/* ══════════════════════════════════════
+   APP SHELL
+   Flutter: Scaffold
+   grid-rows: AppBar | FilterBar | Content | StatusBar
+══════════════════════════════════════ */
+.app-shell {
+  display: grid;
+  grid-template-rows: 52px auto 1fr 36px;
+  height: 100vh;
+  width: 100vw;
+}
+
+/* ══════════════════════════════════════
+   APP BAR — Flutter: AppBar
+══════════════════════════════════════ */
+.app-bar {
+  grid-row: 1;
+  background: var(--surface-panel);
+  border-bottom: 1px solid var(--border-panel);
+  display: flex; align-items: center;
+  padding: 0 var(--sp-lg);
+  gap: var(--sp-md);
+  z-index: 20;
+  flex-shrink: 0;
+}
+.app-bar__logo {
+  display: flex; align-items: center; gap: var(--sp-sm);
+  text-decoration: none; flex-shrink: 0;
+}
+.app-bar__mark {
+  width: 32px; height: 32px;
+  background: var(--brand-terra); border-radius: var(--r-sm);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-display); font-size: 15px; font-weight: 800;
+  color: #fff; flex-shrink: 0;
+}
+.app-bar__name { font-family: var(--font-display); font-size: 13px; font-weight: 600; color: var(--text-primary); }
+.app-bar__sub  { font-size: 9px; color: var(--text-muted); letter-spacing: 0.08em; text-transform: uppercase; }
+.app-bar__div  { width: 1px; height: 24px; background: var(--border-panel); flex-shrink: 0; }
+.app-bar__spacer { flex: 1; }
+
+.breadcrumb {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 12px; color: var(--text-secondary);
+}
+.breadcrumb a {
+  color: var(--text-secondary); text-decoration: none;
+  transition: color 0.15s;
+}
+.breadcrumb a:hover { color: var(--text-primary); }
+.breadcrumb__sep { color: var(--text-muted); font-size: 10px; }
+.breadcrumb__current { color: var(--brand-terra); font-weight: 500; }
+
+/* Search bar */
+.search-wrap {
+  display: flex; align-items: center; gap: var(--sp-sm);
+  background: var(--surface-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--r-lg);
+  padding: 7px 12px;
+  min-width: 220px;
+  transition: border-color 0.15s;
+}
+.search-wrap:focus-within {
+  border-color: var(--brand-terra);
+  box-shadow: 0 0 0 3px rgba(200,116,26,0.10);
+}
+.search-wrap__icon { font-size: 13px; color: var(--text-muted); flex-shrink: 0; }
+.search-wrap__input {
+  background: none; border: none; outline: none;
+  color: var(--text-primary); font-family: var(--font-body);
+  font-size: 12px; width: 100%;
+}
+.search-wrap__input::placeholder { color: var(--text-muted); }
+.search-wrap__clear {
+  background: none; border: none; color: var(--text-muted);
+  cursor: pointer; font-size: 12px; padding: 0; line-height: 1;
+  transition: color 0.15s; flex-shrink: 0;
+  display: none;
+}
+.search-wrap__clear.visible { display: block; }
+.search-wrap__clear:hover { color: var(--text-primary); }
+
+.a11y-group { display: flex; align-items: center; gap: var(--sp-xs); }
+.a11y-btn {
+  display: flex; align-items: center; gap: 5px;
+  padding: 5px 10px; background: transparent;
+  border: 1px solid var(--border-panel); border-radius: var(--r-sm);
+  color: var(--text-secondary); font-family: var(--font-body); font-size: 11px;
+  cursor: pointer; transition: all 0.15s;
+}
+.a11y-btn:hover, .a11y-btn.active {
+  background: var(--surface-hover); color: var(--text-primary); border-color: var(--border-accent);
+}
+.a11y-btn.active { color: var(--brand-terra); }
+
+.user-avatar {
+  width: 30px; height: 30px; border-radius: 50%;
+  background: var(--brand-cobalt);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 600; color: #fff; cursor: pointer;
+}
+
+/* ══════════════════════════════════════
+   FILTER BAR — Flutter: Container › Row
+══════════════════════════════════════ */
+.filter-bar {
+  grid-row: 2;
+  background: var(--surface-panel);
+  border-bottom: 1px solid var(--border-panel);
+  padding: 12px var(--sp-xl);
+  display: flex; align-items: flex-start;
+  gap: var(--sp-lg);
+  flex-wrap: wrap;
+  flex-shrink: 0;
+}
+
+.filter-group {
+  display: flex; flex-direction: column; gap: 6px;
+}
+.filter-group__label {
+  font-family: var(--font-display);
+  font-size: 8px; font-weight: 700;
+  letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--text-muted);
+}
+.filter-chips {
+  display: flex; gap: 5px; flex-wrap: wrap;
+}
+.filter-chip {
+  padding: 5px 12px;
+  background: var(--surface-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--r-full);
+  font-size: 11px; font-weight: 500;
+  color: var(--text-secondary);
+  cursor: pointer; transition: all 0.15s;
+  white-space: nowrap;
+}
+.filter-chip:hover {
+  background: var(--surface-hover);
+  color: var(--text-primary);
+  border-color: rgba(200,116,26,0.25);
+}
+.filter-chip.active {
+  background: rgba(200,116,26,0.14);
+  border-color: var(--brand-terra);
+  color: var(--brand-terra);
+  font-weight: 600;
+}
+.filter-chip.all.active {
+  background: rgba(26,75,140,0.18);
+  border-color: var(--brand-cobalt);
+  color: #7EB3E8;
+}
+
+/* Color filter chips */
+.filter-chip--color {
+  display: flex; align-items: center; gap: 6px;
+  padding: 5px 10px;
+}
+.filter-chip--color .chip-dot {
+  width: 10px; height: 10px; border-radius: 50%;
+  flex-shrink: 0; border: 1px solid rgba(255,255,255,0.15);
+}
+.filter-chip--color .chip-pattern {
+  font-size: 9px; color: rgba(255,255,255,0.5);
+}
+
+/* Results count + reset */
+.filter-bar__right {
+  margin-left: auto;
+  display: flex; align-items: center; gap: 10px;
+  align-self: flex-end;
+}
+.results-count {
+  font-size: 12px; color: var(--text-muted);
+  white-space: nowrap;
+}
+.results-count strong { color: var(--text-primary); font-weight: 600; }
+.btn-reset {
+  padding: 5px 12px;
+  background: transparent;
+  border: 1px solid var(--border-panel); border-radius: var(--r-full);
+  font-size: 11px; color: var(--text-muted);
+  cursor: pointer; transition: all 0.15s;
+  white-space: nowrap;
+}
+.btn-reset:hover { color: var(--brand-terra); border-color: var(--border-accent); }
+
+/* ══════════════════════════════════════
+   CATALOG CONTENT — Flutter: SingleChildScrollView
+══════════════════════════════════════ */
+.catalog-content {
+  grid-row: 3;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: var(--sp-xl);
+  position: relative;
+}
+
+/* ── Grid de tarjetas ── */
+.catalog-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: var(--sp-md);
+}
+
+/* ── Tarjeta de producto ── */
+.product-card {
+  background: var(--surface-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--r-xl);
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.22s cubic-bezier(0.4,0,0.2,1);
+  display: flex; flex-direction: column;
+  position: relative;
+}
+
+.product-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(200,116,26,0.40);
+  box-shadow:
+    0 12px 36px rgba(0,0,0,0.35),
+    0 0 0 1px rgba(200,116,26,0.12),
+    0 0 40px rgba(200,116,26,0.08);
+}
+
+.product-card:focus-visible {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+/* Thumbnail canvas */
+.card-thumb {
+  width: 100%; height: 130px;
+  overflow: hidden; position: relative;
+  background: var(--surface-deep);
+  flex-shrink: 0;
+}
+.card-thumb canvas {
+  width: 100%; height: 100%; display: block;
+  transition: transform 0.35s ease;
+}
+.product-card:hover .card-thumb canvas {
+  transform: scale(1.04);
+}
+
+/* Line badge en thumbnail */
+.card-line-badge {
+  position: absolute; top: 10px; left: 10px;
+  padding: 3px 9px;
+  background: rgba(13,27,42,0.82);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: var(--r-full);
+  font-family: var(--font-display);
+  font-size: 9px; font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: 0.06em;
+  backdrop-filter: blur(4px);
+}
+
+/* Pattern badge en thumbnail */
+.card-pattern-badge {
+  position: absolute; top: 10px; right: 10px;
+  padding: 3px 9px;
+  background: rgba(200,116,26,0.75);
+  border-radius: var(--r-full);
+  font-size: 9px; font-weight: 600;
+  color: #fff;
+  backdrop-filter: blur(4px);
+}
+
+/* Card body */
+.card-body {
+  padding: 14px 16px;
+  flex: 1; display: flex; flex-direction: column; gap: 8px;
+}
+
+.card-name {
+  font-family: var(--font-display);
+  font-size: 14px; font-weight: 700;
+  color: var(--text-primary); line-height: 1.2;
+}
+
+.card-code {
+  font-family: monospace; font-size: 10px;
+  color: var(--text-muted);
+  letter-spacing: 0.06em;
+}
+
+/* Color swatches row */
+.card-colors {
+  display: flex; gap: 4px; align-items: center;
+  flex-wrap: wrap;
+}
+.card-color-dot {
+  width: 14px; height: 14px; border-radius: 50%;
+  border: 1.5px solid rgba(255,255,255,0.15);
+  flex-shrink: 0;
+  transition: transform 0.15s;
+}
+.card-color-dot:hover { transform: scale(1.2); }
+.card-colors__more {
+  font-size: 9px; color: var(--text-muted);
+  margin-left: 2px;
+}
+
+/* Sizes row */
+.card-sizes {
+  display: flex; gap: 4px; flex-wrap: wrap;
+}
+.card-size-tag {
+  padding: 2px 7px;
+  background: var(--surface-hover);
+  border: 1px solid var(--border-subtle);
+  border-radius: 3px;
+  font-size: 9px; font-weight: 500;
+  color: var(--text-secondary);
+  font-family: monospace;
+}
+
+/* Card footer */
+.card-footer {
+  padding: 0 16px 14px;
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.btn-card-primary {
+  flex: 1; padding: 9px 12px;
+  background: var(--brand-terra); border: none; border-radius: var(--r-md);
+  font-family: var(--font-display); font-size: 11px; font-weight: 700;
+  color: #fff; cursor: pointer; transition: all 0.18s;
+  display: flex; align-items: center; justify-content: center; gap: 5px;
+}
+.btn-card-primary:hover {
+  background: var(--brand-terra2);
+  box-shadow: 0 4px 16px rgba(200,116,26,0.3);
+}
+
+.btn-card-icon {
+  width: 32px; height: 32px; flex-shrink: 0;
+  background: var(--surface-hover);
+  border: 1px solid var(--border-subtle); border-radius: var(--r-md);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; cursor: pointer; transition: all 0.15s;
+  color: var(--text-secondary);
+}
+.btn-card-icon:hover {
+  background: var(--surface-card);
+  border-color: var(--border-accent);
+  color: var(--brand-terra);
+}
+
+/* ── EMPTY STATE ── */
+.empty-state {
+  display: none;
+  flex-direction: column; align-items: center; justify-content: center;
+  padding: var(--sp-2xl) var(--sp-xl);
+  text-align: center;
+  gap: var(--sp-md);
+}
+.empty-state.visible { display: flex; }
+.empty-state__icon {
+  font-size: 56px; opacity: 0.25;
+  animation: float 3s ease-in-out infinite;
+}
+@keyframes float {
+  0%,100%{ transform: translateY(0); }
+  50%    { transform: translateY(-8px); }
+}
+.empty-state__title {
+  font-family: var(--font-display);
+  font-size: 20px; font-weight: 700;
+  color: var(--text-secondary);
+}
+.empty-state__sub {
+  font-size: 13px; color: var(--text-muted); max-width: 320px;
+}
+.btn-empty-reset {
+  margin-top: 4px; padding: 10px 24px;
+  background: transparent;
+  border: 1px solid var(--border-panel); border-radius: var(--r-full);
+  color: var(--text-secondary); font-family: var(--font-body); font-size: 13px;
+  cursor: pointer; transition: all 0.15s;
+}
+.btn-empty-reset:hover {
+  background: var(--surface-hover); color: var(--text-primary);
+  border-color: var(--border-accent);
+}
+
+/* ── SKELETON LOADER (aparece breve al filtrar) ── */
+.skeleton-card {
+  background: var(--surface-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--r-xl); overflow: hidden;
+  animation: shimmer 1.4s ease infinite;
+}
+@keyframes shimmer {
+  0%,100% { opacity: 1; }
+  50%      { opacity: 0.5; }
+}
+.skeleton-thumb { width: 100%; height: 130px; background: var(--surface-hover); }
+.skeleton-body  { padding: 14px 16px; display: flex; flex-direction: column; gap: 8px; }
+.skeleton-line  { height: 10px; border-radius: 4px; background: var(--surface-hover); }
+
+/* ══════════════════════════════════════
+   STATUS BAR — Flutter: BottomAppBar
+══════════════════════════════════════ */
+.status-bar {
+  grid-row: 4;
+  background: var(--surface-panel);
+  border-top: 1px solid var(--border-panel);
+  display: flex; align-items: center; gap: var(--sp-md);
+  padding: 0 var(--sp-lg);
+  flex-shrink: 0;
+}
+.kbd-hint { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; color: var(--text-muted); }
+.kbd {
+  padding: 1px 5px; background: var(--surface-card);
+  border: 1px solid var(--border-panel); border-radius: 3px;
+  font-family: monospace; font-size: 9px; color: var(--text-secondary);
+}
+.status-bar__mid { flex: 1; display: flex; justify-content: center; }
+.wcag-badge { display: flex; align-items: center; gap: 5px; font-size: 10px; color: #4CAF50; font-weight: 600; }
+.wcag-badge__dot {
+  width: 6px; height: 6px; border-radius: 50%; background: #4CAF50;
+  animation: wcag-pulse 2.5s ease-in-out infinite;
+}
+@keyframes wcag-pulse {
+  0%,100%{ box-shadow:0 0 0 0 rgba(76,175,80,0.4); }
+  50%    { box-shadow:0 0 0 4px rgba(76,175,80,0); }
+}
+.status-live { font-size: 10px; color: var(--text-muted); font-family: monospace; }
+
+/* ══════════════════════════════════════
+   FLUTTER OVERLAY
+══════════════════════════════════════ */
+.flutter-overlay { position: fixed; inset: 0; pointer-events: none; z-index: 100; display: none; }
+.flutter-overlay.visible { display: block; }
+.flutter-box { position: absolute; border: 1.5px dashed rgba(100,200,255,0.45); border-radius: 2px; }
+.flutter-tag {
+  position: absolute; top: -18px; left: 0;
+  background: rgba(0,140,255,0.88); color: #fff;
+  font-size: 9px; font-family: monospace; padding: 1px 6px; border-radius: 3px; white-space: nowrap;
+}
+
+/* ══════════════════════════════════════
+   TOAST
+══════════════════════════════════════ */
+.toast {
+  position: fixed; bottom: 52px; left: 50%;
+  transform: translateX(-50%) translateY(16px);
+  background: var(--surface-card); border: 1px solid var(--border-panel);
+  border-radius: var(--r-lg); padding: 10px 20px;
+  font-size: 12px; color: var(--text-primary);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  opacity: 0; pointer-events: none;
+  transition: all 0.25s; z-index: 50; white-space: nowrap;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ENTRY ANIMATION */
+@keyframes cardIn {
+  from { opacity: 0; transform: translateY(16px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════
+     Flutter: Scaffold
+════════════════════════════════════════ -->
+<div
+  class="app-shell"
+  role="application"
+  aria-label="Explorador de Catálogo — Mexicana de Mosaicos"
+>
+
+  <!-- ══ APP BAR ══ -->
+  <header class="app-bar" role="banner">
+    <a class="app-bar__logo" href="dashboard.html" aria-label="Inicio — Mexicana de Mosaicos">
+      <div class="app-bar__mark" aria-hidden="true">M</div>
+      <div>
+        <div class="app-bar__name">Mexicana de Mosaicos</div>
+        <div class="app-bar__sub">Sistema privado</div>
+      </div>
+    </a>
+
+    <div class="app-bar__div" aria-hidden="true"></div>
+
+    <!-- Breadcrumb -->
+    <nav class="breadcrumb" aria-label="Ruta de navegación">
+      <a href="dashboard.html">Inicio</a>
+      <span class="breadcrumb__sep" aria-hidden="true">›</span>
+      <span class="breadcrumb__current" aria-current="page">Catálogo</span>
+    </nav>
+
+    <div class="app-bar__spacer"></div>
+
+    <!-- Search -->
+    <div class="search-wrap" role="search" aria-label="Buscar productos en el catálogo">
+      <span class="search-wrap__icon" aria-hidden="true">🔍</span>
+      <input
+        class="search-wrap__input"
+        type="search"
+        id="searchInput"
+        placeholder="Buscar por nombre, código o descripción…"
+        aria-label="Campo de búsqueda de productos"
+        autocomplete="off"
+      />
+      <button class="search-wrap__clear" id="btnClearSearch"
+              aria-label="Limpiar búsqueda">✕</button>
+    </div>
+
+    <div class="app-bar__div" aria-hidden="true"></div>
+
+    <div class="a11y-group" role="group" aria-label="Controles de accesibilidad">
+      <button class="a11y-btn" id="btnContrast" aria-pressed="false" aria-label="Activar alto contraste">
+        <span aria-hidden="true">◑</span> Contraste
+      </button>
+      <button class="a11y-btn" id="btnFlutter" aria-pressed="false" aria-label="Mostrar anotaciones Flutter">
+        <span aria-hidden="true">⬡</span> Flutter
+      </button>
+    </div>
+
+    <div class="app-bar__div" aria-hidden="true"></div>
+    <div class="user-avatar" id="userAvatar" role="img" aria-label="Usuario" title="" onclick="doLogout()"></div>
+  </header>
+
+  <!-- ══ FILTER BAR — Flutter: Container › Row ══ -->
+  <div
+    class="filter-bar"
+    role="search"
+    aria-label="Filtros del catálogo"
+    id="filterBar"
+  >
+
+    <!-- Línea -->
+    <div class="filter-group">
+      <div class="filter-group__label" id="labelLinea">Línea</div>
+      <div
+        class="filter-chips"
+        role="radiogroup"
+        aria-labelledby="labelLinea"
+        id="filterLinea"
+      >
+        <div class="filter-chip all active" role="radio" aria-checked="true"
+             tabindex="0" data-filter="linea" data-val="all"
+             aria-label="Todas las líneas — seleccionado">Todas</div>
+        <div class="filter-chip" role="radio" aria-checked="false"
+             tabindex="-1" data-filter="linea" data-val="TRAD"
+             aria-label="Línea Tradicional">TRAD</div>
+        <div class="filter-chip" role="radio" aria-checked="false"
+             tabindex="-1" data-filter="linea" data-val="L-64"
+             aria-label="Línea 64">L-64</div>
+        <div class="filter-chip" role="radio" aria-checked="false"
+             tabindex="-1" data-filter="linea" data-val="COL"
+             aria-label="Línea Colonial">COL</div>
+      </div>
+    </div>
+
+    <!-- Tamaño -->
+    <div class="filter-group">
+      <div class="filter-group__label" id="labelTamano">Tamaño</div>
+      <div
+        class="filter-chips"
+        role="radiogroup"
+        aria-labelledby="labelTamano"
+        id="filterTamano"
+      >
+        <div class="filter-chip all active" role="radio" aria-checked="true"
+             tabindex="0" data-filter="tamano" data-val="all"
+             aria-label="Todos los tamaños">Todos</div>
+        <div class="filter-chip" role="radio" aria-checked="false"
+             tabindex="-1" data-filter="tamano" data-val="20×20">20×20</div>
+        <div class="filter-chip" role="radio" aria-checked="false"
+             tabindex="-1" data-filter="tamano" data-val="30×30">30×30</div>
+        <div class="filter-chip" role="radio" aria-checked="false"
+             tabindex="-1" data-filter="tamano" data-val="40×40">40×40</div>
+        <div class="filter-chip" role="radio" aria-checked="false"
+             tabindex="-1" data-filter="tamano" data-val="60×60">60×60</div>
+        <div class="filter-chip" role="radio" aria-checked="false"
+             tabindex="-1" data-filter="tamano" data-val="64×64">64×64</div>
+      </div>
+    </div>
+
+    <!-- Color -->
+    <div class="filter-group">
+      <div class="filter-group__label" id="labelColor">Color</div>
+      <div
+        class="filter-chips"
+        role="radiogroup"
+        aria-labelledby="labelColor"
+        id="filterColor"
+      >
+        <div class="filter-chip all active" role="radio" aria-checked="true"
+             tabindex="0" data-filter="color" data-val="all"
+             aria-label="Todos los colores">Todos</div>
+        <!-- Renderizado por JS -->
+      </div>
+    </div>
+
+    <!-- Patrón -->
+    <div class="filter-group">
+      <div class="filter-group__label" id="labelPatron">Patrón</div>
+      <div
+        class="filter-chips"
+        role="radiogroup"
+        aria-labelledby="labelPatron"
+        id="filterPatron"
+      >
+        <div class="filter-chip all active" role="radio" aria-checked="true"
+             tabindex="0" data-filter="patron" data-val="all"
+             aria-label="Todos los patrones">Todos</div>
+        <div class="filter-chip" role="radio" aria-checked="false"
+             tabindex="-1" data-filter="patron" data-val="tradicional">Tradicional</div>
+        <div class="filter-chip" role="radio" aria-checked="false"
+             tabindex="-1" data-filter="patron" data-val="palladiana">Palladiana</div>
+        <div class="filter-chip" role="radio" aria-checked="false"
+             tabindex="-1" data-filter="patron" data-val="trencadis">Trencadís</div>
+        <div class="filter-chip" role="radio" aria-checked="false"
+             tabindex="-1" data-filter="patron" data-val="opusincertum">Opus Incertum</div>
+      </div>
+    </div>
+
+    <!-- Resultados + reset -->
+    <div class="filter-bar__right">
+      <span
+        class="results-count"
+        id="resultsCount"
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
+      >
+        <strong id="resultsNum">12</strong> productos
+      </span>
+      <button class="btn-reset" id="btnReset" aria-label="Limpiar todos los filtros">
+        ↺ Limpiar
+      </button>
+    </div>
+
+  </div><!-- /filter-bar -->
+
+  <!-- ══ CATALOG CONTENT — Flutter: GridView.builder ══ -->
+  <main
+    class="catalog-content"
+    id="catalogContent"
+    role="main"
+    aria-label="Catálogo de productos"
+  >
+
+    <div
+      class="catalog-grid"
+      id="catalogGrid"
+      role="list"
+      aria-label="Productos del catálogo"
+    >
+      <!-- Renderizado por JS -->
+    </div>
+
+    <!-- Empty State -->
+    <div
+      class="empty-state"
+      id="emptyState"
+      role="status"
+      aria-live="polite"
+      aria-label="Sin resultados"
+    >
+      <div class="empty-state__icon" aria-hidden="true">🔍</div>
+      <div class="empty-state__title">Sin resultados</div>
+      <div class="empty-state__sub"
+           id="emptyStateSub">
+        No encontramos productos con los filtros seleccionados. Intenta con otros parámetros.
+      </div>
+      <button
+        class="btn-empty-reset"
+        id="btnEmptyReset"
+        aria-label="Limpiar filtros y mostrar todos los productos"
+      >Limpiar filtros</button>
+    </div>
+
+  </main>
+
+  <!-- ══ STATUS BAR ══ -->
+  <footer class="status-bar" role="contentinfo" aria-label="Atajos de teclado">
+    <span class="kbd-hint"><kbd class="kbd">Tab</kbd> Navegar</span>
+    <span class="kbd-hint"><kbd class="kbd">Enter</kbd> Abrir</span>
+    <span class="kbd-hint"><kbd class="kbd">/</kbd> Buscar</span>
+    <span class="kbd-hint"><kbd class="kbd">Esc</kbd> Limpiar</span>
+    <div class="status-bar__mid">
+      <div class="wcag-badge" role="status" aria-label="WCAG 2.1 AA conforme">
+        <div class="wcag-badge__dot" aria-hidden="true"></div>
+        WCAG 2.1 AA · Conforme
+      </div>
+    </div>
+    <span style="font-size:10px;color:var(--text-muted);">
+      Flutter: Scaffold › Column(FilterBar + GridView.builder)
+    </span>
+    <span class="status-live" id="statusLive" aria-live="polite" aria-atomic="true"></span>
+  </footer>
+
+</div><!-- /app-shell -->
+
+<!-- Flutter overlay -->
+<div class="flutter-overlay" id="flutterOverlay" aria-hidden="true">
+  <div class="flutter-box" style="top:0;left:0;right:0;height:52px;">
+    <span class="flutter-tag">AppBar › Row(logo + breadcrumb + search + a11y + avatar)</span>
+  </div>
+  <div class="flutter-box" style="top:52px;left:0;right:0;" id="flutterFilterBox">
+    <span class="flutter-tag">Container › SingleChildScrollView(horizontal) › Row(FilterGroups)</span>
+  </div>
+  <div class="flutter-box" id="flutterGridBox" style="bottom:36px;left:0;right:0;">
+    <span class="flutter-tag">Expanded › GridView.builder(crossAxisCount: auto, itemCount: N)</span>
+  </div>
+  <div class="flutter-box" style="bottom:0;left:0;right:0;height:36px;">
+    <span class="flutter-tag">BottomAppBar › Row</span>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<!-- ════════════════════════════════════
+     JAVASCRIPT
+════════════════════════════════════ -->
+<script src="utils.js"></script>
+<script>
+const session = requireAuth();
+if (session) {
+  document.getElementById('userAvatar').textContent = session.name.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase();
+  document.getElementById('userAvatar').title = session.name + ' (Click para cerrar sesión)';
+}
+
+/* ════════════════════════
+   DATA — Catálogo de productos
+════════════════════════ */
+const COLORS_DATA = [
+  { name:'Hueso',      hex:'#F5F0E0', pattern:''  },
+  { name:'Terracota',  hex:'#C8741A', pattern:'▦' },
+  { name:'Granito',    hex:'#1A1A2E', pattern:''  },
+  { name:'Gris',       hex:'#8B8B8B', pattern:'▪' },
+  { name:'Azul Cielo', hex:'#4A9EBF', pattern:'⠿' },
+  { name:'Verde',      hex:'#2E6E4E', pattern:'≡' },
+  { name:'Ámbar',      hex:'#D4A843', pattern:''  },
+  { name:'Rojo',       hex:'#B91C1C', pattern:'◈' },
+];
+
+const PATTERN_LABELS = {
+  tradicional:  'Tradicional',
+  palladiana:   'Palladiana',
+  trencadis:    'Trencadís',
+  opusincertum: 'Opus Incertum',
+};
+
+const LINE_NAMES = {
+  'TRAD': 'Línea Tradicional',
+  'L-64': 'Línea 64',
+  'COL':  'Línea Colonial',
+};
+
+/* 12 productos del catálogo */
+const CATALOG = [
+  {
+    id:'CAT-001', name:'Clásico Natural', line:'TRAD',
+    sizes:['20×20','30×30','40×40','60×60'],
+    colors:['#F5F0E0','#8B8B8B','#D4A843'],
+    pattern:'tradicional',
+    desc:'Terrazo de grano fino, acabado pulido. El más solicitado para interiores.'
+  },
+  {
+    id:'CAT-002', name:'Terracota Palladiana', line:'TRAD',
+    sizes:['40×40','60×60'],
+    colors:['#C8741A','#F5F0E0','#D4A843'],
+    pattern:'palladiana',
+    desc:'Fragmentos grandes de mármol en pasta terracota, efecto Palladiana veneciano.'
+  },
+  {
+    id:'CAT-003', name:'Granito Oscuro', line:'L-64',
+    sizes:['40×40','60×60','64×64'],
+    colors:['#1A1A2E','#8B8B8B'],
+    pattern:'palladiana',
+    desc:'Pasta oscura con Palladiana de alto contraste para espacios contemporáneos.'
+  },
+  {
+    id:'CAT-004', name:'Colonial Azul', line:'COL',
+    sizes:['20×20','30×30'],
+    colors:['#4A9EBF','#F5F0E0','#1A1A2E'],
+    pattern:'trencadis',
+    desc:'Trencadís en azul cielo con fragmentos pequeños angulosos, estilo Gaudí.'
+  },
+  {
+    id:'CAT-005', name:'Verde Opus', line:'L-64',
+    sizes:['60×60','64×64'],
+    colors:['#2E6E4E','#F5F0E0'],
+    pattern:'opusincertum',
+    desc:'Formas libres en verde bosque, ideal para jardines y exteriores.'
+  },
+  {
+    id:'CAT-006', name:'Ámbar Colonial', line:'COL',
+    sizes:['20×20','30×30'],
+    colors:['#D4A843','#C8741A','#F5F0E0'],
+    pattern:'trencadis',
+    desc:'Mosaico colonial en tonos cálidos, fragmentos pequeños en patrón Trencadís.'
+  },
+  {
+    id:'CAT-007', name:'Gris Urbano', line:'TRAD',
+    sizes:['20×20','30×30','40×40'],
+    colors:['#8B8B8B','#1A1A2E','#F5F0E0'],
+    pattern:'tradicional',
+    desc:'Línea gris neutro con grano medio, versátil para cualquier espacio.'
+  },
+  {
+    id:'CAT-008', name:'Rojo Óxido Palladiana', line:'L-64',
+    sizes:['40×40','64×64'],
+    colors:['#B91C1C','#C8741A','#1A1A2E'],
+    pattern:'palladiana',
+    desc:'Palladiana de alto impacto visual en rojo óxido y tonos cálidos.'
+  },
+  {
+    id:'CAT-009', name:'Hueso Opus', line:'TRAD',
+    sizes:['40×40','60×60'],
+    colors:['#F5F0E0','#D4A843'],
+    pattern:'opusincertum',
+    desc:'Opus Incertum en pasta hueso, aspecto artesanal y orgánico.'
+  },
+  {
+    id:'CAT-010', name:'Azul Grande', line:'L-64',
+    sizes:['60×60','64×64'],
+    colors:['#4A9EBF','#1A1A2E','#F5F0E0'],
+    pattern:'palladiana',
+    desc:'Palladiana en azul cielo para albercas y espacios acuáticos.'
+  },
+  {
+    id:'CAT-011', name:'Ámbar Tradicional', line:'TRAD',
+    sizes:['20×20','30×30','40×40'],
+    colors:['#D4A843','#C8741A','#F5F0E0'],
+    pattern:'tradicional',
+    desc:'Terrazo tradicional en ámbar dorado, calidez clásica mexicana.'
+  },
+  {
+    id:'CAT-012', name:'Colonial Verde', line:'COL',
+    sizes:['20×20','30×30'],
+    colors:['#2E6E4E','#F5F0E0','#D4A843'],
+    pattern:'trencadis',
+    desc:'Trencadís colonial en verde bosque, diseño ornamental geométrico.'
+  },
+];
+
+/* ════════════════════════
+   ESTADO DE FILTROS
+════════════════════════ */
+const filters = {
+  linea:  'all',
+  tamano: 'all',
+  color:  'all',
+  patron: 'all',
+  search: '',
+};
+
+/* ════════════════════════
+   RENDER HELPERS — canvas
+════════════════════════ */
+function jitter(v,p){ return v*(1-p/2+Math.random()*p); }
+
+function renderThumb(cv, patternKey, mainColor){
+  const ctx = cv.getContext('2d');
+  cv.width  = cv.parentElement.offsetWidth  || 220;
+  cv.height = cv.parentElement.offsetHeight || 130;
+  const cw=cv.width, ch=cv.height, c=mainColor;
+
+  switch(patternKey){
+    case 'tradicional': {
+      ctx.clearRect(0,0,cw,ch);
+      const T=7, cols=Math.floor(cw/T), rows=Math.floor(ch/T);
+      for(let r=0;r<rows;r++) for(let col=0;col<cols;col++){
+        const wave=Math.sin((col/cols-0.5)*3+(r/rows-0.5)*2)*0.5+0.5;
+        const v=Math.floor(wave*25-12);
+        ctx.fillStyle=v>=0?lighten(c,v):darken(c,-v);
+        ctx.globalAlpha=0.88+Math.random()*0.12;
+        ctx.fillRect(col*T,r*T,T-1,T-1);
+      }
+      ctx.globalAlpha=1;
+      ctx.strokeStyle='rgba(0,0,0,0.04)'; ctx.lineWidth=0.5;
+      for(let x=0;x<=cw;x+=52){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,ch);ctx.stroke();}
+      for(let y=0;y<=ch;y+=52){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(cw,y);ctx.stroke();}
+      break;
+    }
+    case 'palladiana': {
+      ctx.fillStyle=darken(c,50); ctx.fillRect(0,0,cw,ch);
+      let x=2,y=2, safe=0;
+      while(y<ch&&safe<600){
+        safe++;
+        const w=20+Math.random()*30, h=18+Math.random()*22;
+        if(x+w>cw-2){x=2;y+=h+2;continue;}
+        if(y+h>ch) break;
+        const sides=5+Math.floor(Math.random()*4),cx2=x+w/2,cy2=y+h/2;
+        const v=Math.floor(Math.random()*28-14);
+        ctx.fillStyle=v>=0?lighten(c,v):darken(c,-v);
+        ctx.globalAlpha=0.88+Math.random()*0.12;
+        ctx.beginPath();
+        for(let i=0;i<sides;i++){
+          const a=(i/sides)*2*Math.PI+Math.random()*0.35;
+          const rx=(w/2)*(0.72+Math.random()*0.45),ry=(h/2)*(0.72+Math.random()*0.45);
+          i===0?ctx.moveTo(cx2+rx*Math.cos(a),cy2+ry*Math.sin(a)):ctx.lineTo(cx2+rx*Math.cos(a),cy2+ry*Math.sin(a));
+        }
+        ctx.closePath(); ctx.fill(); ctx.globalAlpha=1; x+=w+2;
+      }
+      break;
+    }
+    case 'trencadis': {
+      ctx.fillStyle=darken(c,45); ctx.fillRect(0,0,cw,ch);
+      const base=9;
+      for(let y=2;y<ch;y+=base+2) for(let x=2;x<cw;x+=base+2){
+        const fw=base*(0.7+Math.random()*0.6), fh=base*(0.7+Math.random()*0.6);
+        const angle=(Math.random()-0.5)*(Math.PI/4);
+        const v=Math.floor(Math.random()*36-18);
+        ctx.fillStyle=v>=0?lighten(c,v):darken(c,-v);
+        ctx.globalAlpha=0.85+Math.random()*0.15;
+        ctx.save(); ctx.translate(x+fw/2,y+fh/2); ctx.rotate(angle);
+        ctx.fillRect(-fw/2,-fh/2,fw-2,fh-2);
+        ctx.restore(); ctx.globalAlpha=1;
+      }
+      break;
+    }
+    case 'opusincertum': {
+      ctx.fillStyle=darken(c,42); ctx.fillRect(0,0,cw,ch);
+      const count=Math.floor(cw*ch/400);
+      for(let i=0;i<count;i++){
+        const cx2=Math.random()*cw, cy2=Math.random()*ch;
+        const r1=jitter(18,0.9)*0.8, r2=jitter(18,0.9)*0.8;
+        const sides=3+Math.floor(Math.random()*6), rot=Math.random()*2*Math.PI;
+        const v=Math.floor(Math.random()*44-22);
+        ctx.fillStyle=v>=0?lighten(c,v):darken(c,-v);
+        ctx.globalAlpha=0.82+Math.random()*0.18;
+        ctx.beginPath();
+        for(let j=0;j<sides;j++){
+          const a=rot+(j/sides)*2*Math.PI;
+          const ji=0.7+Math.random()*0.7;
+          j===0?ctx.moveTo(cx2+r1*ji*Math.cos(a),cy2+r2*ji*Math.sin(a)):ctx.lineTo(cx2+r1*ji*Math.cos(a),cy2+r2*ji*Math.sin(a));
+        }
+        ctx.closePath(); ctx.fill(); ctx.globalAlpha=1;
+      }
+      break;
+    }
+  }
+}
+
+/* ════════════════════════
+   BUILD COLOR FILTER CHIPS
+════════════════════════ */
+function buildColorFilters(){
+  const wrap = document.getElementById('filterColor');
+  COLORS_DATA.forEach(color => {
+    const chip = document.createElement('div');
+    chip.className = 'filter-chip filter-chip--color';
+    chip.setAttribute('role','radio');
+    chip.setAttribute('aria-checked','false');
+    chip.setAttribute('tabindex','-1');
+    chip.setAttribute('data-filter','color');
+    chip.setAttribute('data-val', color.hex);
+    chip.setAttribute('aria-label', `Color ${color.name}`);
+    chip.innerHTML = `
+      <div class="chip-dot" style="background:${color.hex};" aria-hidden="true"></div>
+      <span>${color.name}</span>
+      ${color.pattern ? `<span class="chip-pattern" aria-hidden="true">${color.pattern}</span>` : ''}
+    `;
+    chip.addEventListener('click', () => setFilter('color', color.hex, chip));
+    chip.addEventListener('keydown', e => {
+      if(e.key==='Enter'||e.key===' '){ e.preventDefault(); setFilter('color', color.hex, chip); }
+    });
+    wrap.appendChild(chip);
+  });
+}
+
+/* ════════════════════════
+   FILTER LOGIC
+════════════════════════ */
+function setFilter(type, val, chipEl){
+  filters[type] = val;
+
+  // Update chip UI for the group
+  const group = chipEl.closest('.filter-chips');
+  group.querySelectorAll('.filter-chip').forEach(c => {
+    const active = c.dataset.val === val;
+    c.classList.toggle('active', active);
+    c.setAttribute('aria-checked', active ? 'true' : 'false');
+    c.setAttribute('tabindex', active ? '0' : '-1');
+  });
+
+  applyFilters();
+}
+
+function applyFilters(animate=true){
+  const query = filters.search.toLowerCase().trim();
+
+  const filtered = CATALOG.filter(p => {
+    if(filters.linea  !== 'all' && p.line    !== filters.linea)              return false;
+    if(filters.tamano !== 'all' && !p.sizes.includes(filters.tamano))        return false;
+    if(filters.color  !== 'all' && !p.colors.includes(filters.color))        return false;
+    if(filters.patron !== 'all' && p.pattern !== filters.patron)             return false;
+    if(query && !p.name.toLowerCase().includes(query) &&
+                !p.id.toLowerCase().includes(query)   &&
+                !p.desc.toLowerCase().includes(query)) return false;
+    return true;
+  });
+
+  renderGrid(filtered, animate);
+
+  // Results count
+  const num = filtered.length;
+  document.getElementById('resultsNum').textContent = num;
+  document.getElementById('resultsCount').setAttribute(
+    'aria-label', `${num} producto${num!==1?'s':''} encontrado${num!==1?'s':''}`
+  );
+  setLive(`${num} resultado${num!==1?'s':''}`);
+}
+
+function resetFilters(){
+  filters.linea  = 'all';
+  filters.tamano = 'all';
+  filters.color  = 'all';
+  filters.patron = 'all';
+  filters.search = '';
+
+  document.getElementById('searchInput').value = '';
+  document.getElementById('btnClearSearch').classList.remove('visible');
+
+  document.querySelectorAll('.filter-chip').forEach(c => {
+    const isAll = c.dataset.val === 'all';
+    c.classList.toggle('active', isAll);
+    c.setAttribute('aria-checked', isAll ? 'true' : 'false');
+    c.setAttribute('tabindex', isAll ? '0' : '-1');
+  });
+
+  applyFilters();
+  setLive('Filtros limpiados. Mostrando todos los productos.');
+}
+
+/* ════════════════════════
+   RENDER GRID
+════════════════════════ */
+function renderGrid(products, animate=true){
+  const grid  = document.getElementById('catalogGrid');
+  const empty = document.getElementById('emptyState');
+
+  grid.innerHTML = '';
+
+  if(products.length === 0){
+    empty.classList.add('visible');
+    return;
+  }
+  empty.classList.remove('visible');
+
+  products.forEach((product, index) => {
+    const card = buildCard(product, index, animate);
+    grid.appendChild(card);
+  });
+
+  // Render thumbs después de que los elementos estén en el DOM
+  setTimeout(() => {
+    products.forEach((product, index) => {
+      const cv = grid.children[index]?.querySelector('canvas');
+      if(cv) renderThumb(cv, product.pattern, product.colors[0]);
+    });
+    // Update flutter overlay
+    updateFlutterBoxes();
+  }, 30);
+}
+
+function buildCard(product, index, animate){
+  const card = document.createElement('div');
+  card.className = 'product-card';
+  card.setAttribute('role','listitem');
+  card.setAttribute('tabindex','0');
+  card.setAttribute('aria-label',
+    `${product.name} — ${LINE_NAMES[product.line]} — ${PATTERN_LABELS[product.pattern]} — tamaños: ${product.sizes.join(', ')}`
+  );
+
+  if(animate){
+    card.style.animation = `cardIn 0.35s cubic-bezier(0.4,0,0.2,1) ${index*0.045}s both`;
+  }
+
+  // Colors limitados a 5 dots + "+N más"
+  const visColors  = product.colors.slice(0,5);
+  const extraCount = product.colors.length - visColors.length;
+  const dotsHTML   = visColors.map(h => {
+    const colorName = COLORS_DATA.find(c=>c.hex===h)?.name || h;
+    const pat       = COLORS_DATA.find(c=>c.hex===h)?.pattern || '';
+    return `<div class="card-color-dot" style="background:${h};"
+                 title="${colorName} ${h}"
+                 aria-label="${colorName}${pat?' — patrón '+pat:''}"></div>`;
+  }).join('') + (extraCount>0 ? `<span class="card-colors__more">+${extraCount}</span>` : '');
+
+  const sizesHTML = product.sizes.map(s =>
+    `<span class="card-size-tag" aria-label="${s} centímetros">${s}</span>`
+  ).join('');
+
+  card.innerHTML = `
+    <div class="card-thumb">
+      <canvas aria-hidden="true"></canvas>
+      <div class="card-line-badge" aria-label="Línea: ${LINE_NAMES[product.line]}">${product.line}</div>
+      <div class="card-pattern-badge" aria-label="Patrón: ${PATTERN_LABELS[product.pattern]}">${PATTERN_LABELS[product.pattern]}</div>
+    </div>
+    <div class="card-body">
+      <div class="card-name">${product.name}</div>
+      <div class="card-code">${product.id} · ${LINE_NAMES[product.line]}</div>
+      <div class="card-colors" aria-label="Colores disponibles">${dotsHTML}</div>
+      <div class="card-sizes" aria-label="Tamaños disponibles">${sizesHTML}</div>
+    </div>
+    <div class="card-footer">
+      <button class="btn-card-primary"
+              aria-label="Ver detalle de ${product.name}">
+        <span aria-hidden="true">↗</span> Ver detalle
+      </button>
+      <button class="btn-card-icon"
+              aria-label="Usar ${product.name} en el configurador"
+              title="Usar en configurador">🎨</button>
+      <button class="btn-card-icon"
+              aria-label="Guardar ${product.name} en Mis Creaciones"
+              title="Guardar en Mis Creaciones">♡</button>
+    </div>
+  `;
+
+  // Events
+  card.addEventListener('click', e => {
+    if(e.target.closest('button')) return;
+    openDetail(product);
+  });
+  card.addEventListener('keydown', e => {
+    if(e.key==='Enter') openDetail(product);
+  });
+
+  card.querySelector('.btn-card-primary').addEventListener('click', e => {
+    e.stopPropagation(); openDetail(product);
+  });
+  card.querySelector('[title="Usar en configurador"]').addEventListener('click', e => {
+    e.stopPropagation();
+    showToast(`"${product.name}" cargado en el Configurador`);
+    setLive(`${product.name} cargado en el configurador`);
+  });
+  card.querySelector('[title="Guardar en Mis Creaciones"]').addEventListener('click', e => {
+    e.stopPropagation();
+    showToast(`"${product.name}" guardado en Mis Creaciones`);
+    setLive(`${product.name} guardado en Mis Creaciones`);
+  });
+
+  return card;
+}
+
+/* ════════════════════════
+   OPEN DETAIL (simula navegación)
+════════════════════════ */
+function openDetail(product){
+  showToast(`Abriendo detalle: ${product.name}…`);
+  setLive(`Navegando al detalle de ${product.name}`);
+}
+
+/* ════════════════════════
+   SEARCH
+════════════════════════ */
+const searchInput = document.getElementById('searchInput');
+const btnClear    = document.getElementById('btnClearSearch');
+let   searchTimer = null;
+
+searchInput.addEventListener('input', function(){
+  filters.search = this.value;
+  btnClear.classList.toggle('visible', this.value.length > 0);
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(() => applyFilters(), 180);
+});
+
+btnClear.addEventListener('click', () => {
+  searchInput.value = '';
+  filters.search    = '';
+  btnClear.classList.remove('visible');
+  searchInput.focus();
+  applyFilters();
+});
+
+// Atajo "/" para enfocar búsqueda
+document.addEventListener('keydown', e => {
+  if(e.key==='/' && document.activeElement !== searchInput){
+    e.preventDefault(); searchInput.focus();
+  }
+  if(e.key==='Escape' && document.activeElement === searchInput){
+    searchInput.value = ''; filters.search = '';
+    btnClear.classList.remove('visible');
+    applyFilters(); searchInput.blur();
+  }
+});
+
+/* ════════════════════════
+   FILTER CHIP EVENTS
+════════════════════════ */
+document.querySelectorAll('.filter-chip[data-filter]').forEach(chip => {
+  chip.addEventListener('click', () => setFilter(chip.dataset.filter, chip.dataset.val, chip));
+  chip.addEventListener('keydown', e => {
+    if(e.key==='Enter'||e.key===' '){
+      e.preventDefault(); setFilter(chip.dataset.filter, chip.dataset.val, chip);
+    }
+  });
+});
+
+document.getElementById('btnReset').addEventListener('click', resetFilters);
+document.getElementById('btnEmptyReset').addEventListener('click', resetFilters);
+
+/* ════════════════════════
+   A11Y TOGGLES
+════════════════════════ */
+document.getElementById('btnContrast').addEventListener('click', function(){
+  const a = this.getAttribute('aria-pressed')==='true';
+  this.setAttribute('aria-pressed',!a); this.classList.toggle('active');
+  document.documentElement.style.setProperty('--text-secondary', a?'#94A3B8':'#C8D8E8');
+  document.documentElement.style.setProperty('--text-muted', a?'#5B7A99':'#8BA8C0');
+  setLive(a ? 'Contraste normal' : 'Alto contraste activado');
+});
+
+document.getElementById('btnFlutter').addEventListener('click', function(){
+  const a = this.getAttribute('aria-pressed')==='true';
+  this.setAttribute('aria-pressed',!a); this.classList.toggle('active');
+  const o = document.getElementById('flutterOverlay');
+  o.classList.toggle('visible',!a);
+  o.setAttribute('aria-hidden', a?'true':'false');
+  setLive(a ? 'Flutter oculto' : 'Flutter visible');
+});
+
+/* ════════════════════════
+   FLUTTER BOXES — posición dinámica
+════════════════════════ */
+function updateFlutterBoxes(){
+  const filterBar = document.getElementById('filterBar');
+  const fb = document.getElementById('flutterFilterBox');
+  const gb = document.getElementById('flutterGridBox');
+  if(filterBar){
+    const r = filterBar.getBoundingClientRect();
+    fb.style.top    = r.top+'px';
+    fb.style.height = r.height+'px';
+    gb.style.top    = (r.top+r.height)+'px';
+  }
+}
+
+/* Eliminados toast y setLive duplicados */
+
+/* ════════════════════════
+   INIT
+════════════════════════ */
+buildColorFilters();
+renderGrid(CATALOG, true);
+</script>
+</body>
+</html>

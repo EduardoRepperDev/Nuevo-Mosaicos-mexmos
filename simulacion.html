@@ -1,0 +1,1687 @@
+<!DOCTYPE html>
+<html lang="es" dir="ltr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Mexicana de Mosaicos — Simulación en Ambiente</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet"/>
+<style>
+/* ═══════════════════════════════════════
+   DESIGN TOKENS
+═══════════════════════════════════════ */
+:root {
+  --brand-navy:    #0D1B2A;
+  --brand-cobalt:  #1A4B8C;
+  --brand-cobalt2: #1E5FAD;
+  --brand-terra:   #C8741A;
+  --brand-terra2:  #A85E12;
+  --brand-gold:    #D4A843;
+  --brand-stone:   #F5F2EC;
+  --brand-green:   #2E6E4E;
+
+  --surface-dark:  #0D1B2A;
+  --surface-panel: #112236;
+  --surface-card:  #162E45;
+  --surface-hover: #1E3A54;
+  --surface-deep:  #060E18;
+
+  --text-primary:   #F0EDE8;
+  --text-secondary: #94A3B8;
+  --text-muted:     #5B7A99;
+
+  --border-subtle: rgba(255,255,255,0.06);
+  --border-panel:  rgba(255,255,255,0.10);
+  --border-accent: rgba(200,116,26,0.35);
+
+  --focus-ring:   #1A6BBF;
+  --focus-shadow: 0 0 0 3px rgba(26,107,191,0.5);
+
+  --sp-xs: 4px; --sp-sm: 8px; --sp-md: 16px;
+  --sp-lg: 24px; --sp-xl: 32px;
+
+  --r-sm: 4px; --r-md: 8px; --r-lg: 12px;
+  --r-xl: 16px; --r-2xl: 24px; --r-full: 9999px;
+
+  --font-display: 'Syne', sans-serif;
+  --font-body:    'DM Sans', sans-serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; overflow: hidden; }
+
+body {
+  font-family: var(--font-body);
+  background: var(--surface-dark);
+  color: var(--text-primary);
+  font-size: 14px; line-height: 1.5;
+}
+
+:focus-visible {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 2px; border-radius: var(--r-sm);
+}
+
+.sr-only {
+  position: absolute; width: 1px; height: 1px;
+  padding: 0; margin: -1px; overflow: hidden;
+  clip: rect(0,0,0,0); white-space: nowrap; border: 0;
+}
+
+::-webkit-scrollbar { width: 3px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--surface-hover); border-radius: 2px; }
+
+/* ══════════════════════════════════════
+   APP SHELL
+   Flutter: Scaffold
+   grid: AppBar | Main | StatusBar
+══════════════════════════════════════ */
+.app-shell {
+  display: grid;
+  grid-template-rows: 52px 1fr 36px;
+  height: 100vh; width: 100vw;
+}
+
+/* ══════════════════════════════════════
+   APP BAR
+══════════════════════════════════════ */
+.app-bar {
+  grid-row: 1;
+  background: var(--surface-panel);
+  border-bottom: 1px solid var(--border-panel);
+  display: flex; align-items: center;
+  padding: 0 var(--sp-lg); gap: var(--sp-md);
+  z-index: 20; flex-shrink: 0;
+}
+.app-bar__logo {
+  display: flex; align-items: center; gap: var(--sp-sm);
+  text-decoration: none; flex-shrink: 0;
+}
+.app-bar__mark {
+  width: 32px; height: 32px; background: var(--brand-terra);
+  border-radius: var(--r-sm); display: flex; align-items: center;
+  justify-content: center; font-family: var(--font-display);
+  font-size: 15px; font-weight: 800; color: #fff;
+}
+.app-bar__name { font-family: var(--font-display); font-size: 13px; font-weight: 600; color: var(--text-primary); }
+.app-bar__sub  { font-size: 9px; color: var(--text-muted); letter-spacing: 0.08em; text-transform: uppercase; }
+.app-bar__div  { width: 1px; height: 24px; background: var(--border-panel); flex-shrink: 0; }
+.app-bar__spacer { flex: 1; }
+
+.breadcrumb { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-secondary); }
+.breadcrumb a { color: var(--text-secondary); text-decoration: none; transition: color 0.15s; }
+.breadcrumb a:hover { color: var(--text-primary); }
+.breadcrumb__sep { color: var(--text-muted); font-size: 10px; }
+.breadcrumb__current { color: var(--brand-terra); font-weight: 500; }
+
+.btn-back {
+  display: flex; align-items: center; gap: 6px; padding: 5px 12px;
+  background: var(--surface-card); border: 1px solid var(--border-subtle);
+  border-radius: var(--r-md); color: var(--text-secondary);
+  font-family: var(--font-body); font-size: 12px; cursor: pointer; transition: all 0.15s;
+}
+.btn-back:hover { background: var(--surface-hover); color: var(--text-primary); border-color: var(--border-accent); }
+
+.a11y-btn {
+  display: flex; align-items: center; gap: 5px; padding: 5px 10px;
+  background: transparent; border: 1px solid var(--border-panel);
+  border-radius: var(--r-sm); color: var(--text-secondary);
+  font-family: var(--font-body); font-size: 11px; cursor: pointer; transition: all 0.15s;
+}
+.a11y-btn:hover, .a11y-btn.active { background: var(--surface-hover); color: var(--text-primary); border-color: var(--border-accent); }
+.a11y-btn.active { color: var(--brand-terra); }
+
+.user-avatar {
+  width: 30px; height: 30px; border-radius: 50%; background: var(--brand-cobalt);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 600; color: #fff; cursor: pointer;
+}
+
+/* ══════════════════════════════════════
+   MAIN LAYOUT
+   Flutter: Scaffold › Row
+   Left panel 300px | Center stage | Right panel 280px
+══════════════════════════════════════ */
+.main-layout {
+  grid-row: 2;
+  display: grid;
+  grid-template-columns: 300px 1fr 280px;
+  overflow: hidden;
+}
+
+/* ══════════════════════════════════════
+   LEFT PANEL — Fondos y configuración
+   Flutter: SizedBox(w:300) › ListView
+══════════════════════════════════════ */
+.panel-left {
+  background: var(--surface-panel);
+  border-right: 1px solid var(--border-panel);
+  overflow-y: auto; overflow-x: hidden;
+  display: flex; flex-direction: column;
+  scrollbar-width: thin;
+  scrollbar-color: var(--surface-hover) transparent;
+}
+
+.lp-section {
+  padding: 12px var(--sp-md);
+  border-bottom: 1px solid var(--border-subtle);
+}
+.lp-section:last-child { border-bottom: none; }
+
+.lp-label {
+  font-family: var(--font-display); font-size: 9px; font-weight: 700;
+  letter-spacing: 0.13em; text-transform: uppercase; color: var(--text-muted);
+  margin-bottom: 10px;
+}
+
+/* ── Fondos predefinidos grid ── */
+.bg-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px;
+  margin-bottom: 10px;
+}
+.bg-card {
+  background: var(--surface-card); border: 1px solid var(--border-subtle);
+  border-radius: var(--r-md); overflow: hidden; cursor: pointer;
+  transition: all 0.18s; position: relative;
+}
+.bg-card:hover { border-color: rgba(200,116,26,0.35); transform: translateY(-1px); }
+.bg-card.active {
+  border-color: var(--brand-terra);
+  box-shadow: 0 0 0 1px rgba(200,116,26,0.2);
+}
+.bg-card.active::after {
+  content: '✓'; position: absolute; top: 4px; right: 5px;
+  font-size: 9px; color: var(--brand-terra); font-weight: 700;
+  text-shadow: 0 0 4px rgba(13,27,42,0.8);
+}
+.bg-thumb {
+  height: 46px; overflow: hidden; position: relative;
+}
+.bg-thumb canvas { width: 100%; height: 100%; display: block; }
+.bg-label {
+  padding: 4px 6px; font-size: 9px; font-weight: 500;
+  color: var(--text-secondary); text-align: center; line-height: 1.2;
+}
+.bg-card.active .bg-label { color: var(--brand-terra); }
+
+/* Upload custom photo */
+.upload-area {
+  border: 1.5px dashed rgba(255,255,255,0.14);
+  border-radius: var(--r-md); padding: 14px;
+  text-align: center; cursor: pointer; transition: all 0.18s;
+  background: transparent; position: relative;
+}
+.upload-area:hover { border-color: rgba(200,116,26,0.5); background: rgba(200,116,26,0.04); }
+.upload-area input[type="file"] {
+  position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+}
+.upload-area__icon { font-size: 24px; margin-bottom: 6px; display: block; }
+.upload-area__text { font-size: 11px; color: var(--text-muted); line-height: 1.5; }
+.upload-area__hint { font-size: 9px; color: var(--text-muted); margin-top: 4px; opacity: 0.7; }
+
+.upload-area.has-file {
+  border-color: var(--brand-terra);
+  background: rgba(200,116,26,0.06);
+}
+.upload-area.has-file .upload-area__text { color: var(--brand-terra); }
+
+/* ── Opacidad del mosaico ── */
+.slider-row { display: flex; flex-direction: column; gap: 6px; }
+.slider-header { display: flex; align-items: center; justify-content: space-between; }
+.slider-label { font-size: 11px; color: var(--text-secondary); font-weight: 500; }
+.slider-val {
+  font-family: var(--font-display); font-size: 14px; font-weight: 700;
+  color: var(--brand-terra);
+}
+input[type="range"] {
+  -webkit-appearance: none; appearance: none;
+  width: 100%; height: 4px; background: var(--surface-hover);
+  border-radius: 2px; outline: none; cursor: pointer;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 16px; height: 16px;
+  background: var(--brand-terra); border-radius: 50%;
+  border: 2px solid var(--surface-panel); cursor: pointer; transition: transform 0.1s;
+}
+input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.2); }
+input[type="range"]:focus-visible::-webkit-slider-thumb { box-shadow: var(--focus-shadow); }
+.slider-note { font-size: 9px; color: var(--text-muted); }
+
+/* ── Escala del mosaico ── */
+.scale-row { display: flex; flex-direction: column; gap: 8px; }
+.scale-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.scale-field { display: flex; flex-direction: column; gap: 4px; }
+.scale-field label { font-size: 10px; color: var(--text-muted); font-weight: 500; }
+.scale-input-wrap { display: flex; align-items: center; background: var(--surface-card); border: 1px solid var(--border-panel); border-radius: var(--r-sm); overflow: hidden; transition: border-color 0.15s; }
+.scale-input-wrap:focus-within { border-color: var(--brand-terra); }
+.scale-input {
+  flex: 1; background: none; border: none; outline: none;
+  color: var(--text-primary); font-family: var(--font-body); font-size: 13px; font-weight: 500;
+  padding: 8px 10px; width: 100%;
+}
+.scale-unit {
+  padding: 0 8px; font-size: 10px; color: var(--text-muted);
+  background: var(--surface-hover); align-self: stretch;
+  display: flex; align-items: center; flex-shrink: 0;
+  border-left: 1px solid var(--border-subtle);
+}
+.scale-note { font-size: 9px; color: var(--text-muted); line-height: 1.4; }
+
+/* ── Posición del mosaico ── */
+.position-controls {
+  display: grid; grid-template-columns: repeat(3, 32px);
+  grid-template-rows: repeat(3, 32px);
+  gap: 4px; justify-content: center;
+}
+.pos-btn {
+  width: 32px; height: 32px;
+  background: var(--surface-card); border: 1px solid var(--border-subtle);
+  border-radius: var(--r-sm); display: flex; align-items: center; justify-content: center;
+  cursor: pointer; color: var(--text-secondary); font-size: 14px; transition: all 0.15s;
+}
+.pos-btn:hover { background: var(--surface-hover); color: var(--text-primary); }
+.pos-btn--center { background: rgba(200,116,26,0.12); border-color: rgba(200,116,26,0.25); cursor: default; }
+.pos-btn--center:hover { background: rgba(200,116,26,0.12); color: var(--text-muted); }
+
+/* ── Repetición / tile mode ── */
+.tile-modes { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+.tile-mode-btn {
+  padding: 8px 6px; background: var(--surface-card);
+  border: 1px solid var(--border-subtle); border-radius: var(--r-md);
+  cursor: pointer; transition: all 0.18s; text-align: center;
+  font-family: var(--font-body);
+}
+.tile-mode-btn:hover { background: var(--surface-hover); border-color: rgba(200,116,26,0.25); }
+.tile-mode-btn.active { background: rgba(200,116,26,0.12); border-color: var(--brand-terra); }
+.tile-mode-btn__icon { font-size: 16px; display: block; margin-bottom: 3px; }
+.tile-mode-btn__label { font-size: 9px; color: var(--text-secondary); }
+.tile-mode-btn.active .tile-mode-btn__label { color: var(--brand-terra); }
+
+/* ══════════════════════════════════════
+   CENTER STAGE — Canvas principal
+   Flutter: Expanded › Stack
+══════════════════════════════════════ */
+.canvas-stage {
+  background: var(--surface-deep);
+  display: flex; flex-direction: column;
+  overflow: hidden; position: relative;
+}
+
+/* Toolbar */
+.stage-toolbar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px var(--sp-md);
+  background: rgba(6,14,24,0.92); border-bottom: 1px solid var(--border-subtle);
+  backdrop-filter: blur(4px); z-index: 5; flex-shrink: 0;
+}
+.stage-toolbar__left, .stage-toolbar__right { display: flex; align-items: center; gap: 6px; }
+.tb-btn {
+  height: 30px; padding: 0 10px; min-width: 30px;
+  background: var(--surface-card); border: 1px solid var(--border-subtle);
+  border-radius: var(--r-sm); display: flex; align-items: center; justify-content: center;
+  cursor: pointer; color: var(--text-secondary); font-size: 12px; transition: all 0.15s;
+  gap: 5px; font-family: var(--font-body);
+}
+.tb-btn:hover { background: var(--surface-hover); color: var(--text-primary); }
+.tb-btn.active { background: rgba(200,116,26,0.18); border-color: var(--brand-terra); color: var(--brand-terra); }
+
+.live-badge {
+  display: flex; align-items: center; gap: 5px;
+  font-size: 10px; color: #4CAF50; font-weight: 500;
+  letter-spacing: 0.06em; text-transform: uppercase;
+}
+.live-badge::before {
+  content: ''; width: 6px; height: 6px; border-radius: 50%;
+  background: #4CAF50; animation: blink 1.5s infinite;
+}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+/* Canvas viewport */
+.stage-viewport {
+  flex: 1; display: flex; align-items: center; justify-content: center;
+  overflow: hidden; position: relative;
+}
+
+/* Composite canvas wrapper */
+.composite-wrap {
+  position: relative;
+  border-radius: var(--r-xl);
+  overflow: hidden;
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,0.08),
+    0 32px 80px rgba(0,0,0,0.7);
+  cursor: grab; user-select: none;
+  transition: transform 0.2s;
+  transform-origin: center center;
+}
+.composite-wrap:active { cursor: grabbing; }
+
+/* Background canvas — fondo de ambiente */
+#bgCanvas {
+  display: block;
+  border-radius: var(--r-xl);
+}
+
+/* Mosaic overlay canvas — encima del fondo */
+#mosaicOverlay {
+  position: absolute; top: 0; left: 0;
+  display: block; border-radius: var(--r-xl);
+  pointer-events: none;
+  mix-blend-mode: normal;
+  transition: opacity 0.3s ease;
+}
+
+/* Rulers decorativos */
+.ruler-badge {
+  position: absolute; bottom: 12px; left: 12px;
+  padding: 4px 10px;
+  background: rgba(6,14,24,0.82); border: 1px solid rgba(255,255,255,0.1);
+  border-radius: var(--r-full); font-size: 10px; color: var(--text-secondary);
+  backdrop-filter: blur(4px); font-family: monospace;
+  pointer-events: none;
+}
+
+/* Zoom floating */
+.zoom-fab-group {
+  position: absolute; bottom: 16px; right: 16px;
+  display: flex; flex-direction: column; gap: 4px; z-index: 10;
+}
+.zoom-fab {
+  width: 36px; height: 36px;
+  background: rgba(22,46,69,0.92); border: 1px solid var(--border-panel);
+  border-radius: var(--r-sm); display: flex; align-items: center; justify-content: center;
+  cursor: pointer; color: var(--text-secondary); font-size: 16px;
+  transition: all 0.15s; backdrop-filter: blur(4px);
+}
+.zoom-fab:hover { background: var(--surface-hover); color: var(--text-primary); border-color: var(--border-accent); }
+
+/* ══════════════════════════════════════
+   RIGHT PANEL — Controles de mosaico
+   Flutter: SizedBox(w:280) › Column
+══════════════════════════════════════ */
+.panel-right {
+  background: var(--surface-panel);
+  border-left: 1px solid var(--border-panel);
+  overflow-y: auto; overflow-x: hidden;
+  display: flex; flex-direction: column;
+  scrollbar-width: thin;
+  scrollbar-color: var(--surface-hover) transparent;
+}
+
+.rp-section {
+  padding: 12px var(--sp-md);
+  border-bottom: 1px solid var(--border-subtle);
+}
+.rp-section:last-child { border-bottom: none; }
+
+.rp-label {
+  font-family: var(--font-display); font-size: 9px; font-weight: 700;
+  letter-spacing: 0.13em; text-transform: uppercase; color: var(--text-muted);
+  margin-bottom: 10px;
+}
+
+/* Configuración activa del mosaico (heredada del configurador) */
+.mosaic-config-card {
+  background: var(--surface-card); border: 1px solid var(--border-subtle);
+  border-radius: var(--r-md); padding: 12px; margin-bottom: 10px;
+  display: flex; gap: 10px; align-items: center;
+}
+.mc-thumb {
+  width: 48px; height: 48px; border-radius: var(--r-sm); overflow: hidden; flex-shrink: 0;
+}
+.mc-thumb canvas { width: 100%; height: 100%; display: block; }
+.mc-info { flex: 1; min-width: 0; }
+.mc-name { font-size: 12px; font-weight: 600; color: var(--text-primary); }
+.mc-meta { font-size: 10px; color: var(--text-muted); margin-top: 3px; }
+.mc-code { font-size: 9px; color: var(--text-muted); font-family: monospace; margin-top: 2px; }
+
+/* Color swatch mini */
+.color-swatches-mini {
+  display: flex; gap: 5px; flex-wrap: wrap; margin-top: 10px;
+}
+.csm-item {
+  display: flex; align-items: center; gap: 5px; cursor: pointer;
+  padding: 4px 8px; border-radius: var(--r-full);
+  background: var(--surface-card); border: 1px solid var(--border-subtle);
+  transition: all 0.15s;
+}
+.csm-item:hover { border-color: rgba(200,116,26,0.3); }
+.csm-item.active { border-color: var(--brand-terra); background: rgba(200,116,26,0.1); }
+.csm-dot { width: 12px; height: 12px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.15); }
+.csm-name { font-size: 9px; color: var(--text-secondary); }
+.csm-item.active .csm-name { color: var(--brand-terra); }
+
+/* Spec rows */
+.spec-row {
+  display: flex; justify-content: space-between;
+  padding: 5px 0; border-bottom: 1px solid var(--border-subtle); font-size: 11px;
+}
+.spec-row:last-child { border-bottom: none; }
+.spec-row__key { color: var(--text-muted); }
+.spec-row__val { color: var(--text-secondary); font-family: monospace; }
+.spec-row__val.hi { color: var(--brand-terra); font-weight: 600; }
+
+/* ── Save / Export footer ── */
+.rp-footer {
+  padding: var(--sp-md); border-top: 1px solid var(--border-panel);
+  display: flex; flex-direction: column; gap: var(--sp-sm); margin-top: auto;
+  flex-shrink: 0;
+}
+.btn-save-capture {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  width: 100%; padding: 13px var(--sp-md); background: var(--brand-terra);
+  border: none; border-radius: var(--r-md);
+  font-family: var(--font-display); font-size: 13px; font-weight: 700;
+  color: #fff; cursor: pointer; transition: all 0.2s; position: relative; overflow: hidden;
+}
+.btn-save-capture:hover { background: var(--brand-terra2); transform: translateY(-1px); box-shadow: 0 8px 24px rgba(200,116,26,0.3); }
+.btn-save-capture::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(to right, transparent, rgba(255,255,255,0.08), transparent);
+  transform: translateX(-100%); transition: transform 0.5s;
+}
+.btn-save-capture:hover::after { transform: translateX(100%); }
+
+.dl-row { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.btn-dl {
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 10px; background: transparent;
+  border: 1px solid var(--border-panel); border-radius: var(--r-md);
+  font-family: var(--font-body); font-size: 12px; color: var(--text-secondary);
+  cursor: pointer; transition: all 0.15s;
+}
+.btn-dl:hover { background: var(--surface-hover); color: var(--text-primary); border-color: var(--border-accent); }
+
+/* ══════════════════════════════════════
+   STATUS BAR
+══════════════════════════════════════ */
+.status-bar {
+  grid-row: 3; background: var(--surface-panel);
+  border-top: 1px solid var(--border-panel);
+  display: flex; align-items: center; gap: var(--sp-md);
+  padding: 0 var(--sp-lg); flex-shrink: 0;
+}
+.kbd-hint { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; color: var(--text-muted); }
+.kbd {
+  padding: 1px 5px; background: var(--surface-card);
+  border: 1px solid var(--border-panel); border-radius: 3px;
+  font-family: monospace; font-size: 9px; color: var(--text-secondary);
+}
+.status-bar__mid { flex: 1; display: flex; justify-content: center; }
+.wcag-badge { display: flex; align-items: center; gap: 5px; font-size: 10px; color: #4CAF50; font-weight: 600; }
+.wcag-badge__dot { width: 6px; height: 6px; border-radius: 50%; background: #4CAF50; animation: wpulse 2.5s ease-in-out infinite; }
+@keyframes wpulse { 0%,100%{box-shadow:0 0 0 0 rgba(76,175,80,0.4)} 50%{box-shadow:0 0 0 4px rgba(76,175,80,0)} }
+.status-live { font-size: 10px; color: var(--text-muted); font-family: monospace; }
+
+/* Flutter overlay */
+.flutter-overlay { position: fixed; inset: 0; pointer-events: none; z-index: 100; display: none; }
+.flutter-overlay.visible { display: block; }
+.flutter-box { position: absolute; border: 1.5px dashed rgba(100,200,255,0.45); border-radius: 2px; }
+.flutter-tag {
+  position: absolute; top: -18px; left: 0;
+  background: rgba(0,140,255,0.88); color: #fff;
+  font-size: 9px; font-family: monospace; padding: 1px 6px; border-radius: 3px; white-space: nowrap;
+}
+
+/* Toast */
+.toast {
+  position: fixed; bottom: 52px; left: 50%;
+  transform: translateX(-50%) translateY(16px);
+  background: var(--surface-card); border: 1px solid var(--border-panel);
+  border-radius: var(--r-lg); padding: 10px 20px;
+  font-size: 12px; color: var(--text-primary);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  opacity: 0; pointer-events: none; transition: all 0.25s;
+  z-index: 50; white-space: nowrap;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<div class="app-shell" role="application" aria-label="Simulación en Ambiente — Mexicana de Mosaicos">
+
+  <!-- ══ APP BAR ══ -->
+  <header class="app-bar" role="banner">
+    <a class="app-bar__logo" href="#" aria-label="Inicio — Mexicana de Mosaicos">
+      <div class="app-bar__mark" aria-hidden="true">M</div>
+      <div>
+        <div class="app-bar__name">Mexicana de Mosaicos</div>
+        <div class="app-bar__sub">Sistema privado</div>
+      </div>
+    </a>
+    <div class="app-bar__div" aria-hidden="true"></div>
+    <nav class="breadcrumb" aria-label="Ruta de navegación">
+      <a href="#">Inicio</a>
+      <span class="breadcrumb__sep" aria-hidden="true">›</span>
+      <a href="#">Configurador</a>
+      <span class="breadcrumb__sep" aria-hidden="true">›</span>
+      <span class="breadcrumb__current" aria-current="page">Simulación en Ambiente</span>
+    </nav>
+    <div class="app-bar__spacer"></div>
+    <button class="btn-back" id="btnBack" aria-label="Volver al configurador">← Configurador</button>
+    <div class="app-bar__div" aria-hidden="true"></div>
+    <div role="group" aria-label="Controles de accesibilidad" style="display:flex;gap:4px;">
+      <button class="a11y-btn" id="btnContrast" aria-pressed="false" aria-label="Activar alto contraste">
+        <span aria-hidden="true">◑</span> Contraste
+      </button>
+      <button class="a11y-btn" id="btnFlutter" aria-pressed="false" aria-label="Mostrar anotaciones Flutter">
+        <span aria-hidden="true">⬡</span> Flutter
+      </button>
+    </div>
+    <div class="app-bar__div" aria-hidden="true"></div>
+    <div class="user-avatar" role="img" aria-label="Usuario: HG" title="Hannia G.">HG</div>
+  </header>
+
+  <!-- ══ MAIN ══ -->
+  <main class="main-layout" role="main">
+
+    <!-- ═══ LEFT PANEL ═══ -->
+    <aside class="panel-left" role="complementary" aria-label="Panel de configuración del ambiente">
+
+      <!-- 1. Fondos predefinidos -->
+      <div class="lp-section">
+        <div class="lp-label">Fondo de ambiente</div>
+        <div class="bg-grid" role="radiogroup" aria-label="Seleccionar fondo de ambiente predefinido" id="bgGroup">
+          <!-- Renderizado por JS -->
+        </div>
+
+        <!-- Upload foto propia -->
+        <label class="upload-area" id="uploadArea" aria-label="Cargar foto propia como fondo de ambiente">
+          <input
+            type="file" id="fileInput"
+            accept="image/*"
+            aria-label="Seleccionar imagen desde tu dispositivo"
+          />
+          <span class="upload-area__icon" aria-hidden="true">📷</span>
+          <span class="upload-area__text" id="uploadText">
+            Cargar foto propia<br>
+            <span style="font-size:9px;opacity:0.7;">JPG, PNG, WEBP</span>
+          </span>
+          <span class="upload-area__hint" id="uploadHint">
+            Sube una foto de tu piso, pared o espacio exterior
+          </span>
+        </label>
+      </div>
+
+      <!-- 2. Opacidad del mosaico -->
+      <div class="lp-section">
+        <div class="lp-label">Opacidad del mosaico</div>
+        <div class="slider-row">
+          <div class="slider-header">
+            <label class="slider-label" for="sliderOpacity">Transparencia de la superposición</label>
+            <span class="slider-val" id="opacityVal" aria-live="polite">80%</span>
+          </div>
+          <input
+            type="range" id="sliderOpacity"
+            min="0" max="100" value="80" step="5"
+            aria-label="Opacidad del mosaico sobre el fondo, de 0 a 100 por ciento"
+            aria-valuemin="0" aria-valuemax="100" aria-valuenow="80"
+            aria-valuetext="80 por ciento"
+          />
+          <span class="slider-note">0% = invisible · 100% = completamente opaco</span>
+        </div>
+      </div>
+
+      <!-- 3. Escala del mosaico -->
+      <div class="lp-section">
+        <div class="lp-label">Escala del mosaico</div>
+        <div class="scale-row">
+          <div class="scale-inputs">
+            <div class="scale-field">
+              <label for="scaleAncho">Ancho real</label>
+              <div class="scale-input-wrap">
+                <input
+                  class="scale-input" type="number"
+                  id="scaleAncho" value="40" min="1" max="200"
+                  aria-label="Ancho real del mosaico en centímetros"
+                  placeholder="40"
+                />
+                <span class="scale-unit">cm</span>
+              </div>
+            </div>
+            <div class="scale-field">
+              <label for="scaleAlto">Alto real</label>
+              <div class="scale-input-wrap">
+                <input
+                  class="scale-input" type="number"
+                  id="scaleAlto" value="40" min="1" max="200"
+                  aria-label="Alto real del mosaico en centímetros"
+                  placeholder="40"
+                />
+                <span class="scale-unit">cm</span>
+              </div>
+            </div>
+          </div>
+          <span class="scale-note">
+            Define las medidas reales de cada pieza para calcular la escala de superposición sobre la foto.
+          </span>
+          <div style="display:flex;gap:6px;margin-top:6px;">
+            <div style="flex:1;">
+              <div class="lp-label" style="margin-bottom:4px;">Filas</div>
+              <div class="scale-input-wrap">
+                <input class="scale-input" type="number" id="scaleRows" value="4" min="1" max="10" aria-label="Número de filas de mosaicos a mostrar"/>
+                <span class="scale-unit">fil.</span>
+              </div>
+            </div>
+            <div style="flex:1;">
+              <div class="lp-label" style="margin-bottom:4px;">Columnas</div>
+              <div class="scale-input-wrap">
+                <input class="scale-input" type="number" id="scaleCols" value="4" min="1" max="10" aria-label="Número de columnas de mosaicos a mostrar"/>
+                <span class="scale-unit">col.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4. Modo de repetición -->
+      <div class="lp-section">
+        <div class="lp-label">Modo de repetición</div>
+        <div class="tile-modes" role="radiogroup" aria-label="Modo de repetición del mosaico en el espacio">
+          <button class="tile-mode-btn active" data-mode="fill"
+                  role="radio" aria-checked="true" aria-label="Modo Relleno — cubre todo el espacio">
+            <span class="tile-mode-btn__icon" aria-hidden="true">⬛</span>
+            <span class="tile-mode-btn__label">Relleno</span>
+          </button>
+          <button class="tile-mode-btn" data-mode="fit"
+                  role="radio" aria-checked="false" aria-label="Modo Ajustar — muestra las dimensiones exactas">
+            <span class="tile-mode-btn__icon" aria-hidden="true">⊡</span>
+            <span class="tile-mode-btn__label">Ajustar</span>
+          </button>
+          <button class="tile-mode-btn" data-mode="center"
+                  role="radio" aria-checked="false" aria-label="Modo Centrado — posiciona el mosaico al centro">
+            <span class="tile-mode-btn__icon" aria-hidden="true">⊕</span>
+            <span class="tile-mode-btn__label">Centrado</span>
+          </button>
+          <button class="tile-mode-btn" data-mode="corner"
+                  role="radio" aria-checked="false" aria-label="Modo Esquina — posiciona el mosaico en la esquina">
+            <span class="tile-mode-btn__icon" aria-hidden="true">◤</span>
+            <span class="tile-mode-btn__label">Esquina</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 5. Posición manual -->
+      <div class="lp-section">
+        <div class="lp-label">Posición del mosaico</div>
+        <div
+          class="position-controls"
+          role="group"
+          aria-label="Mover posición del mosaico en el espacio"
+        >
+          <button class="pos-btn" id="posUL" aria-label="Mover a esquina superior izquierda">↖</button>
+          <button class="pos-btn" id="posU"  aria-label="Mover hacia arriba">↑</button>
+          <button class="pos-btn" id="posUR" aria-label="Mover a esquina superior derecha">↗</button>
+          <button class="pos-btn" id="posL"  aria-label="Mover a la izquierda">←</button>
+          <button class="pos-btn pos-btn--center" aria-label="Posición actual" aria-disabled="true">⊹</button>
+          <button class="pos-btn" id="posR"  aria-label="Mover a la derecha">→</button>
+          <button class="pos-btn" id="posDL" aria-label="Mover a esquina inferior izquierda">↙</button>
+          <button class="pos-btn" id="posD"  aria-label="Mover hacia abajo">↓</button>
+          <button class="pos-btn" id="posDR" aria-label="Mover a esquina inferior derecha">↘</button>
+        </div>
+        <div style="display:flex;gap:6px;margin-top:8px;">
+          <div style="flex:1;">
+            <div class="lp-label" style="margin-bottom:3px;">Offset X</div>
+            <div class="scale-input-wrap">
+              <input class="scale-input" type="number" id="offsetX" value="0" step="10"
+                     aria-label="Desplazamiento horizontal del mosaico en píxeles"/>
+              <span class="scale-unit">px</span>
+            </div>
+          </div>
+          <div style="flex:1;">
+            <div class="lp-label" style="margin-bottom:3px;">Offset Y</div>
+            <div class="scale-input-wrap">
+              <input class="scale-input" type="number" id="offsetY" value="0" step="10"
+                     aria-label="Desplazamiento vertical del mosaico en píxeles"/>
+              <span class="scale-unit">px</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </aside><!-- /panel-left -->
+
+    <!-- ═══ CENTER STAGE ═══ -->
+    <div class="canvas-stage" aria-label="Área de simulación en ambiente">
+
+      <!-- Toolbar -->
+      <div class="stage-toolbar" role="toolbar" aria-label="Herramientas de simulación">
+        <div class="stage-toolbar__left">
+          <button class="tb-btn" id="btnZoomIn"    aria-label="Acercar">+</button>
+          <button class="tb-btn" id="btnZoomOut"   aria-label="Alejar">−</button>
+          <button class="tb-btn" id="btnZoomReset" aria-label="Restablecer zoom">⊡</button>
+          <span style="font-size:11px;color:var(--text-muted);font-family:monospace;padding:0 4px;" id="zoomLabel">100%</span>
+          <button class="tb-btn" id="btnToggleGrid" aria-pressed="false" aria-label="Mostrar cuadrícula de referencia">⊞ Cuadrícula</button>
+        </div>
+        <div class="live-badge" role="status" aria-label="Simulación en tiempo real activa">Simulación en tiempo real</div>
+        <div class="stage-toolbar__right">
+          <button class="tb-btn" id="btnResetPos" aria-label="Restablecer posición del mosaico">↺ Restablecer</button>
+          <button class="tb-btn" id="btnToggleBg" aria-pressed="true" aria-label="Mostrar u ocultar el fondo">🌄 Fondo</button>
+        </div>
+      </div>
+
+      <!-- Stage viewport -->
+      <div class="stage-viewport" id="stageViewport">
+        <div class="composite-wrap" id="compositeWrap">
+          <!-- Background canvas -->
+          <canvas id="bgCanvas" aria-hidden="true"></canvas>
+          <!-- Mosaic overlay -->
+          <canvas id="mosaicOverlay"
+                  role="img"
+                  aria-label="Superposición del mosaico Terracota Palladiana sobre el fondo seleccionado"></canvas>
+          <!-- Scale badge -->
+          <div class="ruler-badge" id="scaleBadge" aria-hidden="true">40×40 cm · 4×4 piezas</div>
+        </div>
+
+        <!-- Zoom controls flotantes -->
+        <div class="zoom-fab-group" role="group" aria-label="Controles de zoom rápido">
+          <button class="zoom-fab" id="zfPlus"  aria-label="Acercar">+</button>
+          <button class="zoom-fab" id="zfMinus" aria-label="Alejar">−</button>
+        </div>
+      </div>
+
+    </div><!-- /canvas-stage -->
+
+    <!-- ═══ RIGHT PANEL ═══ -->
+    <aside class="panel-right" role="complementary" aria-label="Panel de configuración del mosaico">
+
+      <!-- Configuración activa -->
+      <div class="rp-section">
+        <div class="rp-label">Diseño activo</div>
+        <div class="mosaic-config-card">
+          <div class="mc-thumb">
+            <canvas id="miniThumb" width="48" height="48"></canvas>
+          </div>
+          <div class="mc-info">
+            <div class="mc-name">Terracota Palladiana</div>
+            <div class="mc-meta">Línea Tradicional · 40×40 cm</div>
+            <div class="mc-code">TRZ-TRAD-40x40-TER-PALL</div>
+          </div>
+        </div>
+
+        <!-- Variantes de color rápidas -->
+        <div class="rp-label" style="margin-bottom:6px;">Cambiar color rápidamente</div>
+        <div
+          class="color-swatches-mini"
+          role="radiogroup"
+          aria-label="Seleccionar variante de color del mosaico"
+          id="colorSwatchesMini"
+        >
+          <!-- Renderizado por JS -->
+        </div>
+      </div>
+
+      <!-- Ficha del diseño -->
+      <div class="rp-section">
+        <div class="rp-label">Ficha del diseño</div>
+        <div class="spec-row"><span class="spec-row__key">Línea</span><span class="spec-row__val hi" id="specLine">Línea Tradicional</span></div>
+        <div class="spec-row"><span class="spec-row__key">Patrón</span><span class="spec-row__val hi" id="specPattern">Palladiana</span></div>
+        <div class="spec-row"><span class="spec-row__key">Color</span><span class="spec-row__val" id="specColor">Terracota · #C8741A</span></div>
+        <div class="spec-row"><span class="spec-row__key">Tamaño pieza</span><span class="spec-row__val" id="specSize">40 × 40 cm</span></div>
+        <div class="spec-row"><span class="spec-row__key">Resistencia</span><span class="spec-row__val">21.37 MPa</span></div>
+        <div class="spec-row"><span class="spec-row__key">Acabado</span><span class="spec-row__val">Pulido 400 grit</span></div>
+      </div>
+
+      <!-- Información de la simulación -->
+      <div class="rp-section">
+        <div class="rp-label">Parámetros de simulación</div>
+        <div class="spec-row"><span class="spec-row__key">Fondo</span><span class="spec-row__val hi" id="infoFondo">Sala / Piso</span></div>
+        <div class="spec-row"><span class="spec-row__key">Opacidad</span><span class="spec-row__val" id="infoOpacity">80%</span></div>
+        <div class="spec-row"><span class="spec-row__key">Escala pieza</span><span class="spec-row__val" id="infoEscala">40 × 40 cm</span></div>
+        <div class="spec-row"><span class="spec-row__key">Cuadrícula</span><span class="spec-row__val" id="infoGrid">4 × 4 piezas</span></div>
+        <div class="spec-row"><span class="spec-row__key">Modo</span><span class="spec-row__val" id="infoMode">Relleno</span></div>
+      </div>
+
+      <!-- Save/Export footer -->
+      <div class="rp-footer">
+        <button
+          class="btn-save-capture"
+          id="btnSaveCapture"
+          aria-label="Guardar captura de esta simulación en Mis Creaciones"
+        >
+          <span aria-hidden="true">♡</span> Guardar captura →
+        </button>
+        <div class="dl-row">
+          <button class="btn-dl" id="btnPNG" aria-label="Descargar simulación como imagen PNG">
+            <span aria-hidden="true">🖼</span> PNG
+          </button>
+          <button class="btn-dl" id="btnPDF" aria-label="Descargar ficha técnica de la simulación como PDF">
+            <span aria-hidden="true">📄</span> PDF
+          </button>
+        </div>
+      </div>
+
+    </aside><!-- /panel-right -->
+
+  </main>
+
+  <!-- STATUS BAR -->
+  <footer class="status-bar" role="contentinfo" aria-label="Atajos y estado">
+    <span class="kbd-hint"><kbd class="kbd">Tab</kbd> Navegar</span>
+    <span class="kbd-hint"><kbd class="kbd">+/−</kbd> Zoom</span>
+    <span class="kbd-hint"><kbd class="kbd">Drag</kbd> Mover</span>
+    <span class="kbd-hint"><kbd class="kbd">R</kbd> Restablecer</span>
+    <div class="status-bar__mid">
+      <div class="wcag-badge" role="status" aria-label="WCAG 2.1 AA conforme">
+        <div class="wcag-badge__dot" aria-hidden="true"></div>
+        WCAG 2.1 AA · Conforme
+      </div>
+    </div>
+    <span style="font-size:10px;color:var(--text-muted);">
+      Flutter: Scaffold › Stack(BackgroundImage + MosaicOverlay + Controls)
+    </span>
+    <span class="status-live" id="statusLive" aria-live="polite" aria-atomic="true"></span>
+  </footer>
+
+</div><!-- /app-shell -->
+
+<!-- Flutter overlay -->
+<div class="flutter-overlay" id="flutterOverlay" aria-hidden="true">
+  <div class="flutter-box" style="top:0;left:0;right:0;height:52px;">
+    <span class="flutter-tag">AppBar › Row(logo + breadcrumb + back + a11y)</span>
+  </div>
+  <div class="flutter-box" style="top:52px;left:0;width:300px;bottom:36px;">
+    <span class="flutter-tag">SizedBox(w:300) › ListView(BgGrid + Upload + Sliders + Scale + TileModes + Position)</span>
+  </div>
+  <div class="flutter-box" style="top:52px;left:300px;right:280px;bottom:36px;">
+    <span class="flutter-tag">Expanded › Stack(BgCanvas + MosaicOverlay + ZoomControls)</span>
+  </div>
+  <div class="flutter-box" style="top:52px;right:0;width:280px;bottom:36px;">
+    <span class="flutter-tag">SizedBox(w:280) › Column(ConfigCard + ColorSwatches + SpecRows + Footer)</span>
+  </div>
+  <div class="flutter-box" style="bottom:0;left:0;right:0;height:36px;">
+    <span class="flutter-tag">BottomAppBar › Row</span>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<!-- ════════════════════════════════════
+     JAVASCRIPT
+════════════════════════════════════ -->
+<script>
+/* ════════════════════════
+   DATA
+════════════════════════ */
+const COLORS = [
+  { name:'Terracota', hex:'#C8741A', ref:'PMS 166 C',      pattern:'▦' },
+  { name:'Hueso',     hex:'#F5F0E0', ref:'PMS Warm Gray 1', pattern:''  },
+  { name:'Granito',   hex:'#1A1A2E', ref:'PMS Black 6 C',   pattern:''  },
+  { name:'Azul Cielo',hex:'#4A9EBF', ref:'PMS 7459 C',      pattern:'⠿' },
+  { name:'Verde',     hex:'#2E6E4E', ref:'PMS 7734 C',      pattern:'≡' },
+  { name:'Ámbar',     hex:'#D4A843', ref:'PMS 1235 C',      pattern:''  },
+];
+
+const BG_PRESETS = [
+  { key:'sala',     label:'Sala / Piso',    colors:['#C4B49A','#A8956E','#D8C8A8'], angle:0  },
+  { key:'bano',     label:'Baño / Pared',   colors:['#E8E4DC','#D4CFCA','#F0ECE6'], angle:90 },
+  { key:'exterior', label:'Jardín',         colors:['#4A7040','#3A5830','#5A8850'], angle:45 },
+  { key:'cocina',   label:'Cocina',         colors:['#C8C0B4','#B4AC9E','#DCD8D0'], angle:0  },
+  { key:'entrada',  label:'Entrada',        colors:['#7A6E64','#968A80','#645A50'], angle:0  },
+  { key:'terraza',  label:'Terraza',        colors:['#6A7A5A','#8A9A6A','#5A6A4A'], angle:30 },
+];
+
+/* ════════════════════════
+   STATE
+════════════════════════ */
+const state = {
+  activeBg:    'sala',
+  customBg:    null,        // ImageData de la foto subida
+  opacity:     80,          // %
+  scaleW:      40, scaleH: 40,   // cm
+  rows:        4,  cols:   4,
+  tileMode:    'fill',
+  offsetX:     0,  offsetY: 0,
+  zoomLevel:   1.0,
+  showGrid:    false,
+  showBg:      true,
+  activeColor: COLORS[0],
+  renderTimer: null,
+};
+
+/* Drag state */
+const drag = { active:false, sx:0, sy:0, tx:0, ty:0 };
+
+/* ════════════════════════
+   CANVAS REFS
+════════════════════════ */
+const bgCanvas       = document.getElementById('bgCanvas');
+const mosaicOverlay  = document.getElementById('mosaicOverlay');
+const bgCtx          = bgCanvas.getContext('2d');
+const moCtx          = mosaicOverlay.getContext('2d');
+const compositeWrap  = document.getElementById('compositeWrap');
+
+/* ════════════════════════
+   HELPERS
+════════════════════════ */
+function hexToRgb(h){ return {r:parseInt(h.slice(1,3),16),g:parseInt(h.slice(3,5),16),b:parseInt(h.slice(5,7),16)}; }
+function lighten(h,a){ const c=hexToRgb(h); return `rgb(${Math.min(255,c.r+a)},${Math.min(255,c.g+a)},${Math.min(255,c.b+a)})`; }
+function darken(h,a){  const c=hexToRgb(h); return `rgb(${Math.max(0,c.r-a)},${Math.max(0,c.g-a)},${Math.max(0,c.b-a)})`; }
+function jitter(v,p){ return v*(1-p/2+Math.random()*p); }
+
+/* ════════════════════════
+   SIZE CANVAS to viewport
+════════════════════════ */
+function sizeCanvases(){
+  const vp = document.getElementById('stageViewport');
+  const vw = vp.offsetWidth, vh = vp.offsetHeight;
+  const size = Math.min(vw, vh) * 0.82;
+  const W = Math.floor(size), H = Math.floor(size);
+
+  bgCanvas.width      = W; bgCanvas.height      = H;
+  mosaicOverlay.width = W; mosaicOverlay.height = H;
+
+  compositeWrap.style.width  = W + 'px';
+  compositeWrap.style.height = H + 'px';
+  return { W, H };
+}
+
+/* ════════════════════════
+   DRAW BACKGROUND
+════════════════════════ */
+function drawBackground(){
+  const { W, H } = { W: bgCanvas.width, H: bgCanvas.height };
+  bgCtx.clearRect(0,0,W,H);
+
+  if(state.customBg){
+    // Draw uploaded image
+    bgCtx.drawImage(state.customBg, 0, 0, W, H);
+    return;
+  }
+
+  if(!state.showBg){
+    bgCtx.fillStyle = '#111827';
+    bgCtx.fillRect(0,0,W,H);
+    return;
+  }
+
+  const preset = BG_PRESETS.find(b=>b.key===state.activeBg) || BG_PRESETS[0];
+
+  // Draw ambient scene with gradient + texture
+  const rad = preset.angle * Math.PI / 180;
+  const grd = bgCtx.createLinearGradient(
+    0, 0,
+    Math.cos(rad)*W, Math.sin(rad)*H
+  );
+  grd.addColorStop(0, preset.colors[0]);
+  grd.addColorStop(0.5, preset.colors[1]||preset.colors[0]);
+  grd.addColorStop(1, preset.colors[2]||preset.colors[0]);
+  bgCtx.fillStyle = grd;
+  bgCtx.fillRect(0,0,W,H);
+
+  // Ambient texture lines — simulating tiles/walls/grass
+  bgCtx.save();
+  bgCtx.globalAlpha = 0.12;
+  bgCtx.strokeStyle = 'rgba(0,0,0,0.4)';
+  bgCtx.lineWidth = 1;
+
+  if(preset.key === 'sala' || preset.key === 'cocina' || preset.key === 'entrada'){
+    // Horizontal floor lines (perspective)
+    for(let i=0; i<12; i++){
+      const y = H * 0.3 + (H * 0.7 / 12) * i;
+      bgCtx.beginPath(); bgCtx.moveTo(0,y); bgCtx.lineTo(W,y); bgCtx.stroke();
+    }
+    // Vertical lines with perspective
+    for(let i=0; i<=8; i++){
+      const x = (W/8)*i;
+      bgCtx.beginPath(); bgCtx.moveTo(W/2, H*0.3); bgCtx.lineTo(x, H); bgCtx.stroke();
+    }
+  } else if(preset.key === 'bano'){
+    // Wall tile grid
+    const tw=40, th=40;
+    for(let x=0;x<W;x+=tw){ bgCtx.beginPath();bgCtx.moveTo(x,0);bgCtx.lineTo(x,H);bgCtx.stroke(); }
+    for(let y=0;y<H;y+=th){ bgCtx.beginPath();bgCtx.moveTo(0,y);bgCtx.lineTo(W,y);bgCtx.stroke(); }
+  } else if(preset.key === 'exterior' || preset.key === 'terraza'){
+    // Organic grass texture
+    bgCtx.strokeStyle='rgba(0,0,0,0.15)';
+    for(let i=0;i<80;i++){
+      const x=Math.random()*W, y=Math.random()*H, h2=5+Math.random()*15;
+      bgCtx.beginPath(); bgCtx.moveTo(x,y); bgCtx.lineTo(x+(Math.random()-0.5)*6,y-h2); bgCtx.stroke();
+    }
+  }
+  bgCtx.restore();
+
+  // Vignette
+  const vig = bgCtx.createRadialGradient(W/2,H/2,H*0.2,W/2,H/2,H*0.75);
+  vig.addColorStop(0,'transparent');
+  vig.addColorStop(1,'rgba(0,0,0,0.22)');
+  bgCtx.fillStyle = vig; bgCtx.fillRect(0,0,W,H);
+}
+
+/* ════════════════════════
+   DRAW MOSAIC OVERLAY
+════════════════════════ */
+function drawMosaicTile(ctx, tx, ty, tw, th, color, pattern){
+  ctx.save();
+  ctx.beginPath(); ctx.rect(tx,ty,tw,th); ctx.clip();
+
+  switch(pattern){
+    case 'palladiana': {
+      ctx.fillStyle=darken(color,48); ctx.fillRect(tx,ty,tw,th);
+      let x=tx+1,y=ty+1,safe=0;
+      while(y<ty+th&&safe<300){
+        safe++;
+        const w=jitter(tw*0.35,0.65), h=jitter(th*0.3,0.65);
+        if(x+w>tx+tw-1){x=tx+1;y+=h+1;continue;}
+        if(y+h>ty+th) break;
+        const sides=5+Math.floor(Math.random()*3);
+        const cx2=x+w/2, cy2=y+h/2;
+        const v=Math.floor(Math.random()*24-12);
+        ctx.fillStyle=v>=0?lighten(color,v):darken(color,-v);
+        ctx.globalAlpha=0.88+Math.random()*0.12;
+        ctx.beginPath();
+        for(let i=0;i<sides;i++){
+          const a=(i/sides)*2*Math.PI+Math.random()*0.35;
+          const rx=(w/2)*(0.7+Math.random()*0.4), ry=(h/2)*(0.7+Math.random()*0.4);
+          i===0?ctx.moveTo(cx2+rx*Math.cos(a),cy2+ry*Math.sin(a)):ctx.lineTo(cx2+rx*Math.cos(a),cy2+ry*Math.sin(a));
+        }
+        ctx.closePath(); ctx.fill(); ctx.globalAlpha=1; x+=w+1;
+      }
+      break;
+    }
+    case 'tradicional': {
+      const T=Math.max(4,Math.floor(tw/10));
+      for(let r=ty;r<ty+th;r+=T) for(let c=tx;c<tx+tw;c+=T){
+        const wave=Math.sin((c/tw)*3+(r/th)*2)*0.5+0.5;
+        const v=Math.floor(wave*22-11);
+        ctx.fillStyle=v>=0?lighten(color,v):darken(color,-v);
+        ctx.globalAlpha=0.88+Math.random()*0.12;
+        ctx.fillRect(c,r,T-1,T-1);
+      }
+      ctx.globalAlpha=1;
+      break;
+    }
+    case 'trencadis': {
+      ctx.fillStyle=darken(color,45); ctx.fillRect(tx,ty,tw,th);
+      const base=Math.max(4,tw/12);
+      for(let r=ty+1;r<ty+th;r+=base+1) for(let c=tx+1;c<tx+tw;c+=base+1){
+        const fw=jitter(base,0.6), fh=jitter(base,0.6);
+        const angle=(Math.random()-0.5)*(Math.PI/4);
+        const v=Math.floor(Math.random()*32-16);
+        ctx.fillStyle=v>=0?lighten(color,v):darken(color,-v);
+        ctx.globalAlpha=0.85+Math.random()*0.15;
+        ctx.save(); ctx.translate(c+fw/2,r+fh/2); ctx.rotate(angle);
+        ctx.fillRect(-fw/2,-fh/2,fw-1,fh-1);
+        ctx.restore(); ctx.globalAlpha=1;
+      }
+      break;
+    }
+    case 'opusincertum': {
+      ctx.fillStyle=darken(color,42); ctx.fillRect(tx,ty,tw,th);
+      const count=Math.floor(tw*th/250);
+      for(let i=0;i<count;i++){
+        const px=tx+Math.random()*tw, py=ty+Math.random()*th;
+        const r1=jitter(tw/8,0.8)*0.8, r2=jitter(th/8,0.8)*0.8;
+        const sides=3+Math.floor(Math.random()*5), rot=Math.random()*2*Math.PI;
+        const v=Math.floor(Math.random()*38-19);
+        ctx.fillStyle=v>=0?lighten(color,v):darken(color,-v);
+        ctx.globalAlpha=0.82+Math.random()*0.18;
+        ctx.beginPath();
+        for(let j=0;j<sides;j++){
+          const a=rot+(j/sides)*2*Math.PI;
+          const ji=0.65+Math.random()*0.7;
+          j===0?ctx.moveTo(px+r1*ji*Math.cos(a),py+r2*ji*Math.sin(a)):ctx.lineTo(px+r1*ji*Math.cos(a),py+r2*ji*Math.sin(a));
+        }
+        ctx.closePath(); ctx.fill(); ctx.globalAlpha=1;
+      }
+      break;
+    }
+  }
+  ctx.restore();
+}
+
+function drawMosaicOverlay(){
+  const W = mosaicOverlay.width, H = mosaicOverlay.height;
+  moCtx.clearRect(0,0,W,H);
+  moCtx.globalAlpha = state.opacity / 100;
+
+  const color   = state.activeColor.hex;
+  const pattern = 'palladiana'; // from configurador
+  const groutColor = '#A09080';
+
+  // Calculate tile dimensions based on mode
+  let startX=0, startY=0, tileW, tileH, totalW, totalH;
+
+  const rows = state.rows, cols = state.cols;
+  const junta = 3; // px between tiles
+
+  switch(state.tileMode){
+    case 'fill':
+      tileW = Math.floor((W - (cols+1)*junta) / cols);
+      tileH = Math.floor((H - (rows+1)*junta) / rows);
+      startX = junta + state.offsetX;
+      startY = junta + state.offsetY;
+      break;
+    case 'fit':
+      tileW = Math.floor(Math.min(W,H) * 0.82 / Math.max(cols,rows));
+      tileH = tileW;
+      totalW = cols*tileW+(cols+1)*junta;
+      totalH = rows*tileH+(rows+1)*junta;
+      startX = (W-totalW)/2 + state.offsetX;
+      startY = (H-totalH)/2 + state.offsetY;
+      break;
+    case 'center':
+      tileW = Math.floor(Math.min(W,H)*0.72 / Math.max(cols,rows));
+      tileH = tileW;
+      totalW = cols*tileW+(cols+1)*junta;
+      totalH = rows*tileH+(rows+1)*junta;
+      startX = (W-totalW)/2 + state.offsetX;
+      startY = (H-totalH)/2 + state.offsetY;
+      break;
+    case 'corner':
+      tileW = Math.floor(Math.min(W,H)*0.65 / Math.max(cols,rows));
+      tileH = tileW;
+      startX = junta + state.offsetX;
+      startY = junta + state.offsetY;
+      break;
+  }
+
+  // Draw grout background for the mosaic area
+  totalW = cols*tileW+(cols+1)*junta;
+  totalH = rows*tileH+(rows+1)*junta;
+  moCtx.globalAlpha = state.opacity/100;
+  moCtx.fillStyle = groutColor;
+  moCtx.fillRect(startX, startY, totalW, totalH);
+
+  // Draw each tile
+  for(let r=0; r<rows; r++){
+    for(let c=0; c<cols; c++){
+      const tx = startX + junta + c*(tileW+junta);
+      const ty = startY + junta + r*(tileH+junta);
+      drawMosaicTile(moCtx, tx, ty, tileW, tileH, color, pattern);
+
+      // Pulido shine
+      moCtx.save();
+      moCtx.globalAlpha = (state.opacity/100) * 0.06;
+      moCtx.fillStyle = 'rgba(255,255,255,1)';
+      moCtx.beginPath();
+      moCtx.ellipse(tx+tileW*0.3, ty+tileH*0.22, tileW*0.3, tileH*0.12, -0.3, 0, 2*Math.PI);
+      moCtx.fill();
+      moCtx.restore();
+    }
+  }
+
+  // Grid overlay
+  if(state.showGrid){
+    moCtx.save();
+    moCtx.globalAlpha = 0.18;
+    moCtx.strokeStyle = 'rgba(255,255,255,0.6)';
+    moCtx.lineWidth = 0.5;
+    for(let r=0;r<=rows;r++){
+      const y2=startY+junta+r*(tileH+junta)-junta/2;
+      moCtx.beginPath();moCtx.moveTo(startX,y2);moCtx.lineTo(startX+totalW,y2);moCtx.stroke();
+    }
+    for(let c=0;c<=cols;c++){
+      const x2=startX+junta+c*(tileW+junta)-junta/2;
+      moCtx.beginPath();moCtx.moveTo(x2,startY);moCtx.lineTo(x2,startY+totalH);moCtx.stroke();
+    }
+    moCtx.restore();
+  }
+
+  moCtx.globalAlpha=1;
+
+  // Update aria-label
+  mosaicOverlay.setAttribute('aria-label',
+    `Mosaico ${state.activeColor.name} Palladiana superpuesto sobre ${BG_PRESETS.find(b=>b.key===state.activeBg)?.label||'fondo personalizado'}. Opacidad: ${state.opacity}%`
+  );
+
+  // Update ruler badge
+  document.getElementById('scaleBadge').textContent =
+    `${state.scaleW}×${state.scaleH} cm · ${state.rows}×${state.cols} piezas`;
+
+  updateInfoPanel();
+}
+
+function scheduleRender(){
+  clearTimeout(state.renderTimer);
+  state.renderTimer = setTimeout(()=>{
+    drawBackground();
+    drawMosaicOverlay();
+    drawMiniThumb();
+  }, 60);
+}
+
+/* ════════════════════════
+   MINI THUMB
+════════════════════════ */
+function drawMiniThumb(){
+  const cv = document.getElementById('miniThumb');
+  const ctx2 = cv.getContext('2d');
+  cv.width=48; cv.height=48;
+  drawMosaicTile(ctx2, 0, 0, 48, 48, state.activeColor.hex, 'palladiana');
+}
+
+/* ════════════════════════
+   UPDATE INFO PANEL
+════════════════════════ */
+function updateInfoPanel(){
+  document.getElementById('infoFondo').textContent   = BG_PRESETS.find(b=>b.key===state.activeBg)?.label || 'Personalizado';
+  document.getElementById('infoOpacity').textContent = state.opacity+'%';
+  document.getElementById('infoEscala').textContent  = `${state.scaleW} × ${state.scaleH} cm`;
+  document.getElementById('infoGrid').textContent    = `${state.rows} × ${state.cols} piezas`;
+  document.getElementById('infoMode').textContent    =
+    {fill:'Relleno',fit:'Ajustar',center:'Centrado',corner:'Esquina'}[state.tileMode];
+  document.getElementById('specColor').textContent   = `${state.activeColor.name} · ${state.activeColor.hex}`;
+}
+
+/* ════════════════════════
+   BUILD BG PRESET CARDS
+════════════════════════ */
+function buildBgCards(){
+  const group = document.getElementById('bgGroup');
+  group.innerHTML='';
+  BG_PRESETS.forEach(preset => {
+    const card = document.createElement('div');
+    card.className = 'bg-card' + (preset.key===state.activeBg?' active':'');
+    card.setAttribute('role','radio');
+    card.setAttribute('aria-checked', preset.key===state.activeBg?'true':'false');
+    card.setAttribute('tabindex', preset.key===state.activeBg?'0':'-1');
+    card.setAttribute('aria-label', `Fondo: ${preset.label}`);
+    card.innerHTML = `
+      <div class="bg-thumb"><canvas></canvas></div>
+      <div class="bg-label">${preset.label}</div>
+    `;
+    const cv = card.querySelector('canvas');
+    card.appendChild(cv);
+    group.appendChild(card);
+
+    // Draw preset thumb
+    setTimeout(()=>{
+      cv.width = cv.parentElement.offsetWidth || 60;
+      cv.height = 46;
+      const ctx2 = cv.getContext('2d');
+      const rad = preset.angle * Math.PI / 180;
+      const grd = ctx2.createLinearGradient(0,0,Math.cos(rad)*cv.width,Math.sin(rad)*cv.height);
+      grd.addColorStop(0,preset.colors[0]);
+      grd.addColorStop(1,preset.colors[2]||preset.colors[0]);
+      ctx2.fillStyle=grd; ctx2.fillRect(0,0,cv.width,cv.height);
+      // Texture hint
+      ctx2.globalAlpha=0.15; ctx2.strokeStyle='rgba(0,0,0,0.5)'; ctx2.lineWidth=1;
+      if(preset.key==='bano'){
+        for(let x=0;x<cv.width;x+=14){ctx2.beginPath();ctx2.moveTo(x,0);ctx2.lineTo(x,cv.height);ctx2.stroke();}
+        for(let y=0;y<cv.height;y+=14){ctx2.beginPath();ctx2.moveTo(0,y);ctx2.lineTo(cv.width,y);ctx2.stroke();}
+      } else {
+        for(let y=8;y<cv.height;y+=12){ctx2.beginPath();ctx2.moveTo(0,y);ctx2.lineTo(cv.width,y+4);ctx2.stroke();}
+      }
+      ctx2.globalAlpha=1;
+    }, 30);
+
+    card.addEventListener('click', ()=> selectBg(preset.key));
+    card.addEventListener('keydown', e=>{
+      if(e.key==='Enter'||e.key===' '){ e.preventDefault(); selectBg(preset.key); }
+    });
+  });
+}
+
+function selectBg(key){
+  state.activeBg  = key;
+  state.customBg  = null;
+  document.getElementById('uploadText').textContent = 'Cargar foto propia';
+  document.getElementById('uploadHint').textContent = 'Sube una foto de tu piso, pared o espacio exterior';
+  document.getElementById('uploadArea').classList.remove('has-file');
+
+  document.querySelectorAll('.bg-card').forEach(c=>{
+    const active = c.getAttribute('aria-label') === `Fondo: ${BG_PRESETS.find(b=>b.key===key)?.label}`;
+    c.classList.toggle('active',active);
+    c.setAttribute('aria-checked',active?'true':'false');
+    c.setAttribute('tabindex',active?'0':'-1');
+  });
+  scheduleRender();
+  setLive(`Fondo cambiado a ${BG_PRESETS.find(b=>b.key===key)?.label}`);
+}
+
+/* ════════════════════════
+   BUILD COLOR SWATCHES MINI
+════════════════════════ */
+function buildColorSwatches(){
+  const wrap = document.getElementById('colorSwatchesMini');
+  wrap.innerHTML='';
+  COLORS.forEach((color,i)=>{
+    const item = document.createElement('div');
+    item.className='csm-item'+(i===0?' active':'');
+    item.setAttribute('role','radio');
+    item.setAttribute('aria-checked',i===0?'true':'false');
+    item.setAttribute('tabindex',i===0?'0':'-1');
+    item.setAttribute('aria-label',`Color ${color.name} — ${color.hex}`);
+    item.innerHTML=`
+      <div class="csm-dot" style="background:${color.hex};" aria-hidden="true"></div>
+      <span class="csm-name">${color.name}${color.pattern?` ${color.pattern}`:''}</span>
+    `;
+    item.addEventListener('click',()=>selectColor(i));
+    item.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();selectColor(i);}});
+    wrap.appendChild(item);
+  });
+}
+
+function selectColor(i){
+  state.activeColor = COLORS[i];
+  document.querySelectorAll('.csm-item').forEach((el,j)=>{
+    el.classList.toggle('active',j===i);
+    el.setAttribute('aria-checked',j===i?'true':'false');
+    el.setAttribute('tabindex',j===i?'0':'-1');
+  });
+  document.getElementById('specColor').textContent = `${state.activeColor.name} · ${state.activeColor.hex}`;
+  scheduleRender();
+  setLive(`Color cambiado a ${state.activeColor.name}`);
+}
+
+/* ════════════════════════
+   FILE UPLOAD
+════════════════════════ */
+document.getElementById('fileInput').addEventListener('change', function(){
+  if(!this.files[0]) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const img = new Image();
+    img.onload = () => {
+      state.customBg = img;
+      state.activeBg = 'custom';
+      const fname = this.files[0].name.substring(0,24);
+      document.getElementById('uploadText').innerHTML = `📷 ${fname}`;
+      document.getElementById('uploadHint').textContent = 'Foto propia cargada correctamente';
+      document.getElementById('uploadArea').classList.add('has-file');
+      // Deselect preset cards
+      document.querySelectorAll('.bg-card').forEach(c=>{ c.classList.remove('active'); c.setAttribute('aria-checked','false'); });
+      scheduleRender();
+      setLive(`Foto propia cargada: ${fname}`);
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(this.files[0]);
+});
+
+/* ════════════════════════
+   SLIDERS
+════════════════════════ */
+document.getElementById('sliderOpacity').addEventListener('input', function(){
+  state.opacity = +this.value;
+  document.getElementById('opacityVal').textContent = this.value+'%';
+  this.setAttribute('aria-valuenow',this.value);
+  this.setAttribute('aria-valuetext',this.value+' por ciento');
+  mosaicOverlay.style.opacity = state.opacity/100;
+  updateInfoPanel();
+  setLive(`Opacidad: ${this.value}%`);
+});
+
+/* Scale inputs */
+['scaleAncho','scaleAlto','scaleRows','scaleCols'].forEach(id=>{
+  document.getElementById(id).addEventListener('change', function(){
+    if(id==='scaleAncho') state.scaleW = +this.value;
+    if(id==='scaleAlto')  state.scaleH = +this.value;
+    if(id==='scaleRows')  state.rows   = Math.max(1,Math.min(10,+this.value));
+    if(id==='scaleCols')  state.cols   = Math.max(1,Math.min(10,+this.value));
+    scheduleRender();
+    setLive(`Escala actualizada`);
+  });
+  document.getElementById(id).addEventListener('input', function(){
+    if(id==='scaleAncho') state.scaleW = +this.value;
+    if(id==='scaleAlto')  state.scaleH = +this.value;
+    if(id==='scaleRows')  state.rows   = Math.max(1,Math.min(10,+this.value));
+    if(id==='scaleCols')  state.cols   = Math.max(1,Math.min(10,+this.value));
+  });
+});
+
+/* Offset inputs */
+['offsetX','offsetY'].forEach(id=>{
+  document.getElementById(id).addEventListener('input',function(){
+    if(id==='offsetX') state.offsetX=+this.value;
+    else               state.offsetY=+this.value;
+    scheduleRender();
+  });
+});
+
+/* ════════════════════════
+   TILE MODE
+════════════════════════ */
+document.querySelectorAll('.tile-mode-btn').forEach(btn=>{
+  btn.addEventListener('click',function(){
+    state.tileMode = this.dataset.mode;
+    document.querySelectorAll('.tile-mode-btn').forEach(b=>{
+      b.classList.toggle('active',b===this);
+      b.setAttribute('aria-checked',b===this?'true':'false');
+    });
+    scheduleRender();
+    setLive(`Modo: ${{fill:'Relleno',fit:'Ajustar',center:'Centrado',corner:'Esquina'}[state.tileMode]}`);
+  });
+});
+
+/* ════════════════════════
+   POSITION BUTTONS
+════════════════════════ */
+const POS_STEP = 20;
+const posMap = {
+  posUL:{x:-POS_STEP,y:-POS_STEP}, posU:{x:0,y:-POS_STEP}, posUR:{x:POS_STEP,y:-POS_STEP},
+  posL:{x:-POS_STEP,y:0},                                    posR:{x:POS_STEP,y:0},
+  posDL:{x:-POS_STEP,y:POS_STEP},  posD:{x:0,y:POS_STEP},   posDR:{x:POS_STEP,y:POS_STEP},
+};
+Object.entries(posMap).forEach(([id,delta])=>{
+  document.getElementById(id).addEventListener('click',()=>{
+    state.offsetX += delta.x; state.offsetY += delta.y;
+    document.getElementById('offsetX').value = state.offsetX;
+    document.getElementById('offsetY').value = state.offsetY;
+    scheduleRender();
+  });
+});
+
+/* ════════════════════════
+   ZOOM + DRAG
+════════════════════════ */
+function setZoom(z){
+  state.zoomLevel = Math.max(0.3, Math.min(3.5, z));
+  const wrap = document.getElementById('compositeWrap');
+  wrap.style.transform = `translate(${drag.tx}px,${drag.ty}px) scale(${state.zoomLevel})`;
+  document.getElementById('zoomLabel').textContent = Math.round(state.zoomLevel*100)+'%';
+}
+const zIn  = () => setZoom(state.zoomLevel+0.2);
+const zOut = () => setZoom(state.zoomLevel-0.2);
+const zRst = () => { state.zoomLevel=1;drag.tx=0;drag.ty=0; compositeWrap.style.transform='translate(0,0) scale(1)'; document.getElementById('zoomLabel').textContent='100%'; setLive('Zoom restablecido'); };
+
+['btnZoomIn','zfPlus'].forEach(id=>document.getElementById(id).addEventListener('click',zIn));
+['btnZoomOut','zfMinus'].forEach(id=>document.getElementById(id).addEventListener('click',zOut));
+document.getElementById('btnZoomReset').addEventListener('click',zRst);
+document.getElementById('btnResetPos').addEventListener('click',()=>{ state.offsetX=0;state.offsetY=0; document.getElementById('offsetX').value=0; document.getElementById('offsetY').value=0; zRst(); scheduleRender(); });
+
+const vp = document.getElementById('stageViewport');
+vp.addEventListener('wheel',e=>{ e.preventDefault(); setZoom(state.zoomLevel + (e.deltaY>0?-0.12:0.12)); },{passive:false});
+
+compositeWrap.addEventListener('mousedown',e=>{
+  drag.active=true; drag.sx=e.clientX-drag.tx; drag.sy=e.clientY-drag.ty;
+  compositeWrap.style.cursor='grabbing';
+});
+window.addEventListener('mousemove',e=>{
+  if(!drag.active) return;
+  drag.tx=e.clientX-drag.sx; drag.ty=e.clientY-drag.sy;
+  compositeWrap.style.transform=`translate(${drag.tx}px,${drag.ty}px) scale(${state.zoomLevel})`;
+});
+window.addEventListener('mouseup',()=>{ drag.active=false; compositeWrap.style.cursor='grab'; });
+
+/* ════════════════════════
+   TOOLBAR TOGGLES
+════════════════════════ */
+document.getElementById('btnToggleGrid').addEventListener('click',function(){
+  state.showGrid=!state.showGrid;
+  this.classList.toggle('active',state.showGrid);
+  this.setAttribute('aria-pressed',state.showGrid?'true':'false');
+  scheduleRender();
+  setLive(state.showGrid?'Cuadrícula activada':'Cuadrícula desactivada');
+});
+
+document.getElementById('btnToggleBg').addEventListener('click',function(){
+  state.showBg=!state.showBg;
+  this.classList.toggle('active',state.showBg);
+  this.setAttribute('aria-pressed',state.showBg?'true':'false');
+  scheduleRender();
+  setLive(state.showBg?'Fondo visible':'Fondo oculto');
+});
+
+/* ════════════════════════
+   SAVE + DOWNLOAD
+════════════════════════ */
+function getCompositeCanvas(){
+  const W = bgCanvas.width, H = bgCanvas.height;
+  const composite = document.createElement('canvas');
+  composite.width=W; composite.height=H;
+  const cctx = composite.getContext('2d');
+  cctx.drawImage(bgCanvas,0,0);
+  cctx.drawImage(mosaicOverlay,0,0);
+  return composite;
+}
+
+document.getElementById('btnSaveCapture').addEventListener('click',function(){
+  this.innerHTML='<span>✓</span> Guardado en Mis Creaciones';
+  this.disabled=true;
+  showToast('Captura guardada en Mis Creaciones ♡');
+  setLive('Captura de simulación guardada en Mis Creaciones');
+  setTimeout(()=>{ this.innerHTML='<span>♡</span> Guardar captura →'; this.disabled=false; },2500);
+});
+
+document.getElementById('btnPNG').addEventListener('click',()=>{
+  const composite = getCompositeCanvas();
+  const timestamp = new Date().toISOString().slice(0,10);
+  const link = document.createElement('a');
+  link.download = `simulacion-ambiente-${timestamp}.png`;
+  link.href = composite.toDataURL('image/png');
+  link.click();
+  showToast('Simulación PNG descargada');
+  setLive('Imagen PNG de la simulación descargada');
+});
+
+document.getElementById('btnPDF').addEventListener('click',()=>{
+  const composite  = getCompositeCanvas();
+  const imgData    = composite.toDataURL('image/png');
+  const timestamp  = new Date().toLocaleString('es-MX');
+  const bgName     = BG_PRESETS.find(b=>b.key===state.activeBg)?.label || 'Personalizado';
+
+  const w = window.open('','_blank');
+  w.document.write(`<!DOCTYPE html><html lang="es"><head>
+    <meta charset="UTF-8"/><title>Simulación en Ambiente — Mexicana de Mosaicos</title>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet"/>
+    <style>
+      *{box-sizing:border-box;margin:0;padding:0;}
+      body{font-family:'DM Sans',sans-serif;color:#1A1A2E;background:#fff;padding:40px;}
+      .header{display:flex;align-items:flex-start;justify-content:space-between;border-bottom:3px solid #C8741A;padding-bottom:16px;margin-bottom:24px;}
+      .mark{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;color:#C8741A;}
+      .bn{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:#0D1B2A;}
+      .bs{font-size:10px;color:#5B7A99;text-transform:uppercase;letter-spacing:.08em;}
+      .dr{font-size:11px;color:#5B7A99;text-align:right;}
+      h1{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:#0D1B2A;margin-bottom:20px;}
+      .layout{display:grid;grid-template-columns:1fr 1fr;gap:28px;}
+      .pl{font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#5B7A99;margin-bottom:8px;}
+      img{width:100%;border-radius:10px;border:1px solid #DDD8CC;box-shadow:0 4px 16px rgba(0,0,0,.12);}
+      .sec{margin-bottom:16px;}
+      .sec h2{font-family:'Syne',sans-serif;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#5B7A99;margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid #EDE9E0;}
+      .row{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #F5F0EC;font-size:12px;}
+      .row:last-child{border-bottom:none;}
+      .key{color:#5B7A99;}.val{font-weight:500;color:#0D1B2A;font-family:monospace;}
+      .val-hi{color:#C8741A;font-weight:700;}
+      .footer{margin-top:28px;padding-top:12px;border-top:1px solid #DDD8CC;font-size:10px;color:#94A3B8;display:flex;justify-content:space-between;}
+      .priv{background:#EEF4FB;border:1px solid #A0C0E0;border-radius:20px;padding:2px 8px;font-size:9px;color:#1A4B8C;font-weight:600;}
+    </style></head><body>
+    <div class="header">
+      <div><div class="mark">M</div><div class="bn">Mexicana de Mosaicos S.A. de C.V.</div><div class="bs">Tizayuca, Hidalgo · 55 años</div></div>
+      <div class="dr"><strong>Ficha — Simulación en Ambiente</strong><br>${timestamp}<br><br><span class="priv">🔒 Privado</span></div>
+    </div>
+    <h1>Simulación en Ambiente — ${state.activeColor.name} Palladiana</h1>
+    <div class="layout">
+      <div><div class="pl">Vista de simulación compuesta</div><img src="${imgData}" alt="Simulación en ambiente"/></div>
+      <div>
+        <div class="sec"><h2>Configuración del mosaico</h2>
+          <div class="row"><span class="key">Línea</span><span class="val val-hi">Línea Tradicional</span></div>
+          <div class="row"><span class="key">Patrón</span><span class="val val-hi">Palladiana</span></div>
+          <div class="row"><span class="key">Color</span><span class="val">${state.activeColor.name} · ${state.activeColor.hex}</span></div>
+          <div class="row"><span class="key">Tamaño pieza</span><span class="val">${state.scaleW} × ${state.scaleH} cm</span></div>
+          <div class="row"><span class="key">Acabado</span><span class="val">Pulido 400 grit</span></div>
+        </div>
+        <div class="sec"><h2>Parámetros de simulación</h2>
+          <div class="row"><span class="key">Fondo ambiente</span><span class="val val-hi">${bgName}</span></div>
+          <div class="row"><span class="key">Opacidad mosaico</span><span class="val">${state.opacity}%</span></div>
+          <div class="row"><span class="key">Cuadrícula</span><span class="val">${state.rows} × ${state.cols} piezas</span></div>
+          <div class="row"><span class="key">Modo</span><span class="val">${{fill:'Relleno',fit:'Ajustar',center:'Centrado',corner:'Esquina'}[state.tileMode]}</span></div>
+        </div>
+        <div class="sec"><h2>Especificaciones técnicas</h2>
+          <div class="row"><span class="key">Resistencia</span><span class="val">21.37 MPa</span></div>
+          <div class="row"><span class="key">Absorción sup.</span><span class="val">2.56%</span></div>
+          <div class="row"><span class="key">Grosor</span><span class="val">2.5 cm</span></div>
+          <div class="row"><span class="key">Peso aprox.</span><span class="val">~3.8 kg/pieza</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="footer">
+      <span>Mexicana de Mosaicos S.A. de C.V. · Sistema de gestión privado · WCAG 2.1 AA</span>
+      <span>TRZ-TRAD-${state.scaleW}x${state.scaleH}-${state.activeColor.name.substring(0,3).toUpperCase()}-PALL</span>
+    </div>
+    <script>window.onload=()=>window.print();<\/script>
+  </body></html>`);
+  w.document.close();
+  showToast('Ficha PDF de simulación generada');
+  setLive('Ficha técnica PDF generada');
+});
+
+/* ════════════════════════
+   KEYBOARD SHORTCUTS
+════════════════════════ */
+document.addEventListener('keydown',e=>{
+  if(e.target.tagName==='INPUT') return;
+  if(e.key==='+'||e.key==='='){e.preventDefault();zIn();}
+  if(e.key==='-'){e.preventDefault();zOut();}
+  if(e.key==='r'||e.key==='R') zRst();
+  if(e.key==='ArrowLeft') document.getElementById('btnBack').click();
+});
+
+/* ════════════════════════
+   A11Y
+════════════════════════ */
+document.getElementById('btnContrast').addEventListener('click',function(){
+  const a=this.getAttribute('aria-pressed')==='true';
+  this.setAttribute('aria-pressed',!a); this.classList.toggle('active');
+  document.documentElement.style.setProperty('--text-secondary',a?'#94A3B8':'#C8D8E8');
+  document.documentElement.style.setProperty('--text-muted',a?'#5B7A99':'#8BA8C0');
+  setLive(a?'Contraste normal':'Alto contraste activado');
+});
+document.getElementById('btnFlutter').addEventListener('click',function(){
+  const a=this.getAttribute('aria-pressed')==='true';
+  this.setAttribute('aria-pressed',!a); this.classList.toggle('active');
+  document.getElementById('flutterOverlay').classList.toggle('visible',!a);
+  document.getElementById('flutterOverlay').setAttribute('aria-hidden',a?'true':'false');
+  setLive(a?'Flutter oculto':'Flutter visible');
+});
+document.getElementById('btnBack').addEventListener('click',()=>{ showToast('← Volviendo al Configurador…'); setLive('Navegando al configurador'); });
+
+/* ════════════════════════
+   TOAST + LIVE
+════════════════════════ */
+let toastTimer=null;
+function showToast(msg){
+  const el=document.getElementById('toast');
+  el.textContent=msg; el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>el.classList.remove('show'),2600);
+}
+function setLive(msg){
+  const el=document.getElementById('statusLive');
+  el.textContent='';
+  requestAnimationFrame(()=>{ el.textContent=msg; });
+}
+
+/* ════════════════════════
+   INIT
+════════════════════════ */
+window.addEventListener('load',()=>{
+  buildBgCards();
+  buildColorSwatches();
+  sizeCanvases();
+  scheduleRender();
+  setInterval(()=>{ if(!document.hidden) scheduleRender(); }, 8000);
+});
+
+window.addEventListener('resize',()=>{
+  sizeCanvases();
+  scheduleRender();
+});
+</script>
+</body>
+</html>

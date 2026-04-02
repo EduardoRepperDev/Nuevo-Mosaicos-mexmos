@@ -1,0 +1,1092 @@
+<!DOCTYPE html>
+<html lang="es" dir="ltr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Mexicana de Mosaicos — Gestión de Colores de Pasta</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --terra:#C8741A;--terra2:#A85E12;--cobalt:#1A4B8C;--cobalt2:#1E5FAD;
+  --gold:#D4A843;--green:#2E6E4E;--red:#DC2626;
+  --navy:#0D1B2A;--panel:#112236;--card:#162E45;--hover:#1E3A54;--deep:#0A1520;
+  --t1:#F0EDE8;--t2:#94A3B8;--t3:#5B7A99;
+  --bs:rgba(255,255,255,.06);--bp:rgba(255,255,255,.10);--ba:rgba(200,116,26,.35);
+  --focus:#1A6BBF;--fd:'Syne',sans-serif;--fb:'DM Sans',sans-serif;
+  --r:8px;--rl:12px;--rx:16px;--rf:9999px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;overflow:hidden;}
+body{font-family:var(--fb);background:var(--navy);color:var(--t1);font-size:14px;line-height:1.5;
+  display:grid;grid-template-columns:240px 1fr;grid-template-rows:52px 1fr 36px;height:100vh;width:100vw;}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px;border-radius:var(--r);}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;}
+::-webkit-scrollbar{width:4px;}::-webkit-scrollbar-track{background:transparent;}::-webkit-scrollbar-thumb{background:var(--hover);border-radius:2px;}
+
+/* ── SIDEBAR ── */
+.sidebar{grid-column:1;grid-row:1/4;background:var(--panel);border-right:1px solid var(--bp);display:flex;flex-direction:column;overflow:hidden;}
+.sb-brand{padding:0 16px;height:52px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--bp);flex-shrink:0;}
+.sb-mark{width:30px;height:30px;background:var(--terra);border-radius:6px;display:flex;align-items:center;justify-content:center;font-family:var(--fd);font-size:14px;font-weight:800;color:#fff;flex-shrink:0;}
+.sb-name{font-family:var(--fd);font-size:12px;font-weight:700;color:var(--t1);}
+.sb-role{margin-left:auto;padding:2px 8px;background:rgba(26,75,140,.22);border:1px solid rgba(26,75,140,.40);border-radius:var(--rf);font-size:9px;font-weight:700;color:#7EB3E8;letter-spacing:.05em;flex-shrink:0;}
+.sb-scroll{flex:1;overflow-y:auto;padding:12px 8px;scrollbar-width:thin;scrollbar-color:var(--hover) transparent;}
+.ng{margin-bottom:20px;}
+.ngl{font-size:9px;font-weight:700;letter-spacing:.13em;text-transform:uppercase;color:var(--t3);padding:0 8px;margin-bottom:4px;}
+.ni{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:var(--r);cursor:pointer;transition:all .15s;color:var(--t2);font-size:13px;position:relative;border:1px solid transparent;}
+.ni:hover{background:var(--hover);color:var(--t1);}
+.ni.active{background:rgba(26,75,140,.18);border-color:rgba(26,75,140,.30);color:#7EB3E8;}
+.ni.active::before{content:'';position:absolute;left:0;top:4px;bottom:4px;width:3px;background:var(--cobalt);border-radius:0 2px 2px 0;}
+.nico{width:30px;height:30px;flex-shrink:0;display:flex;align-items:center;justify-content:center;border-radius:var(--r);background:rgba(255,255,255,.05);}
+.ni.active .nico{background:rgba(26,75,140,.25);}
+.nl{flex:1;font-weight:500;}
+.nbadge{padding:1px 7px;border-radius:var(--rf);font-size:10px;font-weight:700;background:rgba(26,75,140,.18);color:#7EB3E8;}
+.sb-footer{padding:12px 8px;border-top:1px solid var(--bp);flex-shrink:0;}
+.sb-user{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:var(--r);cursor:pointer;transition:background .15s;}
+.sb-user:hover{background:var(--hover);}
+.sb-av{width:32px;height:32px;border-radius:50%;background:var(--cobalt);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0;}
+.ic{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
+
+/* ── APP BAR ── */
+.app-bar{grid-column:2;grid-row:1;background:var(--panel);border-bottom:1px solid var(--bp);display:flex;align-items:center;padding:0 24px;gap:14px;flex-shrink:0;}
+.abt{font-family:var(--fd);font-size:16px;font-weight:700;color:var(--t1);}
+.bc{font-size:12px;color:var(--t3);display:flex;align-items:center;gap:6px;}
+.bc a{color:var(--t3);text-decoration:none;}.bc a:hover{color:var(--t1);}
+.bc-sep{font-size:10px;}.bc-cur{color:var(--terra);font-weight:500;}
+.sp{flex:1;}
+.ab-badge{display:flex;align-items:center;gap:6px;padding:5px 12px;background:rgba(26,75,140,.15);border:1px solid rgba(26,75,140,.32);border-radius:var(--rf);font-size:11px;font-weight:600;color:#7EB3E8;}
+.adot{width:6px;height:6px;border-radius:50%;background:#7EB3E8;animation:ap 2.5s ease-in-out infinite;}
+@keyframes ap{0%,100%{opacity:1}50%{opacity:.35}}
+.fbtn{display:flex;align-items:center;gap:5px;padding:5px 10px;background:rgba(0,150,255,.08);border:1px solid rgba(0,150,255,.2);border-radius:var(--r);color:rgba(100,200,255,.7);font-family:monospace;font-size:10px;cursor:pointer;transition:all .15s;}
+.fbtn.active{background:rgba(0,150,255,.22);color:#7DE8FF;}
+
+/* ── MAIN ── */
+.mc{grid-column:2;grid-row:2;overflow-y:auto;padding:24px 28px;display:flex;flex-direction:column;gap:20px;}
+.ph{display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;}
+.pt{font-family:var(--fd);font-size:22px;font-weight:800;color:var(--t1);}
+.ps{font-size:13px;color:var(--t3);margin-top:3px;}
+.pa{display:flex;gap:8px;align-items:center;}
+.btn-p{display:flex;align-items:center;gap:7px;padding:10px 18px;background:var(--cobalt);border:none;border-radius:var(--r);font-family:var(--fd);font-size:12px;font-weight:700;color:#fff;cursor:pointer;transition:all .18s;}
+.btn-p:hover{background:var(--cobalt2);transform:translateY(-1px);box-shadow:0 6px 18px rgba(26,75,140,.35);}
+.btn-s{display:flex;align-items:center;gap:7px;padding:10px 16px;background:transparent;border:1px solid var(--bp);border-radius:var(--r);font-family:var(--fb);font-size:12px;color:var(--t2);cursor:pointer;transition:all .15s;}
+.btn-s:hover{background:var(--hover);color:var(--t1);border-color:var(--ba);}
+
+/* ── LAYOUT: left table + right preview panel ── */
+.main-layout{display:grid;grid-template-columns:1fr 320px;gap:20px;}
+
+/* ── COLOR GRID CARDS VIEW ── */
+.view-toggle{display:flex;gap:4px;}
+.vbtn{width:30px;height:30px;background:var(--hover);border:1px solid var(--bs);border-radius:var(--r);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--t3);font-size:12px;transition:all .15s;}
+.vbtn:hover{color:var(--t1);}
+.vbtn.on{background:rgba(26,75,140,.18);border-color:rgba(26,75,140,.38);color:#7EB3E8;}
+
+/* filter/search bar */
+.filter-bar{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--bs);border-radius:var(--rx);padding:12px 16px;flex-wrap:wrap;}
+.sw{display:flex;align-items:center;gap:8px;background:var(--hover);border:1px solid var(--bs);border-radius:var(--r);padding:8px 12px;min-width:200px;flex:1;transition:border-color .15s;}
+.sw:focus-within{border-color:rgba(26,75,140,.5);}
+.sw svg{width:12px;height:12px;stroke:var(--t3);flex-shrink:0;}
+.sw input{background:none;border:none;outline:none;color:var(--t1);font-family:var(--fb);font-size:12px;width:100%;}
+.sw input::placeholder{color:var(--t3);}
+.fchip{padding:6px 13px;background:var(--hover);border:1px solid var(--bs);border-radius:var(--rf);font-size:11px;color:var(--t2);cursor:pointer;transition:all .15s;white-space:nowrap;}
+.fchip:hover{border-color:rgba(255,255,255,.12);color:var(--t1);}
+.fchip.on{background:rgba(26,75,140,.18);border-color:rgba(26,75,140,.38);color:#7EB3E8;font-weight:600;}
+.fchip.on-a{background:rgba(200,116,26,.12);border-color:rgba(200,116,26,.35);color:var(--terra);font-weight:600;}
+.rc{font-size:12px;color:var(--t3);margin-left:auto;}
+.rc strong{color:var(--t1);}
+
+/* ── COLORS GRID VIEW ── */
+.colors-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;}
+.color-card{background:var(--card);border:1px solid var(--bs);border-radius:var(--rx);overflow:hidden;cursor:pointer;transition:all .2s;position:relative;}
+.color-card:hover{border-color:rgba(255,255,255,.14);transform:translateY(-3px);box-shadow:0 10px 28px rgba(0,0,0,.3);}
+.color-card.selected{border-color:var(--terra);box-shadow:0 0 0 2px rgba(200,116,26,.2);}
+.color-card__swatch{height:90px;position:relative;overflow:hidden;}
+.color-card__swatch canvas{width:100%;height:100%;display:block;}
+.color-card__cvd{position:absolute;bottom:6px;right:6px;width:22px;height:22px;border-radius:50%;background:rgba(13,27,42,.82);border:1px solid rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;font-size:11px;backdrop-filter:blur(4px);}
+.color-card__body{padding:12px 14px;}
+.color-card__name{font-family:var(--fd);font-size:13px;font-weight:700;color:var(--t1);display:flex;align-items:center;gap:7px;margin-bottom:3px;}
+.color-card__hex{font-size:10px;color:var(--t3);font-family:monospace;}
+.color-card__ref{font-size:9px;color:var(--t3);margin-top:1px;}
+.color-card__tags{display:flex;gap:4px;flex-wrap:wrap;margin-top:8px;}
+.ctag{padding:2px 7px;border-radius:var(--rf);font-size:9px;font-weight:600;border:1px solid;}
+.ctag.active{background:rgba(46,110,78,.14);color:#68C797;border-color:rgba(46,110,78,.25);}
+.ctag.draft {background:rgba(91,122,153,.12);color:#94A3B8;border-color:rgba(91,122,153,.20);}
+.ctag.default{background:rgba(212,168,67,.12);color:var(--gold);border-color:rgba(212,168,67,.22);}
+.color-card__foot{display:flex;gap:4px;padding:0 14px 12px;}
+.cact{flex:1;padding:6px;background:transparent;border:1px solid var(--bs);border-radius:var(--r);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--t3);font-size:12px;transition:all .15s;font-family:var(--fb);}
+.cact:hover{background:var(--hover);color:var(--t1);}
+.cact.edit:hover{color:#7EB3E8;border-color:rgba(26,75,140,.35);}
+.cact.del:hover{color:#FCA5A5;border-color:rgba(220,38,38,.3);}
+.cact svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
+
+/* ── TABLE VIEW ── */
+.table-card{background:var(--card);border:1px solid var(--bs);border-radius:var(--rx);overflow:hidden;display:none;}
+.table-card.on{display:block;}
+table{width:100%;border-collapse:collapse;}
+thead th{padding:11px 16px;text-align:left;font-size:10px;font-weight:700;letter-spacing:.10em;text-transform:uppercase;color:var(--t3);border-bottom:1px solid var(--bs);background:rgba(255,255,255,.02);white-space:nowrap;}
+tbody td{padding:13px 16px;font-size:13px;color:var(--t2);border-bottom:1px solid var(--bs);vertical-align:middle;}
+tbody tr:last-child td{border-bottom:none;}
+tbody tr:hover td{background:rgba(255,255,255,.02);}
+.color-swatch-cell{display:flex;align-items:center;gap:10px;}
+.cs-circle{width:36px;height:36px;border-radius:50%;border:2px solid rgba(255,255,255,.12);flex-shrink:0;}
+.cs-name{font-family:var(--fd);font-size:13px;font-weight:700;color:var(--t1);}
+.cs-hex{font-family:monospace;font-size:10px;color:var(--t3);}
+.sbadge{padding:4px 10px;border-radius:var(--rf);font-size:10px;font-weight:600;border:1px solid;}
+.sbadge.active{background:rgba(46,110,78,.16);color:#68C797;border-color:rgba(46,110,78,.28);}
+.sbadge.draft {background:rgba(91,122,153,.14);color:#94A3B8;border-color:rgba(91,122,153,.22);}
+.ract{width:30px;height:30px;border-radius:var(--r);background:var(--hover);border:1px solid var(--bs);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--t3);transition:all .15s;}
+.ract:hover{color:var(--t1);}
+.ract.edit:hover{color:#7EB3E8;border-color:rgba(26,75,140,.38);background:rgba(26,75,140,.12);}
+.ract.del:hover{color:#FCA5A5;border-color:rgba(220,38,38,.32);background:rgba(220,38,38,.08);}
+.ract svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
+
+/* ── RIGHT PANEL ── */
+.rp{display:flex;flex-direction:column;gap:16px;}
+.rp-card{background:var(--card);border:1px solid var(--bs);border-radius:var(--rx);overflow:hidden;}
+.rp-header{padding:14px 18px;border-bottom:1px solid var(--bs);display:flex;align-items:center;gap:8px;}
+.rp-title{font-family:var(--fd);font-size:12px;font-weight:700;color:var(--t1);display:flex;align-items:center;gap:7px;}
+.rp-dot{width:7px;height:7px;border-radius:50%;}
+.rp-body{padding:18px;}
+
+/* Selected color preview */
+.sel-swatch-big{width:100%;height:80px;border-radius:var(--r);border:1px solid rgba(255,255,255,.10);margin-bottom:14px;overflow:hidden;}
+.sel-swatch-big canvas{width:100%;height:100%;display:block;}
+.sel-name{font-family:var(--fd);font-size:17px;font-weight:800;color:var(--t1);margin-bottom:4px;}
+.sel-row{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--bs);font-size:12px;}
+.sel-row:last-child{border-bottom:none;}
+.sel-key{color:var(--t3);}
+.sel-val{color:var(--t1);font-family:monospace;font-weight:500;}
+
+/* CVD preview strip */
+.cvd-strip-wrap{display:flex;flex-direction:column;gap:8px;}
+.cvd-row{display:flex;align-items:center;gap:10px;}
+.cvd-lbl{font-size:10px;color:var(--t3);min-width:72px;font-weight:500;}
+.cvd-swatch{height:22px;flex:1;border-radius:4px;border:1px solid rgba(255,255,255,.06);transition:background .3s;}
+.cvd-tag{font-size:9px;color:var(--t3);font-family:monospace;min-width:52px;text-align:right;}
+
+/* Palette overview */
+.palette-overview{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;}
+.po-item{display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;transition:opacity .15s;}
+.po-item:hover{opacity:.8;}
+.po-item.on{outline:2px solid var(--terra);outline-offset:2px;border-radius:6px;}
+.po-dot{width:36px;height:36px;border-radius:var(--r);border:2px solid rgba(255,255,255,.10);}
+.po-name{font-size:9px;color:var(--t3);text-align:center;line-height:1.3;}
+.po-pat{font-size:11px;color:rgba(255,255,255,.45);}
+
+/* ── MODAL ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);backdrop-filter:blur(5px);z-index:50;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s;}
+.modal-overlay.open{opacity:1;pointer-events:all;}
+.modal{background:var(--panel);border:1px solid var(--bp);border-radius:var(--rx);width:520px;max-width:calc(100vw - 32px);max-height:calc(100vh - 80px);display:flex;flex-direction:column;transform:scale(.96) translateY(12px);transition:transform .25s;overflow:hidden;}
+.modal-overlay.open .modal{transform:scale(1) translateY(0);}
+.modal.sm{width:400px;}
+.mhead{padding:20px 24px;border-bottom:1px solid var(--bs);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.mtitle{font-family:var(--fd);font-size:16px;font-weight:800;color:var(--t1);display:flex;align-items:center;gap:10px;}
+.mclose{width:30px;height:30px;background:var(--hover);border:1px solid var(--bs);border-radius:var(--r);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--t3);transition:all .15s;}
+.mclose:hover{color:var(--t1);}
+.mclose svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;}
+.mbody{padding:24px;overflow-y:auto;display:flex;flex-direction:column;gap:18px;scrollbar-width:thin;}
+.mfoot{padding:16px 24px;border-top:1px solid var(--bs);display:flex;align-items:center;justify-content:flex-end;gap:10px;flex-shrink:0;}
+.btn-cancel{padding:10px 18px;background:transparent;border:1px solid var(--bp);border-radius:var(--r);font-family:var(--fb);font-size:13px;color:var(--t2);cursor:pointer;transition:all .15s;}
+.btn-cancel:hover{background:var(--hover);color:var(--t1);}
+.btn-save{padding:10px 22px;background:var(--cobalt);border:none;border-radius:var(--r);font-family:var(--fd);font-size:13px;font-weight:700;color:#fff;cursor:pointer;transition:all .18s;}
+.btn-save:hover{background:var(--cobalt2);}
+.btn-danger{padding:10px 22px;background:var(--red);border:none;border-radius:var(--r);font-family:var(--fd);font-size:13px;font-weight:700;color:#fff;cursor:pointer;}
+.btn-danger:hover{background:#B91C1C;}
+
+/* Form fields */
+.frow{display:grid;gap:14px;}
+.frow.c2{grid-template-columns:1fr 1fr;}
+.frow.c3{grid-template-columns:1fr 1fr 1fr;}
+.field{display:flex;flex-direction:column;gap:6px;}
+.field label{font-size:11px;font-weight:600;color:var(--t2);display:flex;align-items:center;justify-content:space-between;}
+.fhint{font-weight:400;color:var(--t3);font-size:10px;}
+.field input,.field select{background:var(--card);border:1.5px solid var(--bs);border-radius:var(--r);padding:10px 13px;color:var(--t1);font-family:var(--fb);font-size:13px;outline:none;transition:border-color .2s;width:100%;}
+.field input:focus,.field select:focus{border-color:var(--cobalt);box-shadow:0 0 0 3px rgba(26,75,140,.15);}
+.field input::placeholder{color:var(--t3);}
+.field select option{background:var(--card);}
+
+/* Color picker row in modal */
+.color-pick-row{display:flex;align-items:center;gap:12px;}
+.color-pick-row input[type="color"]{width:52px;height:52px;border-radius:var(--r);border:2px solid rgba(255,255,255,.12);cursor:pointer;background:none;padding:3px;-webkit-appearance:none;appearance:none;}
+.color-pick-row input[type="color"]::-webkit-color-swatch-wrapper{padding:0;border-radius:6px;}
+.color-pick-row input[type="color"]::-webkit-color-swatch{border:none;border-radius:6px;}
+.color-pick-info{flex:1;}
+.cpi-hex{font-family:monospace;font-size:16px;font-weight:700;color:var(--t1);transition:color .3s;}
+.cpi-preview{width:100%;height:10px;border-radius:3px;margin-top:4px;transition:background .3s;}
+
+/* Pattern selector */
+.pat-select{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;}
+.pat-btn{padding:10px 4px;background:var(--hover);border:1px solid var(--bs);border-radius:var(--r);cursor:pointer;text-align:center;transition:all .18s;font-family:var(--fb);}
+.pat-btn:hover{border-color:rgba(255,255,255,.14);}
+.pat-btn.on{background:rgba(26,75,140,.14);border-color:rgba(26,75,140,.35);}
+.pat-symbol{font-size:18px;display:block;margin-bottom:3px;}
+.pat-label{font-size:9px;color:var(--t2);display:block;}
+.pat-btn.on .pat-label{color:#7EB3E8;}
+
+/* Modal live preview */
+.modal-preview-wrap{display:flex;gap:12px;padding:14px;background:var(--deep);border-radius:var(--r);border:1px solid var(--bs);}
+.mprev-canvas{flex-shrink:0;border-radius:var(--r);overflow:hidden;border:1px solid rgba(255,255,255,.08);}
+.mprev-canvas canvas{display:block;}
+.mprev-info{flex:1;display:flex;flex-direction:column;gap:6px;justify-content:center;}
+.mprev-name{font-family:var(--fd);font-size:15px;font-weight:800;color:var(--t1);}
+.mprev-hex{font-family:monospace;font-size:12px;color:var(--t3);}
+.mprev-pat{font-size:13px;color:var(--t3);}
+.mprev-cvd{display:flex;gap:4px;margin-top:4px;flex-wrap:wrap;}
+.mprev-cvd-sw{height:8px;flex:1;border-radius:2px;}
+
+/* Status toggle */
+.stog-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.stog-btn{padding:10px;background:var(--hover);border:1px solid var(--bs);border-radius:var(--r);cursor:pointer;text-align:center;transition:all .18s;}
+.stog-btn.as{background:rgba(46,110,78,.14);border-color:rgba(46,110,78,.30);}
+.stog-btn.ad{background:rgba(91,122,153,.12);border-color:rgba(91,122,153,.25);}
+.stog-lbl{font-size:12px;font-weight:600;color:var(--t2);}
+.stog-btn.as .stog-lbl{color:#68C797;}
+.stog-btn.ad .stog-lbl{color:#94A3B8;}
+.stog-sub{font-size:10px;color:var(--t3);margin-top:2px;}
+
+/* Delete modal */
+.del-warn{display:flex;align-items:flex-start;gap:14px;padding:16px;background:rgba(220,38,38,.08);border:1px solid rgba(220,38,38,.20);border-radius:var(--r);}
+.del-warn svg{width:22px;height:22px;stroke:#FCA5A5;fill:none;stroke-width:1.8;stroke-linecap:round;flex-shrink:0;margin-top:2px;}
+.del-warn-text{font-size:13px;color:var(--t1);line-height:1.6;}
+.del-warn-text strong{color:#FCA5A5;}
+
+/* Status bar */
+.status-bar{grid-column:2;grid-row:3;background:var(--panel);border-top:1px solid var(--bp);display:flex;align-items:center;gap:16px;padding:0 24px;flex-shrink:0;}
+.kb{display:inline-flex;align-items:center;gap:4px;font-size:10px;color:var(--t3);}
+.kk{padding:1px 5px;background:var(--card);border:1px solid var(--bp);border-radius:3px;font-family:monospace;font-size:9px;color:var(--t2);}
+.sbm{flex:1;display:flex;justify-content:center;}
+.wcag{display:flex;align-items:center;gap:5px;font-size:10px;color:#4CAF50;font-weight:600;}
+.wd{width:6px;height:6px;border-radius:50%;background:#4CAF50;animation:wp 2.5s ease-in-out infinite;}
+@keyframes wp{0%,100%{box-shadow:0 0 0 0 rgba(76,175,80,.4)}50%{box-shadow:0 0 0 4px rgba(76,175,80,0)}}
+.toast{position:fixed;bottom:44px;left:50%;transform:translateX(-50%) translateY(10px);background:var(--card);border:1px solid var(--bp);border-radius:var(--rl);padding:9px 18px;font-size:12px;color:var(--t1);box-shadow:0 8px 28px rgba(0,0,0,.45);opacity:0;pointer-events:none;transition:all .25s;z-index:200;white-space:nowrap;}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(0);}
+.toast.ok{border-color:rgba(76,175,80,.4);color:#81C784;}
+.toast.er{border-color:rgba(220,38,38,.4);color:#FCA5A5;}
+.fo{position:fixed;inset:0;pointer-events:none;z-index:100;display:none;}
+.fo.on{display:block;}
+.fb{position:absolute;border:1.5px dashed rgba(100,200,255,.45);border-radius:2px;}
+.ft{position:absolute;top:-18px;left:0;background:rgba(0,140,255,.88);color:#fff;font-size:9px;font-family:monospace;padding:1px 6px;border-radius:3px;white-space:nowrap;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.a1{animation:fadeUp .3s ease .04s both;}
+.a2{animation:fadeUp .3s ease .10s both;}
+.a3{animation:fadeUp .3s ease .16s both;}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<nav class="sidebar" role="navigation" aria-label="Panel de administración">
+  <div class="sb-brand">
+    <div class="sb-mark">M</div>
+    <div><div class="sb-name">Admin Panel</div></div>
+    <div class="sb-role">ADMIN</div>
+  </div>
+  <div class="sb-scroll">
+    <div class="ng"><div class="ngl">General</div>
+      <div class="ni" tabindex="0" onclick="navAdminTo('admin_dashboard.html','Dashboard')"><div class="nico"><svg class="ic" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></div><span class="nl">Dashboard</span></div>
+      <div class="ni" tabindex="0" onclick="navAdminTo('admin_historial.html','Historial')"><div class="nico"><svg class="ic" viewBox="0 0 24 24"><path d="M3 3v5h5"/><path d="M3.05 13A9 9 0 1 0 6 5.3L3 8"/><polyline points="12 7 12 12 15 15"/></svg></div><span class="nl">Historial</span></div>
+    </div>
+    <div class="ng"><div class="ngl">Catálogo de productos</div>
+      <div class="ni" tabindex="0" onclick="navAdminTo('admin_lineas.html','Líneas')"><div class="nico"><svg class="ic" viewBox="0 0 24 24"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11L2 12v6a2 2 0 002 2h16a2 2 0 002-2v-6l-3.45-6.89A2 2 0 0016.76 4H7.24a2 2 0 00-1.79 1.11z"/></svg></div><span class="nl">Líneas de Producto</span></div>
+      <div class="ni" tabindex="0" onclick="navAdminTo('admin_tamanos.html','Tamaños')"><div class="nico"><svg class="ic" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg></div><span class="nl">Tamaños</span></div>
+      <div class="ni active" tabindex="0" aria-current="page"><div class="nico"><svg class="ic" viewBox="0 0 24 24"><circle cx="13.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="10.5" r="2.5"/><circle cx="8.5" cy="7.5" r="2.5"/><circle cx="6.5" cy="12.5" r="2.5"/><path d="M12 20h9M16 20h-4M6 4l-4 4 4 4"/></svg></div><span class="nl">Colores de pasta</span><span class="nbadge" id="sbCount">8</span></div>
+      <div class="ni" tabindex="0" onclick="navAdminTo('admin_patrones.html','Patrones')"><div class="nico"><svg class="ic" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg></div><span class="nl">Patrones / Estilos</span><span class="nbadge">4</span></div>
+      <div class="ni" tabindex="0" onclick="navAdminTo('admin_preview_catalogo.html','Vista previa')"><div class="nico"><svg class="ic" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></div><span class="nl">Vista previa</span></div>
+    </div>
+    <div class="ng"><div class="ngl">Módulos avanzados</div>
+      <div class="ni" tabindex="0" onclick="navAdminTo('admin_modulo_ia.html','Módulo IA')"><div class="nico"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg></div><span class="nl">Módulo IA</span><span class="nbadge">Beta</span></div>
+    </div>
+    <div class="ng"><div class="ngl">Sistema</div>
+      <div class="ni" tabindex="0" onclick="doLogout()" style="color:#FCA5A5;"><div class="nico" style="color:#FCA5A5;"><svg class="ic" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></div><span class="nl">Cerrar sesión</span></div>
+    </div>
+  </div>
+  <div class="sb-footer">
+    <div class="sb-user" tabindex="0"><div class="sb-av">A</div><div><div style="font-size:12px;font-weight:600;color:var(--t1);">Administrador</div><div style="font-size:10px;color:var(--t3);">admin@mosaicos.mx</div></div></div>
+  </div>
+</nav>
+
+<!-- APP BAR -->
+<header class="app-bar" role="banner">
+  <div>
+    <div class="abt">Colores de Pasta</div>
+    <nav class="bc" aria-label="Ruta">
+      <a href="#">Inicio</a><span class="bc-sep">›</span>
+      <a href="#">Catálogo</a><span class="bc-sep">›</span>
+      <span class="bc-cur" aria-current="page">Colores de pasta</span>
+    </nav>
+  </div>
+  <div class="sp"></div>
+  <div class="ab-badge"><div class="adot"></div>Panel Admin</div>
+  <button class="fbtn" id="btnFlutter" aria-pressed="false">⬡ Flutter</button>
+</header>
+
+<!-- MAIN CONTENT -->
+<main class="mc" role="main">
+
+  <!-- Page header -->
+  <div class="ph a1">
+    <div>
+      <h1 class="pt">Gestión de colores de pasta</h1>
+      <p class="ps">Define la paleta de colores disponibles en el catálogo. Cada color incluye su referencia Pantone, patrón CVD diferenciador y estado de visibilidad.</p>
+    </div>
+    <div class="pa">
+      <button class="btn-s" onclick="showToast('Exportando colores…')" aria-label="Exportar paleta">
+        <svg class="ic" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Exportar
+      </button>
+      <button class="btn-p" onclick="openModal('create')" aria-label="Agregar nuevo color de pasta">
+        <svg class="ic" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Nuevo color
+      </button>
+    </div>
+  </div>
+
+  <!-- Filter bar -->
+  <div class="filter-bar a2" role="search">
+    <div class="sw">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="search" id="searchInput" placeholder="Buscar por nombre, HEX o referencia Pantone…" aria-label="Buscar colores"/>
+    </div>
+    <div class="fchip on-a" data-f="all"    onclick="setF('all',this)"    role="button" tabindex="0">Todos</div>
+    <div class="fchip"     data-f="active"  onclick="setF('active',this)" role="button" tabindex="0">Activos</div>
+    <div class="fchip"     data-f="draft"   onclick="setF('draft',this)"  role="button" tabindex="0">Borrador</div>
+    <!-- View toggle -->
+    <div class="view-toggle" role="group" aria-label="Modo de vista">
+      <button class="vbtn on" id="btnGrid" aria-pressed="true"  aria-label="Vista cuadrícula" onclick="setView('grid')">⊞</button>
+      <button class="vbtn"    id="btnList" aria-pressed="false" aria-label="Vista lista"       onclick="setView('list')">☰</button>
+    </div>
+    <div class="rc" role="status" aria-live="polite"><strong id="rNum">8</strong> colores</div>
+  </div>
+
+  <!-- Main layout -->
+  <div class="main-layout a3">
+
+    <!-- Left: cards / table -->
+    <div>
+      <!-- Grid view -->
+      <div class="colors-grid" id="colorsGrid" role="list" aria-label="Paleta de colores de pasta"></div>
+      <!-- Table view -->
+      <div class="table-card" id="colorsTable">
+        <div style="overflow-x:auto;">
+          <table role="table" aria-label="Tabla de colores de pasta">
+            <thead>
+              <tr>
+                <th scope="col">Color</th>
+                <th scope="col">Código HEX</th>
+                <th scope="col">Ref. Pantone</th>
+                <th scope="col">Patrón CVD</th>
+                <th scope="col">Líneas</th>
+                <th scope="col">Estado</th>
+                <th scope="col">Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="tableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right panel -->
+    <div class="rp">
+
+      <!-- Selected color preview -->
+      <div class="rp-card">
+        <div class="rp-header">
+          <div class="rp-title"><div class="rp-dot" style="background:var(--terra);"></div>Color seleccionado</div>
+        </div>
+        <div class="rp-body sel-preview" id="selPreview">
+          <div class="sel-swatch-big"><canvas id="selCanvas" width="280" height="80" aria-label="Muestra del color seleccionado"></canvas></div>
+          <div class="sel-name" id="selName">Selecciona un color</div>
+          <div style="margin-top:8px;">
+            <div class="sel-row"><span class="sel-key">HEX</span><span class="sel-val" id="selHex">—</span></div>
+            <div class="sel-row"><span class="sel-key">Pantone</span><span class="sel-val" id="selPantone">—</span></div>
+            <div class="sel-row"><span class="sel-key">Patrón CVD</span><span class="sel-val" id="selPat">—</span></div>
+            <div class="sel-row"><span class="sel-key">Estado</span><span class="sel-val" id="selStatus">—</span></div>
+            <div class="sel-row"><span class="sel-key">Líneas</span><span class="sel-val" id="selLines">—</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CVD Simulation strip -->
+      <div class="rp-card">
+        <div class="rp-header">
+          <div class="rp-title"><div class="rp-dot" style="background:var(--cobalt);"></div>Simulación CVD</div>
+        </div>
+        <div class="rp-body cvd-strip-wrap" id="cvdStrip" aria-label="Simulación del color bajo distintas condiciones de visión del color">
+          <div class="cvd-row">
+            <span class="cvd-lbl">Normal</span>
+            <div class="cvd-swatch" id="cvd-normal"></div>
+            <span class="cvd-tag" id="cvdHex-normal">—</span>
+          </div>
+          <div class="cvd-row">
+            <span class="cvd-lbl">Protanopía</span>
+            <div class="cvd-swatch" id="cvd-protan"></div>
+            <span class="cvd-tag" id="cvdHex-protan">—</span>
+          </div>
+          <div class="cvd-row">
+            <span class="cvd-lbl">Deuteranopía</span>
+            <div class="cvd-swatch" id="cvd-deuter"></div>
+            <span class="cvd-tag" id="cvdHex-deuter">—</span>
+          </div>
+          <div class="cvd-row">
+            <span class="cvd-lbl">Tritanopía</span>
+            <div class="cvd-swatch" id="cvd-tritan"></div>
+            <span class="cvd-tag" id="cvdHex-tritan">—</span>
+          </div>
+          <p style="font-size:10px;color:var(--t3);line-height:1.55;margin-top:4px;">
+            Por eso cada color incluye un <strong style="color:var(--t2);">patrón textural diferenciador</strong> (▦ ▪ ⠿ ≡ ◈) para cumplir WCAG 1.4.1 — la información no depende solo del color.
+          </p>
+        </div>
+      </div>
+
+      <!-- Palette overview -->
+      <div class="rp-card">
+        <div class="rp-header">
+          <div class="rp-title"><div class="rp-dot" style="background:var(--green);"></div>Paleta completa</div>
+        </div>
+        <div class="rp-body">
+          <div class="palette-overview" id="paletteOverview" role="list" aria-label="Vista general de todos los colores de la paleta"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</main>
+
+<!-- STATUS BAR -->
+<footer class="status-bar" role="contentinfo">
+  <div style="display:flex;gap:14px;">
+    <span class="kb"><kbd class="kk">Tab</kbd> Navegar</span>
+    <span class="kb"><kbd class="kk">N</kbd> Nuevo color</span>
+    <span class="kb"><kbd class="kk">Esc</kbd> Cerrar modal</span>
+  </div>
+  <div class="sbm">
+    <div class="wcag" role="status"><div class="wd"></div>WCAG 2.1 AA · WCAG 1.4.1 Conforme</div>
+  </div>
+  <span style="font-size:10px;color:var(--t3);">Flutter: Scaffold › Row(Drawer + Expanded(Column(FilterBar + GridView + RightPanel)))</span>
+</footer>
+
+<!-- MODAL CREATE/EDIT -->
+<div class="modal-overlay" id="modalForm" role="dialog" aria-modal="true" aria-labelledby="mfTitle">
+  <div class="modal">
+    <div class="mhead">
+      <div class="mtitle">
+        <div id="mDot" style="width:8px;height:8px;border-radius:50%;background:var(--cobalt);transition:background .3s;"></div>
+        <span id="mfTitle">Nuevo color de pasta</span>
+      </div>
+      <button class="mclose" onclick="closeM('modalForm')" aria-label="Cerrar">
+        <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="mbody">
+
+      <!-- Live preview -->
+      <div class="modal-preview-wrap" aria-label="Vista previa del color">
+        <div class="mprev-canvas"><canvas id="mpCanvas" width="88" height="88"></canvas></div>
+        <div class="mprev-info">
+          <div class="mprev-name" id="mpName">Nuevo color</div>
+          <div class="mprev-hex" id="mpHex">#FFFFFF</div>
+          <div class="mprev-pat" id="mpPat">Sin patrón</div>
+          <div class="mprev-cvd" id="mpCvd">
+            <div class="mprev-cvd-sw" title="Normal"></div>
+            <div class="mprev-cvd-sw" title="Protanopía" style="opacity:.7;"></div>
+            <div class="mprev-cvd-sw" title="Deuteranopía" style="opacity:.5;"></div>
+            <div class="mprev-cvd-sw" title="Tritanopía" style="opacity:.65;"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Nombre y HEX -->
+      <div class="frow c2">
+        <div class="field">
+          <label for="mNombre">Nombre del color <span class="fhint">Requerido</span></label>
+          <input type="text" id="mNombre" placeholder="Ej. Terracota" autocomplete="off"/>
+        </div>
+        <div class="field">
+          <label for="mHex">Código HEX <span class="fhint">Con #</span></label>
+          <input type="text" id="mHex" placeholder="#C8741A" maxlength="7" style="font-family:monospace;text-transform:uppercase;"/>
+        </div>
+      </div>
+
+      <!-- Color picker + pantone -->
+      <div class="frow c2">
+        <div class="field">
+          <label for="mPicker">Selector de color visual</label>
+          <div class="color-pick-row">
+            <input type="color" id="mPicker" value="#C8741A" aria-label="Selector de color"/>
+            <div class="color-pick-info">
+              <div class="cpi-hex" id="cpiHex">#C8741A</div>
+              <div class="cpi-preview" id="cpiPreview" style="background:#C8741A;"></div>
+            </div>
+          </div>
+        </div>
+        <div class="field">
+          <label for="mPantone">Referencia Pantone <span class="fhint">Opcional</span></label>
+          <input type="text" id="mPantone" placeholder="Ej. PMS 166 C"/>
+        </div>
+      </div>
+
+      <!-- Patrón CVD diferenciador -->
+      <div class="field">
+        <label>Patrón CVD diferenciador <span class="fhint">WCAG 1.4.1 — requerido</span></label>
+        <div class="pat-select" role="radiogroup" aria-label="Seleccionar patrón textural diferenciador" id="patSelect">
+          <div class="pat-btn" data-p="" role="radio" aria-checked="true" tabindex="0">
+            <span class="pat-symbol">○</span>
+            <span class="pat-label">Ninguno</span>
+          </div>
+          <div class="pat-btn" data-p="▦" role="radio" aria-checked="false" tabindex="-1">
+            <span class="pat-symbol">▦</span>
+            <span class="pat-label">Cuadros</span>
+          </div>
+          <div class="pat-btn" data-p="▪" role="radio" aria-checked="false" tabindex="-1">
+            <span class="pat-symbol">▪</span>
+            <span class="pat-label">Puntos</span>
+          </div>
+          <div class="pat-btn" data-p="⠿" role="radio" aria-checked="false" tabindex="-1">
+            <span class="pat-symbol">⠿</span>
+            <span class="pat-label">Braille</span>
+          </div>
+          <div class="pat-btn" data-p="≡" role="radio" aria-checked="false" tabindex="-1">
+            <span class="pat-symbol">≡</span>
+            <span class="pat-label">Líneas</span>
+          </div>
+          <div class="pat-btn" data-p="◈" role="radio" aria-checked="false" tabindex="-1">
+            <span class="pat-symbol">◈</span>
+            <span class="pat-label">Diamante</span>
+          </div>
+          <div class="pat-btn" data-p="░" role="radio" aria-checked="false" tabindex="-1">
+            <span class="pat-symbol">░</span>
+            <span class="pat-label">Trama</span>
+          </div>
+          <div class="pat-btn" data-p="✕" role="radio" aria-checked="false" tabindex="-1">
+            <span class="pat-symbol">✕</span>
+            <span class="pat-label">Cruz</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Estado -->
+      <div class="field">
+        <label>Estado de visibilidad</label>
+        <div class="stog-row" role="radiogroup" aria-label="Estado del color" id="mStatusGroup">
+          <div class="stog-btn as" data-s="active" onclick="setSt('active',this)" role="radio" aria-checked="true" tabindex="0">
+            <div class="stog-lbl">Activo</div><div class="stog-sub">Visible en catálogo</div>
+          </div>
+          <div class="stog-btn" data-s="draft" onclick="setSt('draft',this)" role="radio" aria-checked="false" tabindex="-1">
+            <div class="stog-lbl">Borrador</div><div class="stog-sub">Solo para admin</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+    <div class="mfoot">
+      <button class="btn-cancel" onclick="closeM('modalForm')">Cancelar</button>
+      <button class="btn-save" onclick="saveColor()">Guardar color</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL DELETE -->
+<div class="modal-overlay" id="modalDel" role="dialog" aria-modal="true" aria-labelledby="delTitle">
+  <div class="modal sm">
+    <div class="mhead">
+      <div class="mtitle">
+        <div style="width:8px;height:8px;border-radius:50%;background:var(--red);"></div>
+        <span id="delTitle">Eliminar color</span>
+      </div>
+      <button class="mclose" onclick="closeM('modalDel')" aria-label="Cerrar">
+        <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="mbody">
+      <div class="del-warn">
+        <svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        <div class="del-warn-text">¿Eliminar el color <strong id="delColorName">—</strong>?<br>Esta acción no se puede deshacer.</div>
+      </div>
+      <p style="font-size:12px;color:var(--t3);line-height:1.65;">El color se eliminará de todas las líneas de producto. Las creaciones existentes de usuarios que usaron este color no se verán afectadas.</p>
+    </div>
+    <div class="mfoot">
+      <button class="btn-cancel" onclick="closeM('modalDel')">Cancelar</button>
+      <button class="btn-danger" onclick="confirmDel()">Eliminar color</button>
+    </div>
+  </div>
+</div>
+
+<!-- Flutter overlay -->
+<div class="fo" id="fo" aria-hidden="true">
+  <div class="fb" style="top:0;left:0;width:240px;bottom:0;"><span class="ft">NavigationDrawer(permanent)</span></div>
+  <div class="fb" style="top:0;left:240px;right:0;height:52px;"><span class="ft">AppBar</span></div>
+  <div class="fb" id="fMain" style="left:240px;right:0;bottom:36px;"><span class="ft">Expanded › Column(FilterBar + Row(GridView(colors) + RightPanel(Preview+CVD+Overview)))</span></div>
+  <div class="fb" style="bottom:0;left:240px;right:0;height:36px;"><span class="ft">BottomAppBar</span></div>
+</div>
+
+<div class="toast" id="toastEl" role="status" aria-live="polite"></div>
+<div id="live" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);" aria-live="polite" aria-atomic="true"></div>
+
+<script src="utils.js"></script>
+<script>
+const session = requireAuth('admin');
+if (session) {
+  document.querySelector('.sb-user').innerHTML = `
+    <div class="sb-av">${session.name.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase()}</div>
+    <div>
+      <div style="font-size:12px;font-weight:600;color:var(--t1);">${session.name}</div>
+      <div style="font-size:10px;color:var(--t3);">${session.email}</div>
+    </div>
+  `;
+}
+
+/* ══════════════════════════════
+   DATA
+══════════════════════════════ */
+let colors = [
+  { id:1, name:'Hueso',      hex:'#F5F0E0', pantone:'PMS Warm Gray 1', pat:'',  status:'active', lines:['TRAD','L-64','COL'], isDefault:true },
+  { id:2, name:'Terracota',  hex:'#C8741A', pantone:'PMS 166 C',       pat:'▦', status:'active', lines:['TRAD','L-64','COL'], isDefault:false },
+  { id:3, name:'Granito',    hex:'#1A1A2E', pantone:'PMS Black 6 C',   pat:'',  status:'active', lines:['TRAD','L-64'],       isDefault:false },
+  { id:4, name:'Gris',       hex:'#8B8B8B', pantone:'PMS Cool Gray 7', pat:'▪', status:'active', lines:['TRAD','L-64','COL'], isDefault:false },
+  { id:5, name:'Azul Cielo', hex:'#4A9EBF', pantone:'PMS 7459 C',      pat:'⠿', status:'active', lines:['TRAD','L-64','COL'], isDefault:false },
+  { id:6, name:'Verde',      hex:'#2E6E4E', pantone:'PMS 7734 C',      pat:'≡', status:'active', lines:['TRAD','L-64','COL'], isDefault:false },
+  { id:7, name:'Ámbar',      hex:'#D4A843', pantone:'PMS 1235 C',      pat:'',  status:'active', lines:['TRAD','L-64','COL'], isDefault:false },
+  { id:8, name:'Rojo',       hex:'#B91C1C', pantone:'PMS 186 C',       pat:'◈', status:'active', lines:['TRAD','L-64'],       isDefault:false },
+];
+
+let viewMode  = 'grid';
+let filterSt  = 'all';
+let searchQ   = '';
+let selId     = null;
+let editId    = null;
+let delId     = null;
+let mStatus   = 'active';
+let mPat      = '';
+
+/* ══════════════════════════════
+   CANVAS HELPERS
+══════════════════════════════ */
+function rgb(h){return{r:parseInt(h.slice(1,3),16),g:parseInt(h.slice(3,5),16),b:parseInt(h.slice(5,7),16)};}
+function li(h,a){const c=rgb(h);return`rgb(${Math.min(255,c.r+a)},${Math.min(255,c.g+a)},${Math.min(255,c.b+a)})`;}
+function dk(h,a){const c=rgb(h);return`rgb(${Math.max(0,c.r-a)},${Math.max(0,c.g-a)},${Math.max(0,c.b-a)})`;}
+
+function drawColor(cv, hex, w=null, h=null){
+  const ctx = cv.getContext('2d');
+  const W = w||cv.width, H = h||cv.height;
+  cv.width=W; cv.height=H;
+  ctx.fillStyle = dk(hex,50); ctx.fillRect(0,0,W,H);
+  let tx=1,ty=1,safe=0;
+  while(ty<H&&safe<500){
+    safe++;
+    const fw=2+Math.random()*7,fh=2+Math.random()*5;
+    if(tx+fw>W-1){tx=1;ty+=fh+1;continue;}
+    if(ty+fh>H) break;
+    const sides=5+Math.floor(Math.random()*3),cx=tx+fw/2,cy=ty+fh/2;
+    const v=Math.floor(Math.random()*22-11);
+    ctx.fillStyle=v>=0?li(hex,v):dk(hex,-v);
+    ctx.globalAlpha=0.88+Math.random()*0.12;
+    ctx.beginPath();
+    for(let i=0;i<sides;i++){
+      const a=(i/sides)*2*Math.PI+Math.random()*0.35;
+      const rx=(fw/2)*(0.7+Math.random()*0.45),ry=(fh/2)*(0.7+Math.random()*0.45);
+      i===0?ctx.moveTo(cx+rx*Math.cos(a),cy+ry*Math.sin(a)):ctx.lineTo(cx+rx*Math.cos(a),cy+ry*Math.sin(a));
+    }
+    ctx.closePath();ctx.fill();ctx.globalAlpha=1;tx+=fw+1;
+  }
+}
+
+/* CVD matrix simulation */
+const CVD = {
+  protan: [[.567,.433,0,0,0],[.558,.442,0,0,0],[0,.242,.758,0,0]],
+  deuter: [[.625,.375,0,0,0],[.7,.3,0,0,0],[0,.3,.7,0,0]],
+  tritan: [[.95,.05,0,0,0],[0,.433,.567,0,0],[0,.475,.525,0,0]],
+};
+
+function applyMtx(hex, mtx){
+  const {r,g,b}=rgb(hex);
+  const nr=Math.min(255,Math.max(0,Math.round(mtx[0][0]*r+mtx[0][1]*g+mtx[0][2]*b)));
+  const ng=Math.min(255,Math.max(0,Math.round(mtx[1][0]*r+mtx[1][1]*g+mtx[1][2]*b)));
+  const nb=Math.min(255,Math.max(0,Math.round(mtx[2][0]*r+mtx[2][1]*g+mtx[2][2]*b)));
+  return '#'+[nr,ng,nb].map(v=>v.toString(16).padStart(2,'0')).join('');
+}
+
+/* ══════════════════════════════
+   RENDER
+══════════════════════════════ */
+function getFiltered(){
+  return colors.filter(c=>{
+    if(filterSt!=='all'&&c.status!==filterSt) return false;
+    if(searchQ){
+      const q=searchQ.toLowerCase();
+      if(!c.name.toLowerCase().includes(q)&&!c.hex.toLowerCase().includes(q)&&!c.pantone.toLowerCase().includes(q)) return false;
+    }
+    return true;
+  });
+}
+
+function render(){
+  const list = getFiltered();
+  document.getElementById('rNum').textContent = list.length;
+  document.getElementById('sbCount').textContent = colors.length;
+
+  viewMode==='grid' ? renderGrid(list) : renderTable(list);
+  renderPaletteOverview();
+}
+
+function renderGrid(list){
+  document.getElementById('colorsGrid').style.display='';
+  document.getElementById('colorsTable').classList.remove('on');
+  const grid = document.getElementById('colorsGrid');
+  grid.innerHTML='';
+
+  if(!list.length){
+    grid.innerHTML=`<div style="grid-column:1/-1;text-align:center;padding:48px;color:var(--t3);">
+      <div style="font-size:40px;margin-bottom:10px;opacity:.25;">🎨</div>
+      <div style="font-family:var(--fd);font-size:15px;font-weight:700;margin-bottom:4px;">Sin resultados</div>
+      <div style="font-size:12px;">Prueba con otros filtros.</div>
+    </div>`;
+    return;
+  }
+
+  list.forEach((c,i)=>{
+    const isSel = c.id===selId;
+    const card = document.createElement('div');
+    card.className='color-card'+(isSel?' selected':'');
+    card.setAttribute('role','listitem');
+    card.setAttribute('tabindex','0');
+    card.setAttribute('aria-label',`${c.name} — ${c.hex} — ${c.status==='active'?'Activo':'Borrador'}`);
+    card.style.animationDelay=(i*.04)+'s';
+
+    card.innerHTML=`
+      <div class="color-card__swatch">
+        <canvas width="220" height="90" aria-hidden="true"></canvas>
+        <div class="color-card__cvd" aria-hidden="true">${c.pat||'○'}</div>
+      </div>
+      <div class="color-card__body">
+        <div class="color-card__name">
+          ${c.name}
+          ${c.isDefault?'<span class="ctag default">Predeterminado</span>':''}
+        </div>
+        <div class="color-card__hex">${c.hex}</div>
+        <div class="color-card__ref">${c.pantone}</div>
+        <div class="color-card__tags">
+          <span class="ctag ${c.status}">${c.status==='active'?'Activo':'Borrador'}</span>
+          ${c.pat?`<span class="ctag active">${c.pat} CVD</span>`:''}
+        </div>
+      </div>
+      <div class="color-card__foot">
+        <button class="cact edit" aria-label="Editar ${c.name}">
+          <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          Editar
+        </button>
+        ${c.isDefault?'':`<button class="cact del" aria-label="Eliminar ${c.name}">
+          <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>
+          Eliminar
+        </button>`}
+      </div>`;
+
+    const cv = card.querySelector('canvas');
+    setTimeout(()=>drawColor(cv, c.hex, cv.width, cv.height), 20+i*15);
+
+    card.addEventListener('click', e=>{ if(e.target.closest('.cact')) return; selectColor(c.id); });
+    card.addEventListener('keydown', e=>{ if(e.key==='Enter') selectColor(c.id); });
+    card.querySelector('.cact.edit').addEventListener('click', e=>{ e.stopPropagation(); openModal('edit',c.id); });
+    if(!c.isDefault) card.querySelector('.cact.del').addEventListener('click', e=>{ e.stopPropagation(); openDel(c.id); });
+
+    grid.appendChild(card);
+  });
+}
+
+function renderTable(list){
+  document.getElementById('colorsGrid').style.display='none';
+  document.getElementById('colorsTable').classList.add('on');
+  const tbody = document.getElementById('tableBody');
+  tbody.innerHTML='';
+  list.forEach(c=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML=`
+      <td><div class="color-swatch-cell">
+        <div class="cs-circle" style="background:${c.hex};" aria-hidden="true"></div>
+        <div><div class="cs-name">${c.name}</div><div class="cs-hex">${c.hex}</div></div>
+      </div></td>
+      <td style="font-family:monospace;font-size:12px;">${c.hex}</td>
+      <td style="font-size:12px;">${c.pantone||'—'}</td>
+      <td style="font-size:16px;">${c.pat||'—'}</td>
+      <td style="font-size:11px;">${c.lines.join(', ')}</td>
+      <td><span class="sbadge ${c.status}">${c.status==='active'?'Activo':'Borrador'}</span></td>
+      <td><div style="display:flex;gap:5px;">
+        <button class="ract edit" aria-label="Editar ${c.name}">
+          <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        </button>
+        ${c.isDefault?'':`<button class="ract del" aria-label="Eliminar ${c.name}">
+          <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>
+        </button>`}
+      </div></td>`;
+    tr.querySelector('.ract.edit').addEventListener('click',()=>openModal('edit',c.id));
+    if(!c.isDefault) tr.querySelector('.ract.del')?.addEventListener('click',()=>openDel(c.id));
+    tbody.appendChild(tr);
+  });
+}
+
+function renderPaletteOverview(){
+  const po = document.getElementById('paletteOverview');
+  po.innerHTML='';
+  colors.forEach(c=>{
+    const item = document.createElement('div');
+    item.className='po-item'+(c.id===selId?' on':'');
+    item.setAttribute('role','listitem');
+    item.setAttribute('tabindex','0');
+    item.setAttribute('aria-label',c.name);
+    item.innerHTML=`
+      <div class="po-dot" style="background:${c.hex};"></div>
+      <span class="po-pat">${c.pat||'○'}</span>
+      <span class="po-name">${c.name}</span>`;
+    item.addEventListener('click',()=>selectColor(c.id));
+    item.addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); selectColor(c.id); } });
+    po.appendChild(item);
+  });
+}
+
+/* ══════════════════════════════
+   SELECT COLOR → update right panel
+══════════════════════════════ */
+function selectColor(id){
+  selId = id;
+  const c = colors.find(x=>x.id===id);
+  if(!c) return;
+
+  // Update cards
+  document.querySelectorAll('.color-card').forEach(el=>{
+    el.classList.toggle('selected', el.getAttribute('aria-label')?.startsWith(c.name));
+  });
+  renderPaletteOverview();
+
+  // Right panel — selected
+  document.getElementById('selName').textContent = c.name;
+  document.getElementById('selHex').textContent  = c.hex;
+  document.getElementById('selPantone').textContent = c.pantone||'—';
+  document.getElementById('selPat').textContent  = c.pat||'Sin patrón';
+  document.getElementById('selStatus').textContent = c.status==='active'?'Activo':'Borrador';
+  document.getElementById('selLines').textContent = c.lines.join(', ');
+
+  // Big swatch canvas
+  const cv = document.getElementById('selCanvas');
+  drawColor(cv, c.hex, 280, 80);
+
+  // CVD strip
+  updateCVDStrip(c.hex);
+  setLive(`Color seleccionado: ${c.name}`);
+}
+
+function updateCVDStrip(hex){
+  // Normal
+  document.getElementById('cvd-normal').style.background = hex;
+  document.getElementById('cvdHex-normal').textContent   = hex;
+  // Protan
+  const ph = applyMtx(hex, CVD.protan);
+  document.getElementById('cvd-protan').style.background = ph;
+  document.getElementById('cvdHex-protan').textContent   = ph;
+  // Deuter
+  const dh = applyMtx(hex, CVD.deuter);
+  document.getElementById('cvd-deuter').style.background = dh;
+  document.getElementById('cvdHex-deuter').textContent   = dh;
+  // Tritan
+  const th = applyMtx(hex, CVD.tritan);
+  document.getElementById('cvd-tritan').style.background = th;
+  document.getElementById('cvdHex-tritan').textContent   = th;
+}
+
+/* ══════════════════════════════
+   FILTER / VIEW
+══════════════════════════════ */
+function setF(f, el){
+  filterSt=f;
+  document.querySelectorAll('.fchip').forEach(c=>c.classList.remove('on','on-a'));
+  el.classList.add(f==='all'?'on-a':'on');
+  render();
+}
+document.getElementById('searchInput').addEventListener('input', function(){ searchQ=this.value; render(); });
+
+function setView(v){
+  viewMode=v;
+  document.getElementById('btnGrid').classList.toggle('on',v==='grid');
+  document.getElementById('btnList').classList.toggle('on',v==='list');
+  document.getElementById('btnGrid').setAttribute('aria-pressed',v==='grid'?'true':'false');
+  document.getElementById('btnList').setAttribute('aria-pressed',v==='list'?'true':'false');
+  render();
+}
+
+/* ══════════════════════════════
+   MODAL OPEN / CLOSE
+══════════════════════════════ */
+function openModal(mode, id=null){
+  editId=null; mStatus='active'; mPat='';
+  const title = document.getElementById('mfTitle');
+
+  if(mode==='edit'){
+    const c = colors.find(x=>x.id===id);
+    if(!c) return;
+    editId=id;
+    title.textContent=`Editar — ${c.name}`;
+    document.getElementById('mNombre').value  = c.name;
+    document.getElementById('mHex').value     = c.hex;
+    document.getElementById('mPicker').value  = c.hex;
+    document.getElementById('mPantone').value = c.pantone;
+    mPat    = c.pat;
+    mStatus = c.status;
+    document.getElementById('mDot').style.background = c.hex;
+  } else {
+    title.textContent='Nuevo color de pasta';
+    document.getElementById('mNombre').value  = '';
+    document.getElementById('mHex').value     = '#C8741A';
+    document.getElementById('mPicker').value  = '#C8741A';
+    document.getElementById('mPantone').value = '';
+    document.getElementById('mDot').style.background = 'var(--cobalt)';
+  }
+
+  syncPatSelect();
+  setSt(mStatus, document.querySelector(`#mStatusGroup [data-s="${mStatus}"]`));
+  updateModalPreview();
+
+  document.getElementById('modalForm').classList.add('open');
+  setTimeout(()=>document.getElementById('mNombre').focus(),150);
+}
+
+function closeM(id){ document.getElementById(id).classList.remove('open'); }
+['modalForm','modalDel'].forEach(id=>{
+  document.getElementById(id).addEventListener('click',function(e){ if(e.target===this) closeM(id); });
+});
+
+/* ── Modal live preview ── */
+function updateModalPreview(){
+  const hex  = document.getElementById('mHex').value.trim();
+  const name = document.getElementById('mNombre').value.trim()||'Vista previa';
+  const valid = /^#[0-9A-Fa-f]{6}$/.test(hex);
+
+  document.getElementById('mpName').textContent = name;
+  document.getElementById('mpHex').textContent  = valid?hex:hex;
+  document.getElementById('mpPat').textContent  = mPat||'Sin patrón';
+  document.getElementById('mDot').style.background = valid?hex:'var(--cobalt)';
+
+  if(valid){
+    const cv=document.getElementById('mpCanvas');
+    drawColor(cv, hex, 88, 88);
+    document.getElementById('cpiHex').style.color    = hex;
+    document.getElementById('cpiPreview').style.background = hex;
+
+    // CVD mini swatches
+    const swatches = document.querySelectorAll('.mprev-cvd-sw');
+    const keys=['','.protan','.deuter','.tritan'];
+    const mtxKeys=[null,'protan','deuter','tritan'];
+    swatches.forEach((sw,i)=>{
+      sw.style.background = i===0 ? hex : applyMtx(hex, CVD[mtxKeys[i]]);
+    });
+  }
+}
+
+document.getElementById('mNombre').addEventListener('input', updateModalPreview);
+document.getElementById('mHex').addEventListener('input', function(){
+  const h = this.value.trim();
+  if(/^#[0-9A-Fa-f]{6}$/.test(h)) document.getElementById('mPicker').value=h;
+  updateModalPreview();
+});
+document.getElementById('mPicker').addEventListener('input', function(){
+  document.getElementById('mHex').value = this.value.toUpperCase();
+  document.getElementById('cpiHex').textContent = this.value.toUpperCase();
+  document.getElementById('cpiPreview').style.background = this.value;
+  updateModalPreview();
+});
+
+/* ── Pattern select ── */
+function syncPatSelect(){
+  document.querySelectorAll('.pat-btn').forEach(btn=>{
+    const on = btn.dataset.p===mPat;
+    btn.classList.toggle('on',on);
+    btn.setAttribute('aria-checked',on?'true':'false');
+    btn.setAttribute('tabindex',on?'0':'-1');
+  });
+}
+document.querySelectorAll('.pat-btn').forEach(btn=>{
+  const pick=()=>{ mPat=btn.dataset.p; syncPatSelect(); updateModalPreview(); };
+  btn.addEventListener('click',pick);
+  btn.addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); pick(); } });
+});
+
+/* ── Status toggle ── */
+function setSt(s,el){
+  mStatus=s;
+  document.querySelectorAll('#mStatusGroup .stog-btn').forEach(b=>{
+    b.className='stog-btn';b.setAttribute('aria-checked','false');b.setAttribute('tabindex','-1');
+  });
+  if(el){el.className='stog-btn a'+s.charAt(0);el.setAttribute('aria-checked','true');el.setAttribute('tabindex','0');}
+}
+document.querySelectorAll('#mStatusGroup .stog-btn').forEach(btn=>{
+  btn.addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); btn.click(); } });
+});
+
+/* ── Save ── */
+function saveColor(){
+  const name   = document.getElementById('mNombre').value.trim();
+  const hex    = document.getElementById('mHex').value.trim().toUpperCase();
+  const pantone= document.getElementById('mPantone').value.trim();
+
+  if(!name){ showToast('El nombre del color es requerido','er'); return; }
+  if(!/^#[0-9A-Fa-f]{6}$/.test(hex)){ showToast('El código HEX debe tener formato #RRGGBB','er'); return; }
+
+  if(editId){
+    const c=colors.find(x=>x.id===editId);
+    if(c){ c.name=name;c.hex=hex;c.pantone=pantone;c.pat=mPat;c.status=mStatus; }
+    showToast(`Color "${name}" actualizado`,'ok');
+  } else {
+    colors.push({id:Date.now(),name,hex,pantone,pat:mPat,status:mStatus,lines:['TRAD','L-64','COL'],isDefault:false});
+    showToast(`Color "${name}" creado`,'ok');
+  }
+  closeM('modalForm');
+  render();
+  selectColor(editId||colors[colors.length-1].id);
+}
+
+/* ── Delete ── */
+function openDel(id){
+  delId=id;
+  const c=colors.find(x=>x.id===id);
+  document.getElementById('delColorName').textContent=c?`${c.name} (${c.hex})`:'—';
+  document.getElementById('modalDel').classList.add('open');
+}
+function confirmDel(){
+  const c=colors.find(x=>x.id===delId);
+  colors=colors.filter(x=>x.id!==delId);
+  closeM('modalDel');
+  if(selId===delId) selId=null;
+  render();
+  showToast(`Color "${c?.name}" eliminado`,'er');
+  delId=null;
+}
+
+/* ══════════════════════════════
+   KEYBOARD
+══════════════════════════════ */
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){
+    if(document.getElementById('modalForm').classList.contains('open')) closeM('modalForm');
+    if(document.getElementById('modalDel').classList.contains('open')) closeM('modalDel');
+  }
+  if((e.key==='n'||e.key==='N')&&document.activeElement.tagName!=='INPUT'){
+    e.preventDefault(); openModal('create');
+  }
+});
+
+/* Flutter */
+document.getElementById('btnFlutter').addEventListener('click',function(){
+  const a=this.getAttribute('aria-pressed')==='true';
+  this.setAttribute('aria-pressed',!a);this.classList.toggle('active',!a);
+  const o=document.getElementById('fo');
+  o.classList.toggle('on',!a);o.setAttribute('aria-hidden',a?'true':'false');
+  setLive(a?'Flutter oculto':'Flutter visible');
+});
+
+/* Toast + Live from utils.js */
+
+/* INIT */
+render();
+selectColor(1); // Default: Hueso
+</script>
+</body>
+</html>

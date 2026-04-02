@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="es" dir="ltr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Mexmos — Motor Voronoi Demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --navy:    #0D1B2A;
+  --cobalt:  #1A4B8C;
+  --cobalt2: #1E5FAD;
+  --terra:   #C8741A;
+  --terra2:  #A85E12;
+  --gold:    #D4A843;
+  --stone:   #F5F2EC;
+  --panel:   #112236;
+  --card:    #162E45;
+  --hover:   #1E3A54;
+  --deep:    #0A1520;
+  --t1: #F0EDE8;
+  --t2: #94A3B8;
+  --t3: #5B7A99;
+  --b1: rgba(255,255,255,0.06);
+  --b2: rgba(255,255,255,0.10);
+  --ba: rgba(200,116,26,0.35);
+  --focus: #1A6BBF;
+  --fd: 'Syne', sans-serif;
+  --fb: 'DM Sans', sans-serif;
+  --r:  8px;
+  --r2: 12px;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; background: var(--navy); overflow: hidden; }
+body { font-family: var(--fb); color: var(--t1); font-size: 13px; line-height: 1.5;
+  display: grid; grid-template-rows: 48px 1fr 32px; }
+:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; border-radius: 4px; }
+.sr-only { position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0; }
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-thumb { background: var(--hover); border-radius: 2px; }
+
+/* ── App Bar ── */
+.app-bar {
+  background: var(--panel); border-bottom: 1px solid var(--b2);
+  display: flex; align-items: center; padding: 0 20px; gap: 12px; z-index: 20;
+}
+.brand { display: flex; align-items: center; gap: 8px; text-decoration: none; }
+.brand-mark {
+  width: 28px; height: 28px; background: var(--terra); border-radius: 5px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--fd); font-size: 13px; font-weight: 800; color: #fff;
+}
+.brand-name { font-family: var(--fd); font-size: 12px; font-weight: 700; color: var(--t1); }
+.brand-sub  { font-size: 9px; color: var(--t3); letter-spacing: .08em; text-transform: uppercase; }
+.divider { width: 1px; height: 20px; background: var(--b2); flex-shrink: 0; }
+.spacer  { flex: 1; }
+.badge-worker {
+  display: flex; align-items: center; gap: 5px;
+  padding: 3px 9px; border-radius: 20px;
+  background: rgba(46,110,78,0.15); border: 1px solid rgba(46,110,78,0.3);
+  font-size: 10px; font-weight: 500; color: #6DD99A;
+}
+.badge-worker::before {
+  content: ''; width: 6px; height: 6px; border-radius: 50%;
+  background: #6DD99A; animation: pulse 2s ease-in-out infinite;
+}
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+/* ── Main Layout ── */
+.main {
+  display: grid;
+  grid-template-columns: 260px 1fr 220px;
+  overflow: hidden;
+}
+
+/* ── Left Panel — Capas ── */
+.panel-left {
+  background: var(--panel); border-right: 1px solid var(--b2);
+  overflow-y: auto; padding: 16px 12px;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.panel-title {
+  font-family: var(--fd); font-size: 10px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .1em; color: var(--t3);
+  padding: 0 4px; margin-bottom: 4px;
+}
+
+/* Capa card */
+.capa-card {
+  background: var(--card); border: 1px solid var(--b1);
+  border-radius: var(--r2); overflow: hidden;
+  transition: border-color .15s;
+}
+.capa-card:hover { border-color: var(--ba); }
+.capa-card.disabled { opacity: .45; }
+
+.capa-header {
+  display: flex; align-items: center; gap: 8px;
+  padding: 9px 10px; cursor: pointer;
+}
+.capa-color {
+  width: 20px; height: 20px; border-radius: 4px; flex-shrink: 0;
+  border: 1px solid rgba(255,255,255,0.15); cursor: pointer;
+  position: relative; overflow: hidden;
+}
+.capa-color input[type=color] {
+  position: absolute; inset: -4px; width: calc(100% + 8px);
+  height: calc(100% + 8px); opacity: 0; cursor: pointer; border: none;
+}
+.capa-name { font-size: 12px; font-weight: 500; flex: 1; }
+.capa-size-badge {
+  font-size: 10px; color: var(--t3);
+  background: rgba(255,255,255,0.04); border-radius: 3px; padding: 1px 5px;
+}
+.toggle-wrap { position: relative; width: 28px; height: 16px; flex-shrink: 0; }
+.toggle-wrap input { opacity: 0; position: absolute; inset: 0; cursor: pointer; }
+.toggle-track {
+  display: block; width: 28px; height: 16px;
+  background: var(--hover); border-radius: 8px; transition: background .15s;
+}
+.toggle-thumb {
+  position: absolute; top: 2px; left: 2px;
+  width: 12px; height: 12px; border-radius: 50%;
+  background: var(--t2); transition: transform .15s, background .15s;
+  pointer-events: none;
+}
+.toggle-wrap input:checked ~ .toggle-track { background: var(--terra); }
+.toggle-wrap input:checked ~ .toggle-thumb { transform: translateX(12px); background: #fff; }
+
+.capa-body { padding: 0 10px 10px; display: flex; flex-direction: column; gap: 10px; }
+
+.field-row { display: flex; flex-direction: column; gap: 4px; }
+.field-label {
+  font-size: 10px; color: var(--t3); display: flex; justify-content: space-between;
+}
+.field-label span { color: var(--t2); font-size: 11px; }
+
+input[type=range] {
+  -webkit-appearance: none; width: 100%; height: 3px;
+  background: var(--hover); border-radius: 2px; outline: none; cursor: pointer;
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 13px; height: 13px; border-radius: 50%;
+  background: var(--terra); border: 2px solid var(--panel); cursor: pointer;
+}
+
+select {
+  width: 100%; background: var(--deep); border: 1px solid var(--b2);
+  border-radius: var(--r); color: var(--t1); font-family: var(--fb);
+  font-size: 11px; padding: 5px 8px; outline: none; cursor: pointer;
+}
+select:focus { border-color: var(--cobalt2); }
+
+/* ── Center — Canvas ── */
+.canvas-area {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 12px; padding: 20px; background: var(--deep); position: relative;
+}
+.canvas-wrap {
+  position: relative;
+  border: 2px solid var(--ba); border-radius: var(--r2); overflow: hidden;
+  box-shadow: 0 8px 40px rgba(0,0,0,.5);
+}
+#mosaicCanvas {
+  display: block; width: 440px; height: 440px;
+}
+.canvas-overlay {
+  position: absolute; inset: 0; background: rgba(10,21,32,.75);
+  display: flex; align-items: center; justify-content: center;
+  flex-direction: column; gap: 10px; opacity: 0;
+  transition: opacity .2s; pointer-events: none;
+}
+.canvas-overlay.visible { opacity: 1; }
+.spinner {
+  width: 32px; height: 32px; border-radius: 50%;
+  border: 2px solid rgba(200,116,26,.2);
+  border-top-color: var(--terra);
+  animation: spin .7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-text { font-size: 11px; color: var(--t3); }
+
+.canvas-stats {
+  display: flex; gap: 16px; font-size: 11px; color: var(--t3);
+}
+.stat { display: flex; align-items: center; gap: 5px; }
+.stat-dot {
+  width: 6px; height: 6px; border-radius: 50%; background: var(--terra); flex-shrink: 0;
+}
+.stat strong { color: var(--t1); font-weight: 500; }
+
+/* CVD filter row */
+.cvd-row {
+  display: flex; gap: 4px;
+}
+.cvd-btn {
+  flex: 1; padding: 4px 0; background: var(--panel);
+  border: 1px solid var(--b1); border-radius: var(--r);
+  color: var(--t3); font-family: var(--fb); font-size: 10px;
+  cursor: pointer; transition: all .15s; text-align: center;
+}
+.cvd-btn:hover { background: var(--hover); color: var(--t1); }
+.cvd-btn.active {
+  background: rgba(26,75,140,.35); border-color: var(--cobalt2); color: #93C5FD;
+}
+
+/* ── Right Panel ── */
+.panel-right {
+  background: var(--panel); border-left: 1px solid var(--b2);
+  padding: 16px 12px; overflow-y: auto;
+  display: flex; flex-direction: column; gap: 16px;
+}
+.panel-section { display: flex; flex-direction: column; gap: 8px; }
+
+.base-color-row {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--card); border: 1px solid var(--b1);
+  border-radius: var(--r); padding: 8px;
+}
+.base-color-swatch {
+  width: 32px; height: 32px; border-radius: 5px;
+  flex-shrink: 0; border: 1px solid rgba(255,255,255,.15);
+  position: relative; overflow: hidden; cursor: pointer;
+}
+.base-color-swatch input[type=color] {
+  position: absolute; inset: -6px; width: calc(100%+12px);
+  height: calc(100%+12px); opacity: 0; cursor: pointer;
+}
+.base-color-label { font-size: 11px; flex: 1; }
+.base-color-hex { font-size: 10px; color: var(--t3); font-family: monospace; }
+
+.offset-row { display: flex; flex-direction: column; gap: 4px; }
+
+/* Seed & Regen */
+.seed-row {
+  display: flex; align-items: center; gap: 6px;
+  background: var(--card); border: 1px solid var(--b1);
+  border-radius: var(--r); padding: 6px 8px;
+}
+.seed-val { font-family: monospace; font-size: 11px; flex: 1; color: var(--gold); }
+.btn-icon {
+  width: 26px; height: 26px; border-radius: var(--r);
+  background: var(--hover); border: 1px solid var(--b1);
+  color: var(--t2); cursor: pointer; display: flex; align-items: center;
+  justify-content: center; font-size: 13px; transition: all .15s; flex-shrink: 0;
+}
+.btn-icon:hover { background: var(--cobalt); color: var(--t1); border-color: var(--cobalt2); }
+
+.btn-primary {
+  width: 100%; padding: 9px 0;
+  background: var(--terra); border: none; border-radius: var(--r2);
+  color: #fff; font-family: var(--fd); font-size: 12px; font-weight: 700;
+  cursor: pointer; transition: background .15s;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+}
+.btn-primary:hover { background: var(--terra2); }
+.btn-primary:active { transform: scale(.98); }
+
+.btn-secondary {
+  width: 100%; padding: 7px 0;
+  background: transparent; border: 1px solid var(--b2); border-radius: var(--r2);
+  color: var(--t2); font-family: var(--fb); font-size: 11px;
+  cursor: pointer; transition: all .15s;
+  display: flex; align-items: center; justify-content: center; gap: 5px;
+}
+.btn-secondary:hover { background: var(--hover); color: var(--t1); border-color: var(--ba); }
+
+/* Render log */
+.log {
+  background: var(--deep); border-radius: var(--r);
+  border: 1px solid var(--b1); padding: 8px;
+  display: flex; flex-direction: column; gap: 4px;
+  max-height: 130px; overflow-y: auto;
+}
+.log-entry { font-size: 10px; color: var(--t3); font-family: monospace; line-height: 1.4; }
+.log-entry.ok   { color: #6DD99A; }
+.log-entry.err  { color: #F87171; }
+.log-entry.info { color: var(--gold); }
+
+/* ── Status Bar ── */
+.status-bar {
+  background: var(--deep); border-top: 1px solid var(--b1);
+  display: flex; align-items: center; padding: 0 20px; gap: 16px;
+  font-size: 10px; color: var(--t3);
+}
+.status-item { display: flex; align-items: center; gap: 4px; }
+.status-sep  { width: 1px; height: 12px; background: var(--b2); }
+
+/* SVG CVD filters (hidden) */
+svg.filters { position: absolute; width: 0; height: 0; overflow: hidden; }
+</style>
+</head>
+<body>
+
+<!-- CVD Filters -->
+<svg class="filters" aria-hidden="true">
+  <defs>
+    <filter id="f-protan"><feColorMatrix type="matrix"
+      values="0.567 0.433 0 0 0  0.558 0.442 0 0 0  0 0.242 0.758 0 0  0 0 0 1 0"/></filter>
+    <filter id="f-deuter"><feColorMatrix type="matrix"
+      values="0.625 0.375 0 0 0  0.7 0.3 0 0 0  0 0.3 0.7 0 0  0 0 0 1 0"/></filter>
+    <filter id="f-tritan"><feColorMatrix type="matrix"
+      values="0.95 0.05 0 0 0  0 0.433 0.567 0 0  0 0.475 0.525 0 0  0 0 0 1 0"/></filter>
+  </defs>
+</svg>
+
+<!-- App Bar -->
+<header class="app-bar" role="banner">
+  <a class="brand" href="#" aria-label="Mexicana de Mosaicos">
+    <div class="brand-mark" aria-hidden="true">M</div>
+    <div>
+      <div class="brand-name">Mexicana de Mosaicos</div>
+      <div class="brand-sub">Motor Voronoi — Demo JS</div>
+    </div>
+  </a>
+  <div class="divider" aria-hidden="true"></div>
+  <div class="spacer"></div>
+  <div class="badge-worker" id="workerBadge">Worker activo</div>
+</header>
+
+<!-- Main -->
+<main class="main" role="main">
+
+  <!-- Left: Capas -->
+  <aside class="panel-left" aria-label="Capas de grano">
+    <div class="panel-title">Capas de grano</div>
+
+    <!-- Capa 0 — Grueso -->
+    <div class="capa-card" id="card0">
+      <div class="capa-header">
+        <div class="capa-color" id="swatch0" style="background:#C4B4A0">
+          <input type="color" id="colorPicker0" value="#C4B4A0"
+                 aria-label="Color grano grueso" onchange="onCapaColorChange(0,this.value)"/>
+        </div>
+        <span class="capa-name">Grano grueso</span>
+        <span class="capa-size-badge" id="sizeBadge0">3/4″</span>
+        <label class="toggle-wrap" aria-label="Activar capa gruesa">
+          <input type="checkbox" id="toggle0" checked onchange="onCapaToggle(0,this.checked)"/>
+          <span class="toggle-track"></span>
+          <span class="toggle-thumb"></span>
+        </label>
+      </div>
+      <div class="capa-body">
+        <div class="field-row">
+          <div class="field-label">Tamaño malla <span id="sizeLabel0">3/4″ — 19 mm</span></div>
+          <select id="sizeSelect0" onchange="onCapaSizeChange(0,this.value)" aria-label="Tamaño de grano grueso">
+            <option value="3/4|5-6"  selected>3/4″ — Grava gruesa (~19 mm)</option>
+            <option value="1/2|3-4"         >1/2″ — Grava media (~12.7 mm)</option>
+            <option value="7/16|">7/16″ — Grava fina (~11 mm)</option>
+            <option value="1/4|3"           >1/4″ — Granulillo (~6.3 mm)</option>
+            <option value="3/16|2 1/2"      >3/16″ — Marmolina (~4.7 mm)</option>
+            <option value="1/8|2"           >1/8″ — Arena gruesa (~3.2 mm)</option>
+          </select>
+        </div>
+        <div class="field-row">
+          <div class="field-label">Densidad <span id="densLabel0">35%</span></div>
+          <input type="range" id="densSlider0" min="5" max="80" step="1" value="35"
+                 aria-label="Densidad capa gruesa"
+                 oninput="onCapaDens(0,this.value)"/>
+        </div>
+      </div>
+    </div>
+
+    <!-- Capa 1 — Medio -->
+    <div class="capa-card" id="card1">
+      <div class="capa-header">
+        <div class="capa-color" id="swatch1" style="background:#9E8E7E">
+          <input type="color" id="colorPicker1" value="#9E8E7E"
+                 aria-label="Color grano medio" onchange="onCapaColorChange(1,this.value)"/>
+        </div>
+        <span class="capa-name">Grano medio</span>
+        <span class="capa-size-badge" id="sizeBadge1">1/4″</span>
+        <label class="toggle-wrap" aria-label="Activar capa media">
+          <input type="checkbox" id="toggle1" checked onchange="onCapaToggle(1,this.checked)"/>
+          <span class="toggle-track"></span>
+          <span class="toggle-thumb"></span>
+        </label>
+      </div>
+      <div class="capa-body">
+        <div class="field-row">
+          <div class="field-label">Tamaño malla <span id="sizeLabel1">1/4″ — 6.3 mm</span></div>
+          <select id="sizeSelect1" onchange="onCapaSizeChange(1,this.value)" aria-label="Tamaño grano medio">
+            <option value="3/4|5-6"         >3/4″ — Grava gruesa (~19 mm)</option>
+            <option value="1/2|3-4"         >1/2″ — Grava media (~12.7 mm)</option>
+            <option value="7/16|">7/16″ — Grava fina (~11 mm)</option>
+            <option value="1/4|3" selected  >1/4″ — Granulillo (~6.3 mm)</option>
+            <option value="3/16|2 1/2"      >3/16″ — Marmolina (~4.7 mm)</option>
+            <option value="1/8|2"           >1/8″ — Arena gruesa (~3.2 mm)</option>
+          </select>
+        </div>
+        <div class="field-row">
+          <div class="field-label">Densidad <span id="densLabel1">45%</span></div>
+          <input type="range" id="densSlider1" min="5" max="80" step="1" value="45"
+                 aria-label="Densidad capa media"
+                 oninput="onCapaDens(1,this.value)"/>
+        </div>
+      </div>
+    </div>
+
+    <!-- Capa 2 — Fino -->
+    <div class="capa-card" id="card2">
+      <div class="capa-header">
+        <div class="capa-color" id="swatch2" style="background:#E8DDD0">
+          <input type="color" id="colorPicker2" value="#E8DDD0"
+                 aria-label="Color grano fino" onchange="onCapaColorChange(2,this.value)"/>
+        </div>
+        <span class="capa-name">Grano fino</span>
+        <span class="capa-size-badge" id="sizeBadge2">1/8″</span>
+        <label class="toggle-wrap" aria-label="Activar capa fina">
+          <input type="checkbox" id="toggle2" checked onchange="onCapaToggle(2,this.checked)"/>
+          <span class="toggle-track"></span>
+          <span class="toggle-thumb"></span>
+        </label>
+      </div>
+      <div class="capa-body">
+        <div class="field-row">
+          <div class="field-label">Tamaño malla <span id="sizeLabel2">1/8″ — 3.2 mm</span></div>
+          <select id="sizeSelect2" onchange="onCapaSizeChange(2,this.value)" aria-label="Tamaño grano fino">
+            <option value="3/4|5-6"         >3/4″ — Grava gruesa (~19 mm)</option>
+            <option value="1/2|3-4"         >1/2″ — Grava media (~12.7 mm)</option>
+            <option value="7/16|">7/16″ — Grava fina (~11 mm)</option>
+            <option value="1/4|3"           >1/4″ — Granulillo (~6.3 mm)</option>
+            <option value="3/16|2 1/2"      >3/16″ — Marmolina (~4.7 mm)</option>
+            <option value="1/8|2" selected  >1/8″ — Arena gruesa (~3.2 mm)</option>
+          </select>
+        </div>
+        <div class="field-row">
+          <div class="field-label">Densidad <span id="densLabel2">60%</span></div>
+          <input type="range" id="densSlider2" min="5" max="80" step="1" value="60"
+                 aria-label="Densidad capa fina"
+                 oninput="onCapaDens(2,this.value)"/>
+        </div>
+      </div>
+    </div>
+
+  </aside>
+
+  <!-- Center: Canvas -->
+  <section class="canvas-area" aria-label="Vista previa del mosaico">
+    <div class="canvas-wrap">
+      <canvas id="mosaicCanvas" width="880" height="880"
+              role="img" aria-label="Previsualización paramétrica del mosaico">
+      </canvas>
+      <div class="canvas-overlay" id="canvasOverlay" aria-live="polite" aria-label="Generando">
+        <div class="spinner" aria-hidden="true"></div>
+        <div class="loading-text" id="loadingText">Generando partículas…</div>
+      </div>
+    </div>
+    <div class="canvas-stats" aria-live="polite">
+      <div class="stat">
+        <div class="stat-dot" aria-hidden="true"></div>
+        <span>Partículas: <strong id="statParticles">—</strong></span>
+      </div>
+      <div class="stat">
+        <div class="stat-dot" aria-hidden="true"></div>
+        <span>Render: <strong id="statMs">—</strong></span>
+      </div>
+      <div class="stat">
+        <div class="stat-dot" aria-hidden="true"></div>
+        <span>Seed: <strong id="statSeed">42</strong></span>
+      </div>
+    </div>
+    <!-- CVD mode -->
+    <div class="cvd-row" role="group" aria-label="Modo de visión">
+      <button class="cvd-btn active" data-cvd="normal"  onclick="setCVD('normal')" >Normal</button>
+      <button class="cvd-btn"        data-cvd="protan"  onclick="setCVD('protan')" >Protan</button>
+      <button class="cvd-btn"        data-cvd="deuter"  onclick="setCVD('deuter')" >Deuter</button>
+      <button class="cvd-btn"        data-cvd="tritan"  onclick="setCVD('tritan')" >Tritan</button>
+    </div>
+  </section>
+
+  <!-- Right: Controls -->
+  <aside class="panel-right" aria-label="Controles de pasta y exportación">
+    <div class="panel-title">Pasta base</div>
+
+    <div class="panel-section">
+      <div class="base-color-row">
+        <div class="base-color-swatch" id="baseSwatch" style="background:#D4A843">
+          <input type="color" id="baseColorPicker" value="#D4A843"
+                 aria-label="Color de pasta base" onchange="onBaseColor(this.value)"/>
+        </div>
+        <div>
+          <div class="base-color-label">Color de pasta</div>
+          <div class="base-color-hex" id="baseHex">#D4A843</div>
+        </div>
+      </div>
+
+      <div class="offset-row">
+        <div class="field-label">Junta (offsetPasta) <span id="offsetLabel">1.5 mm</span></div>
+        <input type="range" id="offsetSlider" min="0" max="5" step="0.1" value="1.5"
+               aria-label="Ancho de junta entre piedras"
+               oninput="onOffset(this.value)"/>
+      </div>
+    </div>
+
+    <div class="divider" style="width:100%;height:1px;background:var(--b1);"></div>
+    <div class="panel-title">Semilla</div>
+
+    <div class="panel-section">
+      <div class="seed-row">
+        <span style="font-size:10px;color:var(--t3);">Seed #</span>
+        <span class="seed-val" id="seedDisplay">42</span>
+        <button class="btn-icon" onclick="regenerate()" aria-label="Nueva semilla aleatoria"
+                title="Nueva semilla aleatoria">↻</button>
+      </div>
+      <input type="range" id="seedSlider" min="1" max="999" step="1" value="42"
+             aria-label="Valor de semilla" oninput="onSeed(this.value)"/>
+    </div>
+
+    <div class="divider" style="width:100%;height:1px;background:var(--b1);"></div>
+    <div class="panel-title">Exportar</div>
+
+    <div class="panel-section">
+      <button class="btn-primary" id="btnExport" onclick="exportPNG()" aria-label="Descargar PNG del mosaico">
+        ↓ Descargar PNG
+      </button>
+      <button class="btn-secondary" onclick="copySVGPaths()" aria-label="Copiar paths SVG al portapapeles">
+        ⎘ Copiar paths SVG
+      </button>
+    </div>
+
+    <div class="divider" style="width:100%;height:1px;background:var(--b1);"></div>
+    <div class="panel-title">Log</div>
+    <div class="log" id="renderLog" aria-live="polite" aria-label="Registro de renders"></div>
+  </aside>
+
+</main>
+
+<!-- Status Bar -->
+<footer class="status-bar" role="contentinfo">
+  <div class="status-item">voronoi.worker.js</div>
+  <div class="status-sep" aria-hidden="true"></div>
+  <div class="status-item" id="statusMode">Modo: Normal</div>
+  <div class="status-sep" aria-hidden="true"></div>
+  <div class="status-item" id="statusCapas">3 capas activas</div>
+  <div class="spacer" style="flex:1"></div>
+  <div class="status-item" style="color:var(--terra)">Mexmos © 2025</div>
+</footer>
+
+
+<script>
+// ═══════════════════════════════════════════════════════════
+//  Worker embebido como Blob URL — permite uso standalone
+//  sin servidor de archivos.
+//  En producción: new Worker('/js/voronoi.worker.js')
+// ═══════════════════════════════════════════════════════════
+const WORKER_SRC = `
+'use strict';
+function makePRNG(seed){let s=seed>>>0;return function(){s=(s+0x6D2B79F5)>>>0;let t=Math.imul(s^(s>>>15),1|s);t=(t+Math.imul(t^(t>>>7),61|t))^t;return((t^(t>>>14))>>>0)/4294967296};}
+function inferirRadioMm(ab,cd){ab=String(ab||'').toLowerCase().trim();cd=String(cd||'');if(ab.includes('mm')){const v=parseFloat(ab.replace(/[^\\d.]/g,''));if(!isNaN(v))return v/2;}if(ab.includes('3/4'))return 9.5;if(ab.includes('1/2'))return 6.35;if(ab.includes('7/16'))return 5.55;if(ab.includes('1/4'))return 3.175;if(ab.includes('3/16'))return 2.38;if(ab.includes('1/8'))return 1.585;if(ab.includes('3/32'))return 1.19;if(ab.includes('1/16'))return 0.79;if(cd.includes('5-6'))return 9.5;if(cd.includes('3-4'))return 6.35;if(cd.includes('2 1/2'))return 2.38;if(cd.includes('3'))return 3.175;if(cd.includes('0-2'))return 1.585;if(cd.includes('2'))return 1.585;if(cd.includes('1'))return 1.0;if(cd.includes('0 1/2'))return 0.55;return 1.0;}
+function resolveColor(c){if(c.pigmento&&c.pigmento.codigoHex)return c.pigmento.codigoHex;const cn=c.colorNatural;if(typeof cn==='string')return cn.startsWith('#')?cn:'#'+cn;if(typeof cn==='number'){const r=(cn>>>16)&0xFF,g=(cn>>>8)&0xFF,b=cn&0xFF;return'#'+[r,g,b].map(x=>x.toString(16).padStart(2,'0')).join('');}return'#888888';}
+function makeGrid(cs,cols){const cells=new Map();function key(x,y){return(Math.floor(y/cs)*cols+Math.floor(x/cs))|0;}return{add(x,y,it){const k=key(x,y);if(!cells.has(k))cells.set(k,[]);cells.get(k).push(it);},neighbors(x,y,steps){const cx=Math.floor(x/cs),cy=Math.floor(y/cs),out=[];for(let i=-steps;i<=steps;i++)for(let j=-steps;j<=steps;j++){const c=cells.get((cy+i)*cols+(cx+j));if(c)for(const it of c)out.push(it);}return out;}};}
+function generarParticulas({capas,width,height,offsetPasta,escala,rng}){const sorted=[...capas].sort((a,b)=>inferirRadioMm(b.abertura,b.codigoTamano)-inferirRadioMm(a.abertura,a.codigoTamano));let maxR=0;for(const c of sorted){const r=inferirRadioMm(c.abertura,c.codigoTamano)*escala*1.5;if(r>maxR)maxR=r;}if(maxR===0)return[];const cs=maxR*2,cols=Math.ceil(width/cs)+2,grid=makeGrid(cs,cols),all=[];for(const capa of sorted){const rMm=inferirRadioMm(capa.abertura,capa.codigoTamano),rPx=rMm*escala*1.5;if(rPx===0)continue;const maxP=Math.min(15000,Math.floor((width*height*(capa.densidad||0.4)*1.8)/(Math.PI*rPx*rPx)));let fails=0,placed=0;while(placed<maxP&&fails<800){const x=rng()*width,y=rng()*height,r=rPx*(0.8+rng()*0.4);const nb=grid.neighbors(x,y,2);let hit=false;for(const n of nb){const dx=n.x-x,dy=n.y-y,min=n.radio+r+offsetPasta;if(dx*dx+dy*dy<min*min){hit=true;break;}}if(!hit){const p={x,y,radio:r,capa};all.push(p);grid.add(x,y,p);placed++;fails=0;}else fails++;}}return all;}
+function clipPolygon(poly,px,py,nx,ny){if(!poly.length)return[];const out=[];let cp1=poly[poly.length-1];const inside=pt=>(pt.x-px)*nx+(pt.y-py)*ny<=0;const intersect=(a,b)=>{const d1=(a.x-px)*nx+(a.y-py)*ny,d2=(b.x-px)*nx+(b.y-py)*ny,t=d1/(d1-d2);return{x:a.x+t*(b.x-a.x),y:a.y+t*(b.y-a.y)};};for(const cp2 of poly){const i2=inside(cp2),i1=inside(cp1);if(i2){if(!i1)out.push(intersect(cp1,cp2));out.push(cp2);}else if(i1)out.push(intersect(cp1,cp2));cp1=cp2;}return out;}
+function initialPolygon(p,rng){const sides=5+Math.floor(rng()*4),maxR=p.radio*1.5,sx=0.8+rng()*0.4,sy=0.8+rng()*0.4,rot=rng()*Math.PI,poly=[];for(let i=0;i<sides;i++){const a=(2*Math.PI/sides)*i,lx=Math.cos(a)*maxR*sx,ly=Math.sin(a)*maxR*sy;poly.push({x:p.x+lx*Math.cos(rot)-ly*Math.sin(rot),y:p.y+lx*Math.sin(rot)+ly*Math.cos(rot)});}return poly;}
+function generarDiagramas({particulas,width,height,offsetPasta,rng}){let maxR=0;for(const p of particulas)if(p.radio>maxR)maxR=p.radio;const searchR=maxR*3;if(searchR<=0)return[];const cs=searchR,cols=Math.ceil(width/cs)+2,grid=makeGrid(cs,cols);for(const p of particulas)grid.add(p.x,p.y,p);const piedras=[];for(const p of particulas){let poly=initialPolygon(p,rng);const nb=grid.neighbors(p.x,p.y,1);for(const v of nb){if(v===p)continue;const dx=v.x-p.x,dy=v.y-p.y,dSq=dx*dx+dy*dy;if(dSq<=0||dSq>=searchR*searchR)continue;const dist=Math.sqrt(dSq),peso=p.radio/(p.radio+v.radio),cut=dist*peso-offsetPasta;if(cut>=p.radio*1.6)continue;const nx=dx/dist,ny=dy/dist;poly=clipPolygon(poly,p.x+nx*cut,p.y+ny*cut,nx,ny);if(!poly.length)break;}if(poly.length>=3){let d='';for(let i=0;i<poly.length;i++){const jx=(rng()-.5)*p.radio*.15,jy=(rng()-.5)*p.radio*.15;d+=(i===0?'M':'L')+(poly[i].x+jx).toFixed(1)+','+(poly[i].y+jy).toFixed(1);}piedras.push({pathStr:d+'Z',colorHex:resolveColor(p.capa),capaId:p.capa.id});}}return piedras;}
+self.onmessage=(e)=>{const{type,id,payload}=e.data;if(type!=='render')return;const t0=performance.now();try{const{width,height,seed=42,offsetPasta=1.0,escala,capas}=payload;if(!capas||!capas.length){self.postMessage({type:'result',id,payload:{piedras:[],stats:{particleCount:0,renderMs:0}}});return;}const rng=makePRNG(seed);const particulas=generarParticulas({capas,width,height,offsetPasta,escala,rng});const piedras=generarDiagramas({particulas,width,height,offsetPasta,rng});self.postMessage({type:'result',id,payload:{piedras,stats:{particleCount:particulas.length,renderMs:Math.round(performance.now()-t0)}}});}catch(err){self.postMessage({type:'error',id,payload:{message:err.message}});}};
+`;
+
+const workerBlob = new Blob([WORKER_SRC], { type: 'application/javascript' });
+const workerURL  = URL.createObjectURL(workerBlob);
+const worker     = new Worker(workerURL);
+
+// ═══════════════════════════════════════════════════════════
+//  Estado de la app
+// ═══════════════════════════════════════════════════════════
+let state = {
+  seed:        42,
+  offsetPasta: 1.5,
+  colorBase:   '#D4A843',
+  cvdMode:     'normal',
+  capas: [
+    { id:'c0', abertura:'3/4',  codigoTamano:'5-6', densidad:0.35, colorNatural:'#C4B4A0', pigmento:null, activo:true },
+    { id:'c1', abertura:'1/4',  codigoTamano:'3',   densidad:0.45, colorNatural:'#9E8E7E', pigmento:null, activo:true },
+    { id:'c2', abertura:'1/8',  codigoTamano:'2',   densidad:0.60, colorNatural:'#E8DDD0', pigmento:null, activo:true },
+  ],
+};
+
+// Canvas
+const canvas = document.getElementById('mosaicCanvas');
+const ctx    = canvas.getContext('2d');
+const W = 440, H = 440;  // tamaño CSS
+const DPR = window.devicePixelRatio || 1;
+canvas.style.width  = W + 'px';
+canvas.style.height = H + 'px';
+canvas.width  = W * DPR;
+canvas.height = H * DPR;
+ctx.scale(DPR, DPR);
+
+let lastPiedras = [];
+let renderID    = 0;
+let renderTimer = null;
+let busy        = false;
+
+// ═══════════════════════════════════════════════════════════
+//  Render pipeline
+// ═══════════════════════════════════════════════════════════
+function scheduleRender() {
+  clearTimeout(renderTimer);
+  renderTimer = setTimeout(doRender, 120);
+}
+
+function doRender() {
+  const activeCaps = state.capas.filter(c => c.activo);
+  document.getElementById('statusCapas').textContent =
+    activeCaps.length + ' capa' + (activeCaps.length !== 1 ? 's' : '') + ' activa' + (activeCaps.length !== 1 ? 's' : '');
+
+  showLoading(true);
+  const id = ++renderID;
+
+  worker.postMessage({
+    type: 'render',
+    id,
+    payload: {
+      width:       W * DPR,
+      height:      H * DPR,
+      seed:        state.seed,
+      offsetPasta: state.offsetPasta * DPR,
+      escala:      (W * DPR) / 300,
+      capas:       activeCaps,
+    },
+  });
+}
+
+worker.onmessage = function(e) {
+  const { type, id, payload } = e.data;
+  if (type === 'result') {
+    if (id !== renderID) return; // stale result
+    lastPiedras = payload.piedras;
+    drawCanvas(payload.piedras);
+    showLoading(false);
+    updateStats(payload.stats);
+    logEntry(`✓ ${payload.stats.particleCount} partículas · ${payload.stats.renderMs} ms · seed ${state.seed}`, 'ok');
+  } else if (type === 'error') {
+    showLoading(false);
+    logEntry('✗ Error: ' + payload.message, 'err');
+  }
+};
+
+function drawCanvas(piedras) {
+  // Fondo = pasta base
+  ctx.fillStyle = state.colorBase;
+  ctx.fillRect(0, 0, W * DPR, H * DPR);
+
+  // Dibujar cada piedra con Path2D
+  for (const p of piedras) {
+    try {
+      const path = new Path2D(p.pathStr);
+      ctx.fillStyle = p.colorHex;
+      ctx.fill(path);
+    } catch (_) { /* skip malformed paths */ }
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+//  CVD — aplicar/quitar filtro CSS sobre el canvas
+// ═══════════════════════════════════════════════════════════
+function setCVD(mode) {
+  state.cvdMode = mode;
+  const filters = { normal:'none', protan:'url(#f-protan)', deuter:'url(#f-deuter)', tritan:'url(#f-tritan)' };
+  canvas.style.filter = filters[mode] || 'none';
+  document.querySelectorAll('.cvd-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.cvd === mode);
+  });
+  const labels = { normal:'Normal', protan:'Protanopía', deuter:'Deuteranopía', tritan:'Tritanopía' };
+  document.getElementById('statusMode').textContent = 'Modo: ' + (labels[mode] || mode);
+}
+
+// ═══════════════════════════════════════════════════════════
+//  Handlers de controles
+// ═══════════════════════════════════════════════════════════
+function onCapaColorChange(idx, hex) {
+  state.capas[idx].colorNatural = hex;
+  document.getElementById('swatch' + idx).style.background = hex;
+  scheduleRender();
+}
+
+function onCapaToggle(idx, checked) {
+  state.capas[idx].activo = checked;
+  document.getElementById('card' + idx).classList.toggle('disabled', !checked);
+  scheduleRender();
+}
+
+function onCapaSizeChange(idx, val) {
+  const [abertura, codigo] = val.split('|');
+  state.capas[idx].abertura      = abertura;
+  state.capas[idx].codigoTamano  = codigo;
+  const badge = abertura + '″';
+  document.getElementById('sizeBadge' + idx).textContent = badge;
+  scheduleRender();
+}
+
+function onCapaDens(idx, val) {
+  state.capas[idx].densidad = parseInt(val) / 100;
+  document.getElementById('densLabel' + idx).textContent = val + '%';
+  scheduleRender();
+}
+
+function onBaseColor(hex) {
+  state.colorBase = hex;
+  document.getElementById('baseSwatch').style.background = hex;
+  document.getElementById('baseHex').textContent = hex;
+  // Base color change only needs redraw, not full recalc
+  drawCanvas(lastPiedras);
+}
+
+function onOffset(val) {
+  state.offsetPasta = parseFloat(val);
+  document.getElementById('offsetLabel').textContent = parseFloat(val).toFixed(1) + ' mm';
+  scheduleRender();
+}
+
+function onSeed(val) {
+  state.seed = parseInt(val);
+  document.getElementById('seedDisplay').textContent = state.seed;
+  document.getElementById('statSeed').textContent    = state.seed;
+  scheduleRender();
+}
+
+function regenerate() {
+  const s = Math.floor(Math.random() * 999) + 1;
+  document.getElementById('seedSlider').value = s;
+  onSeed(s);
+}
+
+// ═══════════════════════════════════════════════════════════
+//  Exportar
+// ═══════════════════════════════════════════════════════════
+function exportPNG() {
+  const link      = document.createElement('a');
+  link.download   = 'mexmos_mosaico_seed' + state.seed + '.png';
+  link.href       = canvas.toDataURL('image/png');
+  link.click();
+  logEntry('↓ Exportado como PNG', 'info');
+}
+
+function copySVGPaths() {
+  if (!lastPiedras.length) return;
+  const svgPaths = lastPiedras.map(p =>
+    `<path d="${p.pathStr}" fill="${p.colorHex}" data-capa="${p.capaId}"/>`
+  ).join('\n');
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W*DPR} ${H*DPR}">\n`
+    + `  <rect width="100%" height="100%" fill="${state.colorBase}"/>\n`
+    + svgPaths + '\n</svg>';
+  navigator.clipboard.writeText(svg).then(() => {
+    logEntry('⎘ ' + lastPiedras.length + ' paths copiados como SVG', 'info');
+  }).catch(() => {
+    logEntry('✗ No se pudo copiar al portapapeles', 'err');
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+//  UI helpers
+// ═══════════════════════════════════════════════════════════
+function showLoading(v) {
+  busy = v;
+  document.getElementById('canvasOverlay').classList.toggle('visible', v);
+}
+
+function updateStats({ particleCount, renderMs }) {
+  document.getElementById('statParticles').textContent = particleCount.toLocaleString();
+  document.getElementById('statMs').textContent        = renderMs + ' ms';
+  document.getElementById('statSeed').textContent      = state.seed;
+}
+
+function logEntry(msg, cls = '') {
+  const log  = document.getElementById('renderLog');
+  const time = new Date().toLocaleTimeString('es', { hour12: false });
+  const div  = document.createElement('div');
+  div.className  = 'log-entry ' + cls;
+  div.textContent = '[' + time + '] ' + msg;
+  log.insertBefore(div, log.firstChild);
+  // Keep last 20 entries
+  while (log.children.length > 20) log.removeChild(log.lastChild);
+}
+
+// ═══════════════════════════════════════════════════════════
+//  Init
+// ═══════════════════════════════════════════════════════════
+logEntry('Motor Voronoi JS cargado — port de voronoi_engine.dart', 'info');
+logEntry('PRNG: Mulberry32 (seeded) · Web Worker activo', 'info');
+doRender();
+</script>
+</body>
+</html>

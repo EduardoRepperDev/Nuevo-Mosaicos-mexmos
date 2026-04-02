@@ -1,0 +1,1337 @@
+<!DOCTYPE html>
+<html lang="es" dir="ltr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Mexicana de Mosaicos — Detalle de Producto</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet"/>
+<style>
+/* ═══════════════════════════════════════
+   DESIGN TOKENS
+═══════════════════════════════════════ */
+:root {
+  --brand-navy:    #0D1B2A;
+  --brand-cobalt:  #1A4B8C;
+  --brand-cobalt2: #1E5FAD;
+  --brand-terra:   #C8741A;
+  --brand-terra2:  #A85E12;
+  --brand-gold:    #D4A843;
+  --brand-stone:   #F5F2EC;
+  --brand-stone2:  #EDE9E0;
+  --brand-green:   #2E6E4E;
+
+  --surface-dark:  #0D1B2A;
+  --surface-panel: #112236;
+  --surface-card:  #162E45;
+  --surface-hover: #1E3A54;
+  --surface-deep:  #0A1520;
+
+  --text-primary:   #F0EDE8;
+  --text-secondary: #94A3B8;
+  --text-muted:     #5B7A99;
+  --text-dark:      #1A1A2E;
+  --text-dark-sec:  #4A5568;
+
+  --border-subtle: rgba(255,255,255,0.06);
+  --border-panel:  rgba(255,255,255,0.10);
+  --border-accent: rgba(200,116,26,0.35);
+
+  --focus-ring:   #1A6BBF;
+  --focus-shadow: 0 0 0 3px rgba(26,107,191,0.5);
+
+  --sp-xs: 4px; --sp-sm: 8px; --sp-md: 16px;
+  --sp-lg: 24px; --sp-xl: 32px; --sp-2xl: 48px;
+
+  --r-sm: 4px; --r-md: 8px; --r-lg: 12px;
+  --r-xl: 16px; --r-2xl: 24px; --r-full: 9999px;
+
+  --font-display: 'Syne', sans-serif;
+  --font-body:    'DM Sans', sans-serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body { height: 100%; overflow: hidden; }
+
+body {
+  font-family: var(--font-body);
+  background: var(--surface-dark);
+  color: var(--text-primary);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+:focus-visible {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 2px;
+  border-radius: var(--r-sm);
+}
+
+.sr-only {
+  position: absolute; width: 1px; height: 1px;
+  padding: 0; margin: -1px; overflow: hidden;
+  clip: rect(0,0,0,0); white-space: nowrap; border: 0;
+}
+
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--surface-hover); border-radius: 2px; }
+
+/* ══════════════════════════════════════
+   APP SHELL
+   Flutter: Scaffold
+   grid: AppBar | Content | StatusBar
+══════════════════════════════════════ */
+.app-shell {
+  display: grid;
+  grid-template-rows: 52px 1fr 36px;
+  height: 100vh;
+  width: 100vw;
+}
+
+/* ══════════════════════════════════════
+   APP BAR — Flutter: AppBar
+══════════════════════════════════════ */
+.app-bar {
+  grid-row: 1;
+  background: var(--surface-panel);
+  border-bottom: 1px solid var(--border-panel);
+  display: flex; align-items: center;
+  padding: 0 var(--sp-lg);
+  gap: var(--sp-md);
+  z-index: 20; flex-shrink: 0;
+}
+.app-bar__logo {
+  display: flex; align-items: center; gap: var(--sp-sm);
+  text-decoration: none; flex-shrink: 0;
+}
+.app-bar__mark {
+  width: 32px; height: 32px;
+  background: var(--brand-terra); border-radius: var(--r-sm);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-display); font-size: 15px; font-weight: 800;
+  color: #fff; flex-shrink: 0;
+}
+.app-bar__name { font-family: var(--font-display); font-size: 13px; font-weight: 600; color: var(--text-primary); }
+.app-bar__sub  { font-size: 9px; color: var(--text-muted); letter-spacing: 0.08em; text-transform: uppercase; }
+.app-bar__div  { width: 1px; height: 24px; background: var(--border-panel); flex-shrink: 0; }
+.app-bar__spacer { flex: 1; }
+
+/* Breadcrumb — Inicio > Catálogo > [Producto] */
+.breadcrumb {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 12px; color: var(--text-secondary);
+}
+.breadcrumb a {
+  color: var(--text-secondary); text-decoration: none; transition: color 0.15s;
+}
+.breadcrumb a:hover { color: var(--text-primary); }
+.breadcrumb__sep { color: var(--text-muted); font-size: 10px; }
+.breadcrumb__current { color: var(--brand-terra); font-weight: 500; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* Back button */
+.btn-back {
+  display: flex; align-items: center; gap: 6px;
+  padding: 6px 12px;
+  background: var(--surface-card);
+  border: 1px solid var(--border-subtle); border-radius: var(--r-md);
+  color: var(--text-secondary); font-family: var(--font-body); font-size: 12px;
+  cursor: pointer; transition: all 0.15s; flex-shrink: 0;
+}
+.btn-back:hover { background: var(--surface-hover); color: var(--text-primary); border-color: var(--border-accent); }
+
+.a11y-group { display: flex; align-items: center; gap: var(--sp-xs); }
+.a11y-btn {
+  display: flex; align-items: center; gap: 5px;
+  padding: 5px 10px; background: transparent;
+  border: 1px solid var(--border-panel); border-radius: var(--r-sm);
+  color: var(--text-secondary); font-family: var(--font-body); font-size: 11px;
+  cursor: pointer; transition: all 0.15s;
+}
+.a11y-btn:hover, .a11y-btn.active {
+  background: var(--surface-hover); color: var(--text-primary); border-color: var(--border-accent);
+}
+.a11y-btn.active { color: var(--brand-terra); }
+
+.user-avatar {
+  width: 30px; height: 30px; border-radius: 50%;
+  background: var(--brand-cobalt);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 600; color: #fff; cursor: pointer;
+}
+
+/* ══════════════════════════════════════
+   MAIN CONTENT
+   Flutter: CustomScrollView
+   Two-column layout: preview left | detail right
+══════════════════════════════════════ */
+.detail-layout {
+  grid-row: 2;
+  display: grid;
+  grid-template-columns: 1fr 420px;
+  overflow: hidden;
+}
+
+/* ══════════════════════════════════════
+   LEFT — SliverAppBar + ScrollContent
+   Flutter: CustomScrollView(SliverAppBar + SliverList)
+══════════════════════════════════════ */
+.detail-left {
+  overflow-y: auto;
+  overflow-x: hidden;
+  position: relative;
+}
+
+/* ── SliverAppBar hero canvas ── */
+.sliver-hero {
+  position: sticky; top: 0; z-index: 5;
+  background: var(--surface-deep);
+  overflow: hidden;
+  transition: height 0.35s cubic-bezier(0.4,0,0.2,1);
+  height: 340px;
+  flex-shrink: 0;
+}
+.sliver-hero.collapsed { height: 160px; }
+
+.hero-canvas-wrap {
+  width: 100%; height: 100%;
+  position: relative; overflow: hidden;
+}
+.hero-canvas-wrap canvas {
+  width: 100%; height: 100%; display: block;
+  transition: transform 0.5s ease;
+}
+.sliver-hero.collapsed .hero-canvas-wrap canvas {
+  transform: scale(1.08);
+}
+
+/* CVD overlay label */
+.hero-cvd-label {
+  position: absolute; top: 12px; right: 12px;
+  padding: 3px 10px;
+  background: rgba(13,27,42,0.85); border: 1px solid var(--brand-cobalt);
+  border-radius: var(--r-full); font-size: 10px; color: #7EB3E8; font-weight: 500;
+  opacity: 0; transition: opacity 0.3s; pointer-events: none;
+}
+.hero-cvd-label.visible { opacity: 1; }
+
+/* Collapse toggle */
+.hero-toggle {
+  position: absolute; bottom: 12px; right: 12px;
+  width: 32px; height: 32px;
+  background: rgba(13,27,42,0.80); border: 1px solid rgba(255,255,255,0.12);
+  border-radius: var(--r-full);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; font-size: 12px; color: var(--text-secondary);
+  transition: all 0.2s; backdrop-filter: blur(4px);
+  z-index: 2;
+}
+.hero-toggle:hover { background: rgba(200,116,26,0.3); color: var(--brand-terra); border-color: var(--brand-terra); }
+
+/* Product title overlay en hero */
+.hero-title-overlay {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  background: linear-gradient(to top, rgba(13,27,42,0.92) 0%, transparent 100%);
+  padding: 28px 24px 16px;
+}
+.hero-title-overlay__code {
+  font-size: 10px; color: var(--brand-terra);
+  font-family: monospace; letter-spacing: 0.08em; margin-bottom: 4px;
+}
+.hero-title-overlay__name {
+  font-family: var(--font-display);
+  font-size: 22px; font-weight: 800;
+  color: var(--text-primary); line-height: 1.15;
+}
+.hero-title-overlay__line {
+  font-size: 11px; color: var(--text-secondary); margin-top: 3px;
+}
+
+/* ── CVD Pills en hero ── */
+.hero-cvd-pills {
+  position: absolute; top: 12px; left: 12px;
+  display: flex; gap: 4px;
+  z-index: 2;
+}
+.hero-cvd-btn {
+  padding: 4px 10px;
+  background: rgba(13,27,42,0.80); border: 1px solid rgba(255,255,255,0.12);
+  border-radius: var(--r-full); font-size: 9px; color: var(--text-secondary);
+  cursor: pointer; transition: all 0.15s; backdrop-filter: blur(4px);
+  font-family: var(--font-body);
+}
+.hero-cvd-btn:hover { border-color: rgba(255,255,255,0.25); color: var(--text-primary); }
+.hero-cvd-btn.active {
+  background: rgba(26,75,140,0.6); border-color: var(--brand-cobalt); color: #7EB3E8;
+}
+.hero-cvd-btn--protan.active { background: rgba(255,82,82,0.3); border-color: #FF5252; color: #FF8A80; }
+.hero-cvd-btn--deuter.active { background: rgba(255,152,0,0.3); border-color: #FF9800; color: #FFCC80; }
+.hero-cvd-btn--tritan.active { background: rgba(33,150,243,0.3); border-color: #2196F3; color: #90CAF9; }
+
+/* ── Scroll content (below sliver) ── */
+.scroll-content {
+  padding: var(--sp-lg) var(--sp-xl) var(--sp-xl);
+  display: flex; flex-direction: column; gap: var(--sp-lg);
+}
+
+/* ── Color gallery ── */
+.color-gallery {
+  display: flex; flex-direction: column; gap: 10px;
+}
+.color-gallery__label {
+  font-family: var(--font-display); font-size: 9px; font-weight: 700;
+  letter-spacing: 0.13em; text-transform: uppercase; color: var(--text-muted);
+}
+.color-swatches-row {
+  display: flex; gap: 8px; flex-wrap: wrap;
+}
+.gallery-swatch {
+  display: flex; flex-direction: column; align-items: center; gap: 5px;
+  cursor: pointer; transition: transform 0.15s;
+}
+.gallery-swatch:hover { transform: translateY(-2px); }
+.gallery-swatch__dot {
+  width: 40px; height: 40px; border-radius: var(--r-md);
+  border: 2px solid transparent; transition: all 0.15s;
+  position: relative; display: flex; align-items: center; justify-content: center;
+}
+.gallery-swatch__dot:hover { transform: scale(1.06); }
+.gallery-swatch.active .gallery-swatch__dot {
+  border-color: #fff;
+  box-shadow: 0 0 0 3px var(--brand-terra);
+}
+.gallery-swatch__check {
+  position: absolute; top: 2px; right: 2px;
+  width: 14px; height: 14px; background: var(--brand-terra);
+  border-radius: 50%; display: none; align-items: center; justify-content: center;
+  font-size: 8px; color: #fff;
+}
+.gallery-swatch.active .gallery-swatch__check { display: flex; }
+.gallery-swatch__pattern {
+  font-size: 11px; color: rgba(255,255,255,0.55); pointer-events: none;
+}
+.gallery-swatch__name {
+  font-size: 9px; color: var(--text-muted); text-align: center;
+  max-width: 48px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+/* ── Tamaños section ── */
+.sizes-section { display: flex; flex-direction: column; gap: 10px; }
+.section-label {
+  font-family: var(--font-display); font-size: 9px; font-weight: 700;
+  letter-spacing: 0.13em; text-transform: uppercase; color: var(--text-muted);
+}
+.sizes-chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.size-chip {
+  padding: 7px 14px;
+  background: var(--surface-card); border: 1px solid var(--border-subtle);
+  border-radius: var(--r-sm); font-size: 12px; font-weight: 500;
+  color: var(--text-secondary); cursor: pointer; transition: all 0.15s;
+  font-family: monospace;
+}
+.size-chip:hover { background: var(--surface-hover); color: var(--text-primary); }
+.size-chip.active {
+  background: rgba(26,75,140,0.25); border-color: var(--brand-cobalt); color: #7EB3E8;
+}
+
+/* ══════════════════════════════════════
+   RIGHT PANEL — Ficha técnica + CTAs
+   Flutter: SizedBox(w:420) › Column
+══════════════════════════════════════ */
+.detail-right {
+  background: var(--surface-panel);
+  border-left: 1px solid var(--border-panel);
+  overflow-y: auto; overflow-x: hidden;
+  display: flex; flex-direction: column;
+}
+
+.detail-right__body {
+  flex: 1; padding: var(--sp-lg);
+  display: flex; flex-direction: column; gap: var(--sp-md);
+  overflow-y: auto;
+}
+
+/* Product identity */
+.product-identity {
+  padding-bottom: var(--sp-md);
+  border-bottom: 1px solid var(--border-subtle);
+}
+.product-identity__badges {
+  display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap;
+}
+.badge {
+  padding: 3px 10px; border-radius: var(--r-full);
+  font-size: 10px; font-weight: 600; letter-spacing: 0.05em;
+}
+.badge--line  { background: rgba(26,75,140,0.18); color: #7EB3E8; border: 1px solid rgba(26,75,140,0.3); }
+.badge--pat   { background: rgba(200,116,26,0.14); color: var(--brand-terra); border: 1px solid rgba(200,116,26,0.25); }
+.badge--code  { background: var(--surface-card); color: var(--text-muted); border: 1px solid var(--border-subtle); font-family: monospace; }
+
+.product-identity__name {
+  font-family: var(--font-display);
+  font-size: 22px; font-weight: 800;
+  color: var(--text-primary); line-height: 1.2; margin-bottom: 6px;
+}
+.product-identity__desc {
+  font-size: 13px; color: var(--text-secondary); line-height: 1.6;
+}
+
+/* Spec card */
+.spec-card {
+  background: var(--surface-card); border: 1px solid var(--border-subtle);
+  border-radius: var(--r-lg); padding: 14px;
+}
+.spec-card__header {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 12px;
+}
+.spec-card__icon {
+  width: 26px; height: 26px; border-radius: var(--r-sm);
+  background: rgba(200,116,26,0.15);
+  display: flex; align-items: center; justify-content: center; font-size: 13px;
+}
+.spec-card__title { font-size: 12px; font-weight: 600; color: var(--text-primary); }
+.spec-row {
+  display: flex; align-items: baseline; justify-content: space-between;
+  padding: 6px 0; border-bottom: 1px solid var(--border-subtle);
+}
+.spec-row:last-child { border-bottom: none; }
+.spec-row__key { font-size: 11px; color: var(--text-muted); }
+.spec-row__val { font-size: 11px; font-weight: 500; color: var(--text-secondary); font-family: monospace; }
+.spec-row__val.hi { color: var(--brand-terra); font-weight: 600; }
+
+/* Technical specs with big numbers */
+.tech-specs-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+}
+.tech-spec-item {
+  background: var(--surface-hover);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--r-md); padding: 12px;
+  display: flex; flex-direction: column; gap: 4px;
+  position: relative; overflow: hidden;
+}
+.tech-spec-item::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  border-radius: var(--r-sm) var(--r-sm) 0 0;
+}
+.tech-spec-item.terra::before  { background: var(--brand-terra); }
+.tech-spec-item.cobalt::before { background: var(--brand-cobalt); }
+.tech-spec-item.gold::before   { background: var(--brand-gold); }
+.tech-spec-item.green::before  { background: var(--brand-green); }
+.tech-spec-item__val {
+  font-family: var(--font-display);
+  font-size: 20px; font-weight: 800;
+  color: var(--text-primary); line-height: 1;
+}
+.tech-spec-item__unit { font-size: 10px; color: var(--text-muted); }
+.tech-spec-item__label { font-size: 10px; color: var(--text-muted); margin-top: 2px; text-transform: uppercase; letter-spacing: 0.06em; }
+
+/* ── Footer CTAs ── */
+.detail-right__footer {
+  padding: var(--sp-md) var(--sp-lg);
+  border-top: 1px solid var(--border-panel);
+  display: flex; flex-direction: column; gap: var(--sp-sm);
+  flex-shrink: 0;
+}
+
+.btn-primary {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  width: 100%; padding: 14px var(--sp-md);
+  background: var(--brand-terra); border: none; border-radius: var(--r-md);
+  font-family: var(--font-display); font-size: 14px; font-weight: 700;
+  color: #fff; cursor: pointer; transition: all 0.2s;
+  position: relative; overflow: hidden;
+}
+.btn-primary:hover {
+  background: var(--brand-terra2); transform: translateY(-2px);
+  box-shadow: 0 10px 28px rgba(200,116,26,0.35);
+}
+.btn-primary:active { transform: translateY(0); }
+.btn-primary::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(to right, transparent, rgba(255,255,255,0.08), transparent);
+  transform: translateX(-100%); transition: transform 0.5s;
+}
+.btn-primary:hover::after { transform: translateX(100%); }
+
+.btn-secondary-row {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+}
+.btn-secondary {
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 11px var(--sp-md); background: transparent;
+  border: 1px solid var(--border-panel); border-radius: var(--r-md);
+  font-family: var(--font-body); font-size: 12px; color: var(--text-secondary);
+  cursor: pointer; transition: all 0.15s;
+}
+.btn-secondary:hover {
+  background: var(--surface-hover); color: var(--text-primary); border-color: var(--border-accent);
+}
+.btn-secondary.loading {
+  color: #81C784; border-color: rgba(76,175,80,0.3); cursor: wait;
+}
+
+/* ══════════════════════════════════════
+   STATUS BAR
+══════════════════════════════════════ */
+.status-bar {
+  grid-row: 3; background: var(--surface-panel);
+  border-top: 1px solid var(--border-panel);
+  display: flex; align-items: center; gap: var(--sp-md);
+  padding: 0 var(--sp-lg); flex-shrink: 0;
+}
+.kbd-hint { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; color: var(--text-muted); }
+.kbd {
+  padding: 1px 5px; background: var(--surface-card);
+  border: 1px solid var(--border-panel); border-radius: 3px;
+  font-family: monospace; font-size: 9px; color: var(--text-secondary);
+}
+.status-bar__mid { flex: 1; display: flex; justify-content: center; }
+.wcag-badge { display: flex; align-items: center; gap: 5px; font-size: 10px; color: #4CAF50; font-weight: 600; }
+.wcag-badge__dot {
+  width: 6px; height: 6px; border-radius: 50%; background: #4CAF50;
+  animation: wpulse 2.5s ease-in-out infinite;
+}
+@keyframes wpulse { 0%,100%{box-shadow:0 0 0 0 rgba(76,175,80,0.4)} 50%{box-shadow:0 0 0 4px rgba(76,175,80,0)} }
+.status-live { font-size: 10px; color: var(--text-muted); font-family: monospace; }
+
+/* ══════════════════════════════════════
+   FLUTTER OVERLAY
+══════════════════════════════════════ */
+.flutter-overlay { position: fixed; inset: 0; pointer-events: none; z-index: 100; display: none; }
+.flutter-overlay.visible { display: block; }
+.flutter-box { position: absolute; border: 1.5px dashed rgba(100,200,255,0.45); border-radius: 2px; }
+.flutter-tag {
+  position: absolute; top: -18px; left: 0;
+  background: rgba(0,140,255,0.88); color: #fff;
+  font-size: 9px; font-family: monospace; padding: 1px 6px; border-radius: 3px; white-space: nowrap;
+}
+
+/* ══════════════════════════════════════
+   TOAST
+══════════════════════════════════════ */
+.toast {
+  position: fixed; bottom: 52px; left: 50%;
+  transform: translateX(-50%) translateY(16px);
+  background: var(--surface-card); border: 1px solid var(--border-panel);
+  border-radius: var(--r-lg); padding: 10px 20px;
+  font-size: 12px; color: var(--text-primary);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  opacity: 0; pointer-events: none; transition: all 0.25s;
+  z-index: 50; white-space: nowrap;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* SVG CVD filters */
+.cvd-filters { position: absolute; width: 0; height: 0; pointer-events: none; }
+
+/* Entry animations */
+@keyframes fadeUp { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
+.anim-1 { animation: fadeUp 0.4s ease 0.05s both; }
+.anim-2 { animation: fadeUp 0.4s ease 0.12s both; }
+.anim-3 { animation: fadeUp 0.4s ease 0.20s both; }
+.anim-4 { animation: fadeUp 0.4s ease 0.28s both; }
+</style>
+</head>
+<body>
+
+<!-- SVG CVD Filters -->
+<svg class="cvd-filters" aria-hidden="true" focusable="false">
+  <defs>
+    <filter id="protan">
+      <feColorMatrix type="matrix" values="0.567 0.433 0 0 0  0.558 0.442 0 0 0  0 0.242 0.758 0 0  0 0 0 1 0"/>
+    </filter>
+    <filter id="deuter">
+      <feColorMatrix type="matrix" values="0.625 0.375 0 0 0  0.7 0.3 0 0 0  0 0.3 0.7 0 0  0 0 0 1 0"/>
+    </filter>
+    <filter id="tritan">
+      <feColorMatrix type="matrix" values="0.95 0.05 0 0 0  0 0.433 0.567 0 0  0 0.475 0.525 0 0  0 0 0 1 0"/>
+    </filter>
+  </defs>
+</svg>
+
+<!-- ════════════════════════════════════
+     Flutter: Scaffold
+════════════════════════════════════ -->
+<div
+  class="app-shell"
+  role="application"
+  aria-label="Detalle de Producto — Mexicana de Mosaicos"
+>
+
+  <!-- ══ APP BAR ══ -->
+  <header class="app-bar" role="banner">
+    <a class="app-bar__logo" href="#" aria-label="Inicio — Mexicana de Mosaicos">
+      <div class="app-bar__mark" aria-hidden="true">M</div>
+      <div>
+        <div class="app-bar__name">Mexicana de Mosaicos</div>
+        <div class="app-bar__sub">Sistema privado</div>
+      </div>
+    </a>
+
+    <div class="app-bar__div" aria-hidden="true"></div>
+
+    <!-- Breadcrumb: Inicio > Catálogo > [Producto] -->
+    <nav class="breadcrumb" aria-label="Ruta de navegación">
+      <a href="#">Inicio</a>
+      <span class="breadcrumb__sep" aria-hidden="true">›</span>
+      <a href="#">Catálogo</a>
+      <span class="breadcrumb__sep" aria-hidden="true">›</span>
+      <span class="breadcrumb__current" aria-current="page" id="breadcrumbProduct">
+        Terracota Palladiana
+      </span>
+    </nav>
+
+    <div class="app-bar__spacer"></div>
+
+    <!-- Back button -->
+    <button class="btn-back" id="btnBack" aria-label="Volver al catálogo">
+      ← Catálogo
+    </button>
+
+    <div class="app-bar__div" aria-hidden="true"></div>
+
+    <div class="a11y-group" role="group" aria-label="Controles de accesibilidad">
+      <button class="a11y-btn" id="btnContrast" aria-pressed="false" aria-label="Activar alto contraste">
+        <span aria-hidden="true">◑</span> Contraste
+      </button>
+      <button class="a11y-btn" id="btnFlutter" aria-pressed="false" aria-label="Mostrar anotaciones Flutter">
+        <span aria-hidden="true">⬡</span> Flutter
+      </button>
+    </div>
+
+    <div class="app-bar__div" aria-hidden="true"></div>
+    <div class="user-avatar" role="img" aria-label="Usuario: HG" title="Hannia G.">HG</div>
+  </header>
+
+  <!-- ══ MAIN — Flutter: CustomScrollView ══ -->
+  <div class="detail-layout" role="main">
+
+    <!-- LEFT: SliverAppBar + scroll content -->
+    <div class="detail-left" id="detailLeft">
+
+      <!-- SliverAppBar — preview grande colapsable -->
+      <div
+        class="sliver-hero"
+        id="sliverHero"
+        role="region"
+        aria-label="Vista previa grande del mosaico"
+      >
+        <div class="hero-canvas-wrap">
+          <canvas
+            id="heroCanvas"
+            role="img"
+            aria-label="Previsualización del mosaico: Terracota Palladiana, color Terracota"
+          ></canvas>
+        </div>
+
+        <!-- CVD pills sobre el hero -->
+        <div class="hero-cvd-pills" role="group" aria-label="Simulación de percepción del color">
+          <button class="hero-cvd-btn active" data-cvd="normal"
+                  aria-pressed="true" aria-label="Vista normal">Normal</button>
+          <button class="hero-cvd-btn hero-cvd-btn--protan" data-cvd="protan"
+                  aria-pressed="false" aria-label="Simular protanopía">Protan.</button>
+          <button class="hero-cvd-btn hero-cvd-btn--deuter" data-cvd="deuter"
+                  aria-pressed="false" aria-label="Simular deuteranopía">Deuter.</button>
+          <button class="hero-cvd-btn hero-cvd-btn--tritan" data-cvd="tritan"
+                  aria-pressed="false" aria-label="Simular tritanopía">Tritan.</button>
+        </div>
+
+        <!-- CVD label -->
+        <div class="hero-cvd-label" id="heroCvdLabel" aria-live="polite"></div>
+
+        <!-- Título overlay -->
+        <div class="hero-title-overlay" aria-hidden="true">
+          <div class="hero-title-overlay__code" id="heroCode">CAT-002</div>
+          <div class="hero-title-overlay__name" id="heroName">Terracota Palladiana</div>
+          <div class="hero-title-overlay__line" id="heroLine">Línea Tradicional · Patrón Palladiana</div>
+        </div>
+
+        <!-- Collapse toggle -->
+        <button
+          class="hero-toggle"
+          id="heroToggle"
+          aria-label="Colapsar o expandir vista previa del mosaico"
+          aria-expanded="true"
+        >▲</button>
+      </div><!-- /sliver-hero -->
+
+      <!-- Scroll content (below sliver) -->
+      <div class="scroll-content" id="scrollContent">
+
+        <!-- Color gallery -->
+        <div class="color-gallery anim-1">
+          <div class="color-gallery__label" id="galleryLabel">
+            Variantes de color disponibles
+          </div>
+          <div
+            class="color-swatches-row"
+            role="radiogroup"
+            aria-label="Seleccionar variante de color para previsualizar"
+            id="colorGallery"
+          >
+            <!-- Renderizado por JS -->
+          </div>
+        </div>
+
+        <!-- Tamaños -->
+        <div class="sizes-section anim-2">
+          <div class="section-label">Tamaños disponibles</div>
+          <div
+            class="sizes-chips"
+            role="list"
+            aria-label="Tamaños disponibles para este producto"
+            id="sizesChips"
+          >
+            <!-- Renderizado por JS -->
+          </div>
+        </div>
+
+        <!-- Descripción -->
+        <div class="anim-3">
+          <div class="section-label" style="margin-bottom:8px;">Descripción</div>
+          <p id="productDesc"
+             style="font-size:13px;color:var(--text-secondary);line-height:1.7;">
+            Fragmentos grandes de mármol en pasta terracota, efecto Palladiana veneciano.
+            Ideal para espacios de alto tráfico que requieren diseño artesanal y resistencia industrial.
+          </p>
+        </div>
+
+      </div><!-- /scroll-content -->
+    </div><!-- /detail-left -->
+
+    <!-- RIGHT: Ficha técnica + CTAs -->
+    <aside
+      class="detail-right"
+      role="complementary"
+      aria-label="Ficha técnica del producto y acciones"
+    >
+      <div class="detail-right__body">
+
+        <!-- Identity -->
+        <div class="product-identity anim-1">
+          <div class="product-identity__badges">
+            <span class="badge badge--line" id="badgeLine">Línea Tradicional</span>
+            <span class="badge badge--pat"  id="badgePat">Palladiana</span>
+            <span class="badge badge--code" id="badgeCode">CAT-002</span>
+          </div>
+          <h1 class="product-identity__name" id="productName">Terracota Palladiana</h1>
+          <p class="product-identity__desc" id="productDescRight">
+            Fragmentos grandes de mármol en pasta terracota, efecto Palladiana veneciano.
+          </p>
+        </div>
+
+        <!-- Ficha técnica de color -->
+        <div class="spec-card anim-2" role="region" aria-label="Especificaciones de color">
+          <div class="spec-card__header">
+            <div class="spec-card__icon" aria-hidden="true">🎨</div>
+            <div class="spec-card__title">Color seleccionado</div>
+          </div>
+          <div class="spec-row">
+            <span class="spec-row__key">Nombre</span>
+            <span class="spec-row__val hi" id="specColorName">Terracota</span>
+          </div>
+          <div class="spec-row">
+            <span class="spec-row__key">Código HEX</span>
+            <span class="spec-row__val" id="specHex">#C8741A</span>
+          </div>
+          <div class="spec-row">
+            <span class="spec-row__key">Referencia Pantone</span>
+            <span class="spec-row__val" id="specPantone">PMS 166 C</span>
+          </div>
+          <div class="spec-row">
+            <span class="spec-row__key">Acabado</span>
+            <span class="spec-row__val">Pulido 400 grit</span>
+          </div>
+        </div>
+
+        <!-- Ficha de producto -->
+        <div class="spec-card anim-2" role="region" aria-label="Ficha del producto">
+          <div class="spec-card__header">
+            <div class="spec-card__icon" aria-hidden="true">📋</div>
+            <div class="spec-card__title">Ficha de producto</div>
+          </div>
+          <div class="spec-row">
+            <span class="spec-row__key">Línea</span>
+            <span class="spec-row__val hi" id="specLine2">Línea Tradicional</span>
+          </div>
+          <div class="spec-row">
+            <span class="spec-row__key">Patrón</span>
+            <span class="spec-row__val hi" id="specPattern">Palladiana</span>
+          </div>
+          <div class="spec-row">
+            <span class="spec-row__key">Tamaños</span>
+            <span class="spec-row__val" id="specSizes">40×40 · 60×60</span>
+          </div>
+          <div class="spec-row">
+            <span class="spec-row__key">Código</span>
+            <span class="spec-row__val" id="specCode">CAT-002</span>
+          </div>
+        </div>
+
+        <!-- Especificaciones técnicas MPa / absorción / grosor / peso -->
+        <div class="spec-card anim-3" role="region" aria-label="Especificaciones técnicas de resistencia y dimensiones">
+          <div class="spec-card__header">
+            <div class="spec-card__icon" aria-hidden="true">📐</div>
+            <div class="spec-card__title">Especificaciones técnicas</div>
+          </div>
+          <div class="tech-specs-grid">
+            <div class="tech-spec-item terra">
+              <div class="tech-spec-item__val">21.37</div>
+              <div class="tech-spec-item__unit">MPa</div>
+              <div class="tech-spec-item__label">Resistencia</div>
+            </div>
+            <div class="tech-spec-item cobalt">
+              <div class="tech-spec-item__val">2.56</div>
+              <div class="tech-spec-item__unit">%</div>
+              <div class="tech-spec-item__label">Absorción sup.</div>
+            </div>
+            <div class="tech-spec-item gold">
+              <div class="tech-spec-item__val">2.5</div>
+              <div class="tech-spec-item__unit">cm</div>
+              <div class="tech-spec-item__label">Grosor</div>
+            </div>
+            <div class="tech-spec-item green">
+              <div class="tech-spec-item__val">~3.8</div>
+              <div class="tech-spec-item__unit">kg/pieza</div>
+              <div class="tech-spec-item__label">Peso aprox.</div>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /detail-right__body -->
+
+      <!-- CTAs -->
+      <div class="detail-right__footer anim-4">
+
+        <!-- CTA principal: Usar en configurador -->
+        <button
+          class="btn-primary"
+          id="btnUsar"
+          aria-label="Usar este producto en el Configurador Visual — carga la línea, patrón y color en el configurador"
+        >
+          <span aria-hidden="true">🎨</span>
+          Usar en configurador
+          <span aria-hidden="true">→</span>
+        </button>
+
+        <!-- CTA secundario: Guardar / PDF -->
+        <div class="btn-secondary-row">
+          <button
+            class="btn-secondary"
+            id="btnGuardar"
+            aria-label="Guardar este producto en Mis Creaciones"
+          >
+            <span aria-hidden="true">♡</span> Guardar
+          </button>
+          <button
+            class="btn-secondary"
+            id="btnPDF"
+            aria-label="Descargar ficha técnica como PDF"
+          >
+            <span aria-hidden="true">↓</span> Ficha PDF
+          </button>
+        </div>
+
+      </div>
+    </aside>
+
+  </div><!-- /detail-layout -->
+
+  <!-- STATUS BAR -->
+  <footer class="status-bar" role="contentinfo" aria-label="Atajos de teclado y estado">
+    <span class="kbd-hint"><kbd class="kbd">Tab</kbd> Navegar</span>
+    <span class="kbd-hint"><kbd class="kbd">←</kbd> Volver</span>
+    <span class="kbd-hint"><kbd class="kbd">C</kbd> Configurador</span>
+    <span class="kbd-hint"><kbd class="kbd">G</kbd> Guardar</span>
+    <div class="status-bar__mid">
+      <div class="wcag-badge" role="status" aria-label="WCAG 2.1 AA conforme">
+        <div class="wcag-badge__dot" aria-hidden="true"></div>
+        WCAG 2.1 AA · Conforme
+      </div>
+    </div>
+    <span style="font-size:10px;color:var(--text-muted);">
+      Flutter: Scaffold › CustomScrollView(SliverAppBar + SliverList)
+    </span>
+    <span class="status-live" id="statusLive" aria-live="polite" aria-atomic="true"></span>
+  </footer>
+
+</div><!-- /app-shell -->
+
+<!-- Flutter overlay -->
+<div class="flutter-overlay" id="flutterOverlay" aria-hidden="true">
+  <div class="flutter-box" style="top:0;left:0;right:0;height:52px;">
+    <span class="flutter-tag">AppBar › Row(logo + breadcrumb + back + a11y)</span>
+  </div>
+  <div class="flutter-box" id="flSliverBox" style="top:52px;left:0;right:420px;">
+    <span class="flutter-tag">CustomScrollView › SliverAppBar(expandedHeight:340, pinned:true)</span>
+  </div>
+  <div class="flutter-box" id="flScrollBox" style="left:0;right:420px;bottom:36px;">
+    <span class="flutter-tag">SliverList › Column(ColorGallery + Sizes + Description)</span>
+  </div>
+  <div class="flutter-box" style="top:52px;right:0;width:420px;bottom:36px;">
+    <span class="flutter-tag">SizedBox(w:420) › Column(body + footer CTAs)</span>
+  </div>
+  <div class="flutter-box" style="bottom:0;left:0;right:0;height:36px;">
+    <span class="flutter-tag">BottomAppBar › Row</span>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<!-- ════════════════════════════════════
+     JAVASCRIPT
+════════════════════════════════════ -->
+<script>
+/* ════════════════════════
+   DATA
+════════════════════════ */
+const PRODUCTS = {
+  'CAT-001': {
+    name:'Clásico Natural', line:'TRAD', lineName:'Línea Tradicional',
+    pattern:'tradicional', patternName:'Tradicional',
+    sizes:['20×20','30×30','40×40','60×60'],
+    colors:[
+      {name:'Hueso',     hex:'#F5F0E0', ref:'PMS Warm Gray 1', pattern:''},
+      {name:'Gris',      hex:'#8B8B8B', ref:'PMS Cool Gray 7', pattern:'▪'},
+      {name:'Ámbar',     hex:'#D4A843', ref:'PMS 1235 C',      pattern:''},
+    ],
+    desc:'Terrazo de grano fino, acabado pulido. El más solicitado para interiores residenciales y comerciales de alto tráfico.',
+  },
+  'CAT-002': {
+    name:'Terracota Palladiana', line:'TRAD', lineName:'Línea Tradicional',
+    pattern:'palladiana', patternName:'Palladiana',
+    sizes:['40×40','60×60'],
+    colors:[
+      {name:'Terracota',  hex:'#C8741A', ref:'PMS 166 C',       pattern:'▦'},
+      {name:'Hueso',      hex:'#F5F0E0', ref:'PMS Warm Gray 1', pattern:''},
+      {name:'Ámbar',      hex:'#D4A843', ref:'PMS 1235 C',      pattern:''},
+    ],
+    desc:'Fragmentos grandes de mármol en pasta terracota, efecto Palladiana veneciano. Ideal para espacios de alto tráfico que requieren diseño artesanal y resistencia industrial.',
+  },
+  'CAT-004': {
+    name:'Colonial Azul', line:'COL', lineName:'Línea Colonial',
+    pattern:'trencadis', patternName:'Trencadís',
+    sizes:['20×20','30×30'],
+    colors:[
+      {name:'Azul Cielo', hex:'#4A9EBF', ref:'PMS 7459 C', pattern:'⠿'},
+      {name:'Hueso',      hex:'#F5F0E0', ref:'PMS Warm Gray 1', pattern:''},
+      {name:'Granito',    hex:'#1A1A2E', ref:'PMS Black 6 C',   pattern:''},
+    ],
+    desc:'Trencadís en azul cielo con fragmentos pequeños angulosos, estilo Gaudí. Perfecto para fachadas y exteriores ornamentales.',
+  },
+};
+
+/* Producto activo (simula navegación desde el catálogo) */
+let activeProduct = PRODUCTS['CAT-002'];
+let activeColorIdx = 0;
+let activeSizeIdx  = 0;
+let activeCVD      = 'normal';
+let heroCollapsed  = false;
+
+/* ════════════════════════
+   CANVAS HELPERS
+════════════════════════ */
+function hexToRgb(h){
+  return {r:parseInt(h.slice(1,3),16),g:parseInt(h.slice(3,5),16),b:parseInt(h.slice(5,7),16)};
+}
+function lighten(h,a){ const c=hexToRgb(h); return `rgb(${Math.min(255,c.r+a)},${Math.min(255,c.g+a)},${Math.min(255,c.b+a)})`; }
+function darken(h,a){  const c=hexToRgb(h); return `rgb(${Math.max(0,c.r-a)},${Math.max(0,c.g-a)},${Math.max(0,c.b-a)})`; }
+function jitter(v,p){ return v*(1-p/2+Math.random()*p); }
+
+function renderCanvas(cv, patternKey, colorHex){
+  const ctx = cv.getContext('2d');
+  const cw = cv.width, ch = cv.height;
+
+  switch(patternKey){
+    case 'tradicional': {
+      ctx.clearRect(0,0,cw,ch);
+      const T=8, cols=Math.floor(cw/T), rows=Math.floor(ch/T);
+      for(let r=0;r<rows;r++) for(let c2=0;c2<cols;c2++){
+        const wave=Math.sin((c2/cols-0.5)*3+(r/rows-0.5)*2)*0.5+0.5;
+        const v=Math.floor(wave*28-14);
+        ctx.fillStyle=v>=0?lighten(colorHex,v):darken(colorHex,-v);
+        ctx.globalAlpha=0.88+Math.random()*0.12;
+        ctx.fillRect(c2*T,r*T,T-1,T-1);
+      }
+      ctx.globalAlpha=1;
+      ctx.strokeStyle='rgba(0,0,0,0.035)'; ctx.lineWidth=0.5;
+      for(let x=0;x<=cw;x+=56){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,ch);ctx.stroke();}
+      for(let y=0;y<=ch;y+=56){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(cw,y);ctx.stroke();}
+      break;
+    }
+    case 'palladiana': {
+      ctx.fillStyle=darken(colorHex,55); ctx.fillRect(0,0,cw,ch);
+      let x=3,y=3,safe=0;
+      while(y<ch&&safe<2000){
+        safe++;
+        const w=22+Math.random()*38, h=18+Math.random()*28;
+        if(x+w>cw-3){x=3;y+=h+3;continue;}
+        if(y+h>ch) break;
+        const sides=5+Math.floor(Math.random()*4),cx2=x+w/2,cy2=y+h/2;
+        const v=Math.floor(Math.random()*32-16);
+        ctx.fillStyle=v>=0?lighten(colorHex,v):darken(colorHex,-v);
+        ctx.globalAlpha=0.88+Math.random()*0.12;
+        ctx.beginPath();
+        for(let i=0;i<sides;i++){
+          const a=(i/sides)*2*Math.PI+Math.random()*0.4;
+          const rx=(w/2)*(0.72+Math.random()*0.48), ry=(h/2)*(0.72+Math.random()*0.48);
+          i===0?ctx.moveTo(cx2+rx*Math.cos(a),cy2+ry*Math.sin(a)):ctx.lineTo(cx2+rx*Math.cos(a),cy2+ry*Math.sin(a));
+        }
+        ctx.closePath(); ctx.fill(); ctx.globalAlpha=1; x+=w+3;
+      }
+      break;
+    }
+    case 'trencadis': {
+      ctx.fillStyle=darken(colorHex,48); ctx.fillRect(0,0,cw,ch);
+      const base=10;
+      for(let y=3;y<ch;y+=base+2) for(let x=3;x<cw;x+=base+2){
+        const fw=base*(0.65+Math.random()*0.65), fh=base*(0.65+Math.random()*0.65);
+        const angle=(Math.random()-0.5)*(Math.PI/4);
+        const v=Math.floor(Math.random()*38-19);
+        ctx.fillStyle=v>=0?lighten(colorHex,v):darken(colorHex,-v);
+        ctx.globalAlpha=0.85+Math.random()*0.15;
+        ctx.save(); ctx.translate(x+fw/2,y+fh/2); ctx.rotate(angle);
+        ctx.fillRect(-fw/2,-fh/2,fw-2,fh-2);
+        ctx.restore(); ctx.globalAlpha=1;
+      }
+      break;
+    }
+    case 'opusincertum': {
+      ctx.fillStyle=darken(colorHex,44); ctx.fillRect(0,0,cw,ch);
+      const count=Math.floor(cw*ch/350);
+      for(let i=0;i<count;i++){
+        const cx2=Math.random()*cw, cy2=Math.random()*ch;
+        const r1=jitter(20,0.9)*0.82, r2=jitter(20,0.9)*0.82;
+        const sides=3+Math.floor(Math.random()*6), rot=Math.random()*2*Math.PI;
+        const v=Math.floor(Math.random()*46-23);
+        ctx.fillStyle=v>=0?lighten(colorHex,v):darken(colorHex,-v);
+        ctx.globalAlpha=0.82+Math.random()*0.18;
+        ctx.beginPath();
+        for(let j=0;j<sides;j++){
+          const a=rot+(j/sides)*2*Math.PI;
+          const ji=0.68+Math.random()*0.72;
+          j===0?ctx.moveTo(cx2+r1*ji*Math.cos(a),cy2+r2*ji*Math.sin(a)):ctx.lineTo(cx2+r1*ji*Math.cos(a),cy2+r2*ji*Math.sin(a));
+        }
+        ctx.closePath(); ctx.fill(); ctx.globalAlpha=1;
+      }
+      break;
+    }
+  }
+}
+
+/* ════════════════════════
+   RENDER HERO CANVAS
+════════════════════════ */
+const heroCanvas = document.getElementById('heroCanvas');
+
+function resizeHeroCanvas(){
+  const wrap = document.querySelector('.hero-canvas-wrap');
+  heroCanvas.width  = wrap.offsetWidth  || 800;
+  heroCanvas.height = wrap.offsetHeight || 340;
+  renderHero();
+}
+
+function renderHero(){
+  const color = activeProduct.colors[activeColorIdx];
+  renderCanvas(heroCanvas, activeProduct.pattern, color.hex);
+  heroCanvas.setAttribute('aria-label',
+    `Previsualización de ${activeProduct.name}: color ${color.name}, patrón ${activeProduct.patternName}`);
+
+  // Apply CVD filter
+  const wrap = document.querySelector('.hero-canvas-wrap');
+  wrap.style.filter = activeCVD !== 'normal' ? `url(#${activeCVD})` : '';
+}
+
+/* ════════════════════════
+   POPULATE UI
+════════════════════════ */
+function populateProduct(){
+  const p = activeProduct;
+
+  // AppBar breadcrumb
+  document.getElementById('breadcrumbProduct').textContent = p.name;
+
+  // Hero text overlay
+  document.getElementById('heroCode').textContent = Object.keys(PRODUCTS).find(k=>PRODUCTS[k]===p)||'';
+  document.getElementById('heroName').textContent = p.name;
+  document.getElementById('heroLine').textContent = `${p.lineName} · Patrón ${p.patternName}`;
+
+  // Right panel identity
+  document.getElementById('badgeLine').textContent  = p.lineName;
+  document.getElementById('badgePat').textContent   = p.patternName;
+  document.getElementById('badgeCode').textContent  = Object.keys(PRODUCTS).find(k=>PRODUCTS[k]===p)||'';
+  document.getElementById('productName').textContent = p.name;
+  document.getElementById('productDescRight').textContent = p.desc.split('.')[0]+'.';
+  document.getElementById('productDesc').textContent = p.desc;
+
+  // Spec rows
+  document.getElementById('specLine2').textContent  = p.lineName;
+  document.getElementById('specPattern').textContent= p.patternName;
+  document.getElementById('specSizes').textContent  = p.sizes.join(' · ');
+  document.getElementById('specCode').textContent   = Object.keys(PRODUCTS).find(k=>PRODUCTS[k]===p)||'';
+
+  // Build color gallery
+  buildColorGallery();
+
+  // Build size chips
+  buildSizeChips();
+}
+
+function buildColorGallery(){
+  const gallery = document.getElementById('colorGallery');
+  gallery.innerHTML = '';
+  activeProduct.colors.forEach((color, i) => {
+    const sw = document.createElement('div');
+    sw.className = 'gallery-swatch' + (i===activeColorIdx ? ' active' : '');
+    sw.setAttribute('role','radio');
+    sw.setAttribute('aria-checked', i===activeColorIdx ? 'true' : 'false');
+    sw.setAttribute('tabindex', i===activeColorIdx ? '0' : '-1');
+    sw.setAttribute('aria-label', `Color ${color.name} — ${color.hex}${color.pattern?' — patrón '+color.pattern:''}`);
+
+    sw.innerHTML = `
+      <div class="gallery-swatch__dot" style="background:${color.hex};">
+        <span class="gallery-swatch__pattern" aria-hidden="true">${color.pattern}</span>
+        <div class="gallery-swatch__check" aria-hidden="true">✓</div>
+      </div>
+      <div class="gallery-swatch__name">${color.name}</div>
+    `;
+
+    sw.addEventListener('click', () => selectColor(i));
+    sw.addEventListener('keydown', e => {
+      if(e.key==='Enter'||e.key===' '){ e.preventDefault(); selectColor(i); }
+      if(e.key==='ArrowRight'){ e.preventDefault(); selectColor(Math.min(i+1,activeProduct.colors.length-1)); }
+      if(e.key==='ArrowLeft'){  e.preventDefault(); selectColor(Math.max(i-1,0)); }
+    });
+    gallery.appendChild(sw);
+  });
+
+  updateColorSpec();
+}
+
+function buildSizeChips(){
+  const chips = document.getElementById('sizesChips');
+  chips.innerHTML = '';
+  activeProduct.sizes.forEach((sz, i) => {
+    const chip = document.createElement('div');
+    chip.className = 'size-chip' + (i===activeSizeIdx ? ' active' : '');
+    chip.setAttribute('role','listitem');
+    chip.setAttribute('tabindex','0');
+    chip.setAttribute('aria-label', `${sz} centímetros`);
+    chip.textContent = sz;
+    chip.addEventListener('click', () => selectSize(i));
+    chip.addEventListener('keydown', e => { if(e.key==='Enter'||e.key===' '){ e.preventDefault(); selectSize(i); } });
+    chips.appendChild(chip);
+  });
+}
+
+/* ════════════════════════
+   SELECT COLOR / SIZE
+════════════════════════ */
+function selectColor(i){
+  activeColorIdx = i;
+  buildColorGallery();
+  updateColorSpec();
+  renderHero();
+  setLive(`Color ${activeProduct.colors[i].name} seleccionado`);
+}
+
+function selectSize(i){
+  activeSizeIdx = i;
+  buildSizeChips();
+  setLive(`Tamaño ${activeProduct.sizes[i]} seleccionado`);
+}
+
+function updateColorSpec(){
+  const color = activeProduct.colors[activeColorIdx];
+  document.getElementById('specColorName').textContent = color.name;
+  document.getElementById('specHex').textContent       = color.hex;
+  document.getElementById('specPantone').textContent   = color.ref;
+}
+
+/* ════════════════════════
+   CVD FILTERS
+════════════════════════ */
+document.querySelectorAll('.hero-cvd-btn').forEach(btn => {
+  btn.addEventListener('click', function(){
+    activeCVD = this.dataset.cvd;
+    document.querySelectorAll('.hero-cvd-btn').forEach(b => {
+      b.classList.toggle('active', b===this);
+      b.setAttribute('aria-pressed', b===this ? 'true' : 'false');
+    });
+    const lbl = document.getElementById('heroCvdLabel');
+    const lbls = {normal:'',protan:'Simulando: Protanopía',deuter:'Simulando: Deuteranopía',tritan:'Simulando: Tritanopía'};
+    lbl.textContent = lbls[activeCVD];
+    lbl.classList.toggle('visible', activeCVD!=='normal');
+    const wrap = document.querySelector('.hero-canvas-wrap');
+    wrap.style.filter = activeCVD!=='normal' ? `url(#${activeCVD})` : '';
+    setLive(activeCVD==='normal' ? 'Vista normal' : `Simulación ${activeCVD} activada`);
+  });
+});
+
+/* ════════════════════════
+   SLIVER COLLAPSE
+════════════════════════ */
+const sliverHero = document.getElementById('sliverHero');
+const heroToggle = document.getElementById('heroToggle');
+
+heroToggle.addEventListener('click', toggleSliver);
+
+function toggleSliver(){
+  heroCollapsed = !heroCollapsed;
+  sliverHero.classList.toggle('collapsed', heroCollapsed);
+  heroToggle.textContent       = heroCollapsed ? '▼' : '▲';
+  heroToggle.setAttribute('aria-expanded', heroCollapsed ? 'false' : 'true');
+  heroToggle.setAttribute('aria-label',
+    heroCollapsed ? 'Expandir vista previa del mosaico' : 'Colapsar vista previa del mosaico');
+
+  // Re-render after transition
+  setTimeout(() => {
+    resizeHeroCanvas();
+    updateFlutterBoxes();
+  }, 380);
+
+  setLive(heroCollapsed ? 'Vista previa colapsada' : 'Vista previa expandida');
+}
+
+// Scroll listener to auto-collapse hero
+document.getElementById('detailLeft').addEventListener('scroll', function(){
+  if(this.scrollTop > 80 && !heroCollapsed) {
+    heroCollapsed = true;
+    sliverHero.classList.add('collapsed');
+    heroToggle.textContent = '▼';
+    heroToggle.setAttribute('aria-expanded','false');
+    setTimeout(resizeHeroCanvas, 380);
+  } else if(this.scrollTop < 20 && heroCollapsed){
+    heroCollapsed = false;
+    sliverHero.classList.remove('collapsed');
+    heroToggle.textContent = '▲';
+    heroToggle.setAttribute('aria-expanded','true');
+    setTimeout(resizeHeroCanvas, 380);
+  }
+});
+
+/* ════════════════════════
+   CTA BUTTONS
+════════════════════════ */
+document.getElementById('btnUsar').addEventListener('click', function(){
+  this.innerHTML = '<span>✓</span> Cargado en el configurador — redirigiendo…';
+  this.disabled = true;
+  setLive('Producto cargado en el configurador');
+  setTimeout(() => {
+    this.innerHTML = '<span>🎨</span> Usar en configurador <span>→</span>';
+    this.disabled = false;
+  }, 2800);
+});
+
+document.getElementById('btnGuardar').addEventListener('click', function(){
+  this.classList.add('loading');
+  this.innerHTML = '<span>✓</span> Guardado';
+  setLive('Producto guardado en Mis Creaciones');
+  showToast(`"${activeProduct.name}" guardado en Mis Creaciones`);
+  setTimeout(() => {
+    this.classList.remove('loading');
+    this.innerHTML = '<span>♡</span> Guardar';
+  }, 2500);
+});
+
+document.getElementById('btnPDF').addEventListener('click', function(){
+  showToast(`Generando ficha PDF de "${activeProduct.name}"…`);
+  setLive('Generando ficha técnica PDF');
+});
+
+document.getElementById('btnBack').addEventListener('click', () => {
+  showToast('← Volviendo al Catálogo…');
+  setLive('Navegando al catálogo');
+});
+
+/* ════════════════════════
+   A11Y TOGGLES
+════════════════════════ */
+document.getElementById('btnContrast').addEventListener('click', function(){
+  const a = this.getAttribute('aria-pressed')==='true';
+  this.setAttribute('aria-pressed',!a); this.classList.toggle('active');
+  document.documentElement.style.setProperty('--text-secondary', a?'#94A3B8':'#C8D8E8');
+  document.documentElement.style.setProperty('--text-muted', a?'#5B7A99':'#8BA8C0');
+  setLive(a ? 'Contraste normal' : 'Alto contraste activado');
+});
+
+document.getElementById('btnFlutter').addEventListener('click', function(){
+  const a = this.getAttribute('aria-pressed')==='true';
+  this.setAttribute('aria-pressed',!a); this.classList.toggle('active');
+  const o = document.getElementById('flutterOverlay');
+  o.classList.toggle('visible',!a);
+  o.setAttribute('aria-hidden', a?'true':'false');
+  setLive(a ? 'Flutter oculto' : 'Flutter visible');
+});
+
+/* ════════════════════════
+   KEYBOARD SHORTCUTS
+════════════════════════ */
+document.addEventListener('keydown', e => {
+  if(e.target.tagName==='INPUT') return;
+  if(e.key==='c'||e.key==='C') document.getElementById('btnUsar').click();
+  if(e.key==='g'||e.key==='G') document.getElementById('btnGuardar').click();
+  if(e.key==='ArrowLeft') document.getElementById('btnBack').click();
+});
+
+/* ════════════════════════
+   FLUTTER BOXES
+════════════════════════ */
+function updateFlutterBoxes(){
+  const sliver = document.getElementById('sliverHero');
+  const sr = sliver.getBoundingClientRect();
+  document.getElementById('flSliverBox').style.top    = sr.top+'px';
+  document.getElementById('flSliverBox').style.height = sr.height+'px';
+  document.getElementById('flScrollBox').style.top    = (sr.top+sr.height)+'px';
+}
+
+/* ════════════════════════
+   TOAST + LIVE
+════════════════════════ */
+let toastTimer = null;
+function showToast(msg){
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2600);
+}
+function setLive(msg){
+  const el = document.getElementById('statusLive');
+  el.textContent = '';
+  requestAnimationFrame(() => { el.textContent = msg; });
+}
+
+/* ════════════════════════
+   PRODUCT SWITCHER (demo)
+   Click en el código para cambiar el producto de muestra
+════════════════════════ */
+document.getElementById('breadcrumbProduct').addEventListener('click', () => {
+  const keys = Object.keys(PRODUCTS);
+  const cur  = keys.findIndex(k=>PRODUCTS[k]===activeProduct);
+  activeProduct  = PRODUCTS[keys[(cur+1)%keys.length]];
+  activeColorIdx = 0; activeSizeIdx = 0;
+  populateProduct();
+  resizeHeroCanvas();
+  setLive(`Producto cambiado a ${activeProduct.name}`);
+});
+
+/* ════════════════════════
+   INIT
+════════════════════════ */
+window.addEventListener('load', () => {
+  populateProduct();
+  resizeHeroCanvas();
+  updateFlutterBoxes();
+});
+
+window.addEventListener('resize', () => {
+  resizeHeroCanvas();
+  updateFlutterBoxes();
+});
+</script>
+</body>
+</html>

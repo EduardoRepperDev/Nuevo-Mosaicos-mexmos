@@ -1,0 +1,1139 @@
+<!DOCTYPE html>
+<html lang="es" dir="ltr">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mexicana de Mosaicos — Iniciar sesión</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap"
+    rel="stylesheet" />
+  <style>
+    :root {
+      --terra: #C8741A;
+      --terra2: #A85E12;
+      --cobalt: #1A4B8C;
+      --gold: #D4A843;
+      --t1: #F0EDE8;
+      --t2: #94A3B8;
+      --t3: #5B7A99;
+      --card: rgba(8, 17, 30, 0.86);
+      --fg: rgba(255, 255, 255, 0.06);
+      --fl: rgba(255, 255, 255, 0.11);
+      --focus: #1A6BBF;
+      --fd: 'Syne', sans-serif;
+      --fb: 'DM Sans', sans-serif;
+      --r: 12px;
+      --r2: 20px;
+      --rf: 9999px;
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html,
+    body {
+      height: 100%;
+      width: 100%;
+      overflow: hidden;
+    }
+
+    body {
+      font-family: var(--fb);
+      color: var(--t1);
+      font-size: 14px;
+      line-height: 1.5;
+      /* True centering in the visual space between brand (96px) and statusbar (36px) */
+      display: grid;
+      grid-template-rows: 96px 1fr 36px;
+      place-items: center;
+    }
+
+    :focus-visible {
+      outline: 3px solid var(--focus);
+      outline-offset: 2px;
+      border-radius: 4px;
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    /* ── Full-screen canvas ── */
+    #bg {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+      z-index: 0;
+    }
+
+    /* ── Overlays (splash-identical) ── */
+    .ov {
+      position: fixed;
+      inset: 0;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    .ov-v {
+      background: radial-gradient(ellipse 92% 82% at 50% 50%, rgba(6, 12, 22, .12) 0%, rgba(6, 12, 22, .58) 62%, rgba(6, 12, 22, .92) 100%);
+    }
+
+    .ov-d {
+      background-image: radial-gradient(circle, rgba(255, 255, 255, .042) 1px, transparent 1px);
+      background-size: 28px 28px;
+    }
+
+    .rule {
+      position: fixed;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(to right, transparent, rgba(200, 116, 26, .20), transparent);
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    /* Corner marks */
+    .cn {
+      position: fixed;
+      width: 28px;
+      height: 28px;
+      z-index: 3;
+      pointer-events: none;
+    }
+
+    .cn.tl {
+      top: 0;
+      left: 0;
+      border-top: 2px solid var(--terra);
+      border-left: 2px solid var(--terra);
+    }
+
+    .cn.tr {
+      top: 0;
+      right: 0;
+      border-top: 2px solid var(--terra);
+      border-right: 2px solid var(--terra);
+    }
+
+    .cn.bl {
+      bottom: 36px;
+      left: 0;
+      border-bottom: 2px solid var(--terra);
+      border-left: 2px solid var(--terra);
+    }
+
+    .cn.br {
+      bottom: 36px;
+      right: 0;
+      border-bottom: 2px solid var(--terra);
+      border-right: 2px solid var(--terra);
+    }
+
+    /* ── Brand (row 1 — sits in its own grid row) ── */
+    .brand {
+      position: relative;
+      z-index: 10;
+      grid-row: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      width: 100%;
+      animation: fup .4s ease .1s both;
+    }
+
+    @keyframes fup {
+      from {
+        opacity: 0;
+        transform: translateY(-8px)
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0)
+      }
+    }
+
+    .brand-m {
+      width: 46px;
+      height: 46px;
+      background: var(--terra);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--fd);
+      font-size: 22px;
+      font-weight: 800;
+      color: #fff;
+      box-shadow: 0 6px 22px rgba(200, 116, 26, .42), 0 0 0 1px rgba(200, 116, 26, .22);
+      flex-shrink: 0;
+    }
+
+    .brand-text {}
+
+    .brand-name {
+      font-family: var(--fd);
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--t1);
+      line-height: 1.2;
+    }
+
+    .brand-sub {
+      font-size: 11px;
+      font-weight: 500;
+      color: rgba(212, 168, 67, .85);
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      margin-top: 2px;
+    }
+
+    /* ── Card wrapper (row 2 — centered) ── */
+    .login-wrap {
+      position: relative;
+      z-index: 5;
+      grid-row: 2;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      padding: 0 16px;
+    }
+
+    .card {
+      width: 400px;
+      max-width: 100%;
+      background: var(--card);
+      border: 1px solid var(--fl);
+      border-radius: var(--r2);
+      padding: 28px 32px 26px;
+      backdrop-filter: blur(32px) saturate(1.5);
+      box-shadow: 0 28px 72px rgba(0, 0, 0, .65), 0 0 0 1px rgba(255, 255, 255, .05), inset 0 1px 0 rgba(255, 255, 255, .07);
+      animation: fup .5s ease .2s both;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Accent top bar */
+    .abar {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2.5px;
+      border-radius: var(--r2) var(--r2) 0 0;
+      transition: background .4s;
+    }
+
+    .abar.u {
+      background: linear-gradient(to right, var(--terra), var(--gold));
+    }
+
+    .abar.a {
+      background: linear-gradient(to right, #1E5FAD, #4A9EBF);
+    }
+
+    /* ── Role tabs ── */
+    .tabs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      margin-bottom: 22px;
+    }
+
+    .tab {
+      padding: 9px 12px;
+      background: var(--fg);
+      border: 1px solid rgba(255, 255, 255, .08);
+      border-radius: var(--r);
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      cursor: pointer;
+      transition: all .2s;
+      user-select: none;
+    }
+
+    .tab:hover {
+      background: rgba(255, 255, 255, .09);
+    }
+
+    .tab.au {
+      background: rgba(200, 116, 26, .12);
+      border-color: rgba(200, 116, 26, .38);
+    }
+
+    .tab.aa {
+      background: rgba(26, 75, 140, .18);
+      border-color: rgba(26, 75, 140, .48);
+    }
+
+    .tico {
+      width: 30px;
+      height: 30px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 15px;
+      background: rgba(255, 255, 255, .06);
+      flex-shrink: 0;
+      transition: background .2s;
+    }
+
+    .tab.au .tico {
+      background: rgba(200, 116, 26, .20);
+    }
+
+    .tab.aa .tico {
+      background: rgba(26, 75, 140, .28);
+    }
+
+    .tlbl {
+      font-family: var(--fd);
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--t2);
+      transition: color .2s;
+    }
+
+    .tab.au .tlbl {
+      color: var(--terra);
+    }
+
+    .tab.aa .tlbl {
+      color: #7EB3E8;
+    }
+
+    .tsub {
+      font-size: 9px;
+      color: var(--t3);
+      margin-top: 1px;
+    }
+
+    /* ── Form header ── */
+    .fhead {
+      margin-bottom: 20px;
+    }
+
+    .ftitle {
+      font-family: var(--fd);
+      font-size: 21px;
+      font-weight: 800;
+      color: var(--t1);
+      line-height: 1.2;
+      margin-bottom: 5px;
+      transition: all .3s;
+    }
+
+    .fsub {
+      font-size: 12px;
+      color: var(--t3);
+      line-height: 1.6;
+    }
+
+    /* ── Fields ── */
+    .fields {
+      display: flex;
+      flex-direction: column;
+      gap: 13px;
+      margin-bottom: 20px;
+    }
+
+    .fg {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .flbl {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--t2);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .forgotlnk {
+      font-size: 11px;
+      color: var(--t3);
+      text-decoration: none;
+      transition: color .15s;
+    }
+
+    .forgotlnk:hover {
+      color: var(--terra);
+    }
+
+    .fw {
+      display: flex;
+      align-items: center;
+      background: rgba(255, 255, 255, .05);
+      border: 1.5px solid rgba(255, 255, 255, .09);
+      border-radius: var(--r);
+      overflow: hidden;
+      transition: border-color .2s, box-shadow .2s;
+    }
+
+    .fw:focus-within.uf {
+      border-color: var(--terra);
+      box-shadow: 0 0 0 3px rgba(200, 116, 26, .12);
+    }
+
+    .fw:focus-within.af {
+      border-color: var(--cobalt);
+      box-shadow: 0 0 0 3px rgba(26, 75, 140, .15);
+    }
+
+    .fw.err {
+      border-color: #EF4444;
+      box-shadow: 0 0 0 3px rgba(239, 68, 68, .10);
+    }
+
+    .fic {
+      padding: 0 11px;
+      color: var(--t3);
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+    }
+
+    .fic svg {
+      width: 15px;
+      height: 15px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .finp {
+      flex: 1;
+      background: none;
+      border: none;
+      outline: none;
+      padding: 12px 10px 12px 0;
+      color: var(--t1);
+      font-family: var(--fb);
+      font-size: 13px;
+    }
+
+    .finp::placeholder {
+      color: rgba(91, 122, 153, .7);
+    }
+
+    /* Eye toggle button — SVG only, no emoji */
+    .eye-btn {
+      padding: 0 11px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--t3);
+      display: flex;
+      align-items: center;
+      transition: color .15s;
+      flex-shrink: 0;
+    }
+
+    .eye-btn:hover {
+      color: var(--t1);
+    }
+
+    .eye-btn svg {
+      width: 16px;
+      height: 16px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      display: block;
+    }
+
+    .eye-btn .eye-off {
+      display: none;
+    }
+
+    .eye-btn.showing .eye-on {
+      display: none;
+    }
+
+    .eye-btn.showing .eye-off {
+      display: block;
+    }
+
+    .ferr {
+      font-size: 11px;
+      color: #FCA5A5;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      opacity: 0;
+      transform: translateY(-3px);
+      transition: all .2s;
+      pointer-events: none;
+      max-height: 0;
+      overflow: hidden;
+    }
+
+    .ferr.on {
+      opacity: 1;
+      transform: translateY(0);
+      max-height: 30px;
+    }
+
+    /* Admin key slide */
+    .afield {
+      overflow: hidden;
+      max-height: 0;
+      opacity: 0;
+      transition: max-height .3s cubic-bezier(.4, 0, .2, 1), opacity .25s;
+    }
+
+    .afield.on {
+      max-height: 100px;
+      opacity: 1;
+    }
+
+    /* ── CTA Button ── */
+    .btn {
+      width: 100%;
+      padding: 13px;
+      border: none;
+      border-radius: var(--r);
+      font-family: var(--fd);
+      font-size: 14px;
+      font-weight: 700;
+      color: #fff;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all .2s;
+      position: relative;
+      overflow: hidden;
+      letter-spacing: .02em;
+    }
+
+    .btn.u {
+      background: linear-gradient(135deg, var(--terra), var(--terra2));
+      box-shadow: 0 4px 18px rgba(200, 116, 26, .35);
+    }
+
+    .btn.u:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 28px rgba(200, 116, 26, .52);
+    }
+
+    .btn.a {
+      background: linear-gradient(135deg, #1E5FAD, var(--cobalt));
+      box-shadow: 0 4px 18px rgba(26, 75, 140, .40);
+    }
+
+    .btn.a:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 28px rgba(26, 75, 140, .55);
+    }
+
+    .btn:active {
+      transform: translateY(0);
+    }
+
+    .btn::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to right, transparent, rgba(255, 255, 255, .10), transparent);
+      transform: translateX(-100%);
+      transition: transform .5s;
+    }
+
+    .btn:hover::after {
+      transform: translateX(100%);
+    }
+
+    .spin {
+      width: 15px;
+      height: 15px;
+      border-radius: 50%;
+      border: 2px solid rgba(255, 255, 255, .3);
+      border-top-color: #fff;
+      animation: sp .7s linear infinite;
+      display: none;
+    }
+
+    @keyframes sp {
+      to {
+        transform: rotate(360deg)
+      }
+    }
+
+    .btn.ld .spin {
+      display: block;
+    }
+
+    .btn.ld .bt {
+      opacity: .7;
+    }
+
+    /* ── Status bar (row 3) ── */
+    .sb {
+      grid-row: 3;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 36px;
+      z-index: 10;
+      background: rgba(6, 12, 22, .90);
+      border-top: 1px solid rgba(255, 255, 255, .07);
+      backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+    }
+
+    .kh {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 10px;
+      color: var(--t3);
+    }
+
+    .kk {
+      padding: 1px 5px;
+      background: rgba(255, 255, 255, .06);
+      border: 1px solid rgba(255, 255, 255, .10);
+      border-radius: 3px;
+      font-family: monospace;
+      font-size: 9px;
+      color: var(--t2);
+    }
+
+    .wcag {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 10px;
+      color: #4CAF50;
+      font-weight: 600;
+    }
+
+    .wdot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #4CAF50;
+      animation: wp 2.5s ease-in-out infinite;
+    }
+
+    @keyframes wp {
+
+      0%,
+      100% {
+        box-shadow: 0 0 0 0 rgba(76, 175, 80, .4)
+      }
+
+      50% {
+        box-shadow: 0 0 0 4px rgba(76, 175, 80, 0)
+      }
+    }
+
+    .fbtn {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 9px;
+      background: rgba(0, 150, 255, .08);
+      border: 1px solid rgba(0, 150, 255, .18);
+      border-radius: var(--rf);
+      font-family: monospace;
+      font-size: 9px;
+      color: rgba(100, 200, 255, .7);
+      cursor: pointer;
+      transition: all .15s;
+    }
+
+    .fbtn.on {
+      background: rgba(0, 150, 255, .22);
+      color: #7DE8FF;
+    }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 48px;
+      left: 50%;
+      transform: translateX(-50%) translateY(10px);
+      background: rgba(14, 28, 46, .96);
+      border: 1px solid rgba(255, 255, 255, .12);
+      border-radius: var(--r);
+      padding: 9px 18px;
+      font-size: 12px;
+      color: var(--t1);
+      box-shadow: 0 8px 28px rgba(0, 0, 0, .5);
+      opacity: 0;
+      pointer-events: none;
+      transition: all .25s;
+      z-index: 50;
+      white-space: nowrap;
+      backdrop-filter: blur(12px);
+    }
+
+    .toast.on {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .toast.ok {
+      border-color: rgba(76, 175, 80, .4);
+      color: #81C784;
+    }
+
+    .toast.er {
+      border-color: rgba(239, 68, 68, .4);
+      color: #FCA5A5;
+    }
+
+    /* Flutter overlay */
+    .fo {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 100;
+      display: none;
+    }
+
+    .fo.on {
+      display: block;
+    }
+
+    .fb {
+      position: absolute;
+      border: 1.5px dashed rgba(100, 200, 255, .45);
+      border-radius: 2px;
+    }
+
+    .ft {
+      position: absolute;
+      top: -18px;
+      left: 0;
+      background: rgba(0, 140, 255, .88);
+      color: #fff;
+      font-size: 9px;
+      font-family: monospace;
+      padding: 1px 6px;
+      border-radius: 3px;
+      white-space: nowrap;
+    }
+
+    #live {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- BG + overlays -->
+  <canvas id="bg" aria-hidden="true"></canvas>
+  <div class="ov ov-v" aria-hidden="true"></div>
+  <div class="ov ov-d" aria-hidden="true"></div>
+  <div class="rule" style="top:32%;" aria-hidden="true"></div>
+  <div class="rule" style="bottom:36%;" aria-hidden="true"></div>
+  <div class="cn tl" aria-hidden="true"></div>
+  <div class="cn tr" aria-hidden="true"></div>
+  <div class="cn bl" aria-hidden="true"></div>
+  <div class="cn br" aria-hidden="true"></div>
+
+  <!-- ROW 1 — Brand -->
+  <div class="brand" role="img" aria-label="Mexicana de Mosaicos — Sistema de gestión">
+    <div class="brand-m">M</div>
+    <div class="brand-text">
+      <div class="brand-name">Mexicana de Mosaicos</div>
+      <div class="brand-sub">Sistema de gestión</div>
+    </div>
+  </div>
+
+  <!-- ROW 2 — Card centered -->
+  <div class="login-wrap" role="main">
+    <div class="card" role="region" aria-label="Inicio de sesión">
+      <div class="abar u" id="abar" aria-hidden="true"></div>
+
+      <!-- Tabs -->
+      <div class="tabs" role="tablist" aria-label="Tipo de cuenta">
+        <div class="tab au" id="tU" role="tab" aria-selected="true" tabindex="0"
+          aria-label="Usuario — acceso al configurador">
+          <div class="tico" aria-hidden="true">🎨</div>
+          <div>
+            <div class="tlbl">Usuario</div>
+            <div class="tsub">Configurador</div>
+          </div>
+        </div>
+        <div class="tab" id="tA" role="tab" aria-selected="false" tabindex="-1"
+          aria-label="Administrador — panel de gestión">
+          <div class="tico" aria-hidden="true">⚙️</div>
+          <div>
+            <div class="tlbl">Administrador</div>
+            <div class="tsub">Panel de gestión</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Header -->
+      <div class="fhead">
+        <h1 class="ftitle" id="ftitle">Bienvenido de nuevo</h1>
+        <p class="fsub" id="fsub">Inicia sesión para acceder al configurador y tus creaciones.</p>
+      </div>
+
+      <!-- Fields -->
+      <form class="fields" id="form" novalidate autocomplete="on">
+
+        <!-- Email -->
+        <div class="fg">
+          <label class="flbl" for="email">Correo electrónico</label>
+          <div class="fw uf" id="wemail">
+            <div class="fic" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <rect x="2" y="4" width="20" height="16" rx="2" />
+                <polyline points="2,4 12,13 22,4" />
+              </svg>
+            </div>
+            <input class="finp" type="email" id="email" name="email" placeholder="correo@empresa.com"
+              autocomplete="email" aria-required="true" aria-describedby="eerr" />
+          </div>
+          <div class="ferr" id="eerr" role="alert" aria-live="polite">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="8" x2="12" y2="12" />
+              <circle cx="12" cy="16" r=".5" fill="currentColor" />
+            </svg>
+            <span id="eerrt">Ingresa un correo válido</span>
+          </div>
+        </div>
+
+        <!-- Contraseña -->
+        <div class="fg">
+          <label class="flbl" for="pass">
+            Contraseña
+            <a href="#" class="forgotlnk" id="flink">¿Olvidaste tu contraseña?</a>
+          </label>
+          <div class="fw uf" id="wpass">
+            <div class="fic" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <rect x="5" y="11" width="14" height="10" rx="2" />
+                <path d="M8 11V7a4 4 0 0 1 8 0v4" />
+              </svg>
+            </div>
+            <input class="finp" type="password" id="pass" name="password" placeholder="••••••••"
+              autocomplete="current-password" aria-required="true" aria-describedby="perr" />
+            <button class="eye-btn" type="button" id="showPass" aria-label="Mostrar contraseña" aria-pressed="false">
+              <!-- Eye open -->
+              <svg class="eye-on" viewBox="0 0 24 24">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                <circle cx="12" cy="12" r="3" />
+              </svg>
+              <!-- Eye crossed -->
+              <svg class="eye-off" viewBox="0 0 24 24">
+                <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94" />
+                <path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19" />
+                <line x1="1" y1="1" x2="23" y2="23" />
+              </svg>
+            </button>
+          </div>
+          <div class="ferr" id="perr" role="alert" aria-live="polite">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="8" x2="12" y2="12" />
+              <circle cx="12" cy="16" r=".5" fill="currentColor" />
+            </svg>
+            <span>La contraseña es requerida</span>
+          </div>
+        </div>
+
+        <!-- Admin key (slide down) -->
+        <div class="afield fg" id="akey">
+          <label class="flbl" for="apass">Clave de administrador</label>
+          <div class="fw af" id="wakey">
+            <div class="fic" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4" />
+              </svg>
+            </div>
+            <input class="finp" type="password" id="apass" name="akey" placeholder="Clave de acceso" autocomplete="off"
+              aria-required="false" aria-describedby="aerr" tabindex="-1" />
+            <button class="eye-btn" type="button" id="showKey" aria-label="Mostrar clave" aria-pressed="false">
+              <svg class="eye-on" viewBox="0 0 24 24">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                <circle cx="12" cy="12" r="3" />
+              </svg>
+              <svg class="eye-off" viewBox="0 0 24 24">
+                <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94" />
+                <path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19" />
+                <line x1="1" y1="1" x2="23" y2="23" />
+              </svg>
+            </button>
+          </div>
+          <div class="ferr" id="aerr" role="alert" aria-live="polite">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="8" x2="12" y2="12" />
+              <circle cx="12" cy="16" r=".5" fill="currentColor" />
+            </svg>
+            <span>Clave de administrador incorrecta</span>
+          </div>
+        </div>
+
+      </form>
+
+      <!-- CTA -->
+      <button class="btn u" id="btnL" type="submit" aria-label="Iniciar sesión como Usuario">
+        <div class="spin" aria-hidden="true"></div>
+        <span class="bt" id="btnTxt">Iniciar sesión →</span>
+      </button>
+
+    </div>
+  </div>
+
+  <!-- ROW 3 — Status bar -->
+  <div class="sb" role="contentinfo">
+    <div style="display:flex;gap:14px;">
+      <span class="kh"><kbd class="kk">Tab</kbd> Navegar</span>
+      <span class="kh"><kbd class="kk">Enter</kbd> Ingresar</span>
+      <span class="kh"><kbd class="kk">←→</kbd> Cambiar rol</span>
+    </div>
+    <div class="wcag" role="status" aria-label="WCAG 2.1 AA Conforme">
+      <div class="wdot" aria-hidden="true"></div>WCAG 2.1 AA
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <span style="font-size:10px;color:var(--t3);">Flutter: Scaffold › Stack(CustomPaint + Center(Card))</span>
+      <button class="fbtn" id="fBtn" aria-pressed="false" aria-label="Flutter">⬡ Flutter</button>
+    </div>
+  </div>
+
+  <!-- Flutter overlay -->
+  <div class="fo" id="fo" aria-hidden="true">
+    <div class="fb" style="inset:0;"><span class="ft">Stack(CustomPaint(MosaicBg) + Vignette + Center)</span></div>
+    <div class="fb" id="fcCard"><span class="ft" style="background:rgba(160,120,0,.9);">Center › Card(w:400) ›
+        Column(TabBar + Form + CTA)</span></div>
+  </div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <div id="live" aria-live="polite" aria-atomic="true"></div>
+
+  <script src="utils.js"></script>
+  <script>
+    /* ══════════════════════════════════
+       STATIC MOSAIC BG — same as splash
+       20×20 tiles, wave-based color,
+       drawn once on load and resize.
+    ══════════════════════════════════ */
+    const cv = document.getElementById('bg');
+    const cx = cv.getContext('2d');
+    const PAL = ['#C8741A', '#F5F0E0', '#1A1A2E', '#8B8B8B', '#4A9EBF', '#2E6E4E', '#D4A843', '#B91C1C'];
+    const T = 20, J = 2;
+
+    function rgb(h) { return { r: parseInt(h.slice(1, 3), 16), g: parseInt(h.slice(3, 5), 16), b: parseInt(h.slice(5, 7), 16) }; }
+    function li(h, a) { const c = rgb(h); return `rgb(${Math.min(255, c.r + a)},${Math.min(255, c.g + a)},${Math.min(255, c.b + a)})`; }
+    function dk(h, a) { const c = rgb(h); return `rgb(${Math.max(0, c.r - a)},${Math.max(0, c.g - a)},${Math.max(0, c.b - a)})`; }
+
+    function drawBg() {
+      cv.width = window.innerWidth; cv.height = window.innerHeight;
+      const W = cv.width, H = cv.height;
+      const cols = Math.ceil(W / (T + J)) + 1, rows = Math.ceil(H / (T + J)) + 1;
+      cx.fillStyle = '#060C16'; cx.fillRect(0, 0, W, H);
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          const wave = Math.sin((c / cols - .5) * 3 + (r / rows - .5) * 2) * .5 + .5;
+          const idx = Math.floor(wave * (PAL.length - 1) + Math.random() * .8) % PAL.length;
+          const color = PAL[idx];
+          const op = .46 + Math.random() * .36;
+          const x = c * (T + J), y = r * (T + J);
+          const sz = 3, cc = Math.floor(T / sz), rc = Math.floor(T / sz);
+          cx.save();
+          cx.globalAlpha = op;
+          cx.beginPath(); cx.rect(x, y, T, T); cx.clip();
+          cx.fillStyle = dk(color, 8); cx.fillRect(x, y, T, T);
+          for (let rr = 0; rr < rc; rr++) for (let cc2 = 0; cc2 < cc; cc2++) {
+            const wv = Math.sin((cc2 / cc - .5) * 3 + (rr / rc - .5) * 2) * .5 + .5;
+            const v = Math.floor(wv * 20 - 10);
+            cx.fillStyle = v >= 0 ? li(color, v) : dk(color, -v);
+            cx.globalAlpha = op * (.86 + Math.random() * .14);
+            cx.fillRect(x + cc2 * sz, y + rr * sz, sz - 1, sz - 1);
+          }
+          cx.restore();
+        }
+      }
+    }
+    drawBg();
+    window.addEventListener('resize', drawBg);
+
+    /* ══════════════════════════════════
+       ROLE SWITCHING
+    ══════════════════════════════════ */
+    let role = 'user';
+    const tU = document.getElementById('tU'), tA = document.getElementById('tA');
+    const akey = document.getElementById('akey'), ak = document.getElementById('apass');
+
+    function setRole(r) {
+      role = r; const isA = r === 'admin';
+      tU.className = 'tab' + (isA ? '' : ' au'); tA.className = 'tab' + (isA ? ' aa' : '');
+      tU.setAttribute('aria-selected', isA ? 'false' : 'true'); tU.setAttribute('tabindex', isA ? '-1' : '0');
+      tA.setAttribute('aria-selected', isA ? 'true' : 'false'); tA.setAttribute('tabindex', isA ? '0' : '-1');
+      document.getElementById('ftitle').textContent = isA ? 'Acceso de administrador' : 'Bienvenido de nuevo';
+      document.getElementById('fsub').textContent = isA
+        ? 'Ingresa tus credenciales y la clave de administrador.'
+        : 'Inicia sesión para acceder al configurador y tus creaciones.';
+      akey.classList.toggle('on', isA);
+      ak.setAttribute('tabindex', isA ? '0' : '-1');
+      ak.setAttribute('aria-required', isA ? 'true' : 'false');
+      document.querySelectorAll('.fw').forEach(w => { w.classList.remove('uf', 'af'); w.classList.add(isA ? 'af' : 'uf'); });
+      const btn = document.getElementById('btnL');
+      btn.className = 'btn ' + (isA ? 'a' : 'u');
+      btn.setAttribute('aria-label', `Iniciar sesión como ${isA ? 'Administrador' : 'Usuario'}`);
+      document.getElementById('btnTxt').textContent = isA ? 'Acceder al panel →' : 'Iniciar sesión →';
+      document.getElementById('flink').style.visibility = isA ? 'hidden' : '';
+      document.getElementById('abar').className = 'abar ' + (isA ? 'a' : 'u');
+      setLive(`Modo ${isA ? 'Administrador' : 'Usuario'}`);
+    }
+    tU.addEventListener('click', () => setRole('user'));
+    tA.addEventListener('click', () => setRole('admin'));
+    tU.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setRole('user'); }
+      if (e.key === 'ArrowRight') { e.preventDefault(); tA.focus(); setRole('admin'); }
+    });
+    tA.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setRole('admin'); }
+      if (e.key === 'ArrowLeft') { e.preventDefault(); tU.focus(); setRole('user'); }
+    });
+    document.addEventListener('keydown', e => {
+      if (document.activeElement.tagName === 'INPUT') return;
+      if (e.key === 'ArrowRight') { tA.focus(); setRole('admin'); }
+      if (e.key === 'ArrowLeft') { tU.focus(); setRole('user'); }
+    });
+
+    /* ══════════════════════════════════
+       EYE TOGGLE (SVG, no emoji)
+    ══════════════════════════════════ */
+    function eyeToggle(btnId, inpId) {
+      const btn = document.getElementById(btnId), inp = document.getElementById(inpId);
+      btn.addEventListener('click', () => {
+        const show = inp.type === 'text';
+        inp.type = show ? 'password' : 'text';
+        btn.classList.toggle('showing', !show);
+        btn.setAttribute('aria-pressed', show ? 'false' : 'true');
+        btn.setAttribute('aria-label', show ? 'Mostrar contraseña' : 'Ocultar contraseña');
+      });
+    }
+    eyeToggle('showPass', 'pass');
+    eyeToggle('showKey', 'apass');
+
+    /* ══════════════════════════════════
+       AUTH
+    ══════════════════════════════════ */
+    const USERS = [
+      { email: 'hannia@mosaicos.mx', pass: 'usuario123', role: 'user', name: 'Hannia G.' },
+      { email: 'cliente@mosaicos.mx', pass: 'cliente456', role: 'user', name: 'Cliente Demo' },
+      { email: 'admin@mosaicos.mx', pass: 'admin2026', role: 'admin', name: 'Administrador', key: 'ADMIN-KEY-2026' },
+      { email: 'super@mosaicos.mx', pass: 'super2026', role: 'admin', name: 'Superadmin', key: 'SUPER-KEY-2026' },
+    ];
+
+    function showErr(wid, eid, msg, show) {
+      document.getElementById(wid).classList.toggle('err', show);
+      const el = document.getElementById(eid); el.classList.toggle('on', show);
+      if (msg) { const s = el.querySelector('span:last-child'); if (s) s.textContent = msg; }
+    }
+    function validEmail(e) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e); }
+
+    function doLogin() {
+      const email = document.getElementById('email').value.trim();
+      const pass = document.getElementById('pass').value;
+      const key = document.getElementById('apass').value;
+      const isA = role === 'admin';
+      let ok = true;
+      if (!email || !validEmail(email)) { showErr('wemail', 'eerr', 'Correo electrónico inválido', true); ok = false; }
+      else showErr('wemail', 'eerr', null, false);
+      if (!pass) { showErr('wpass', 'perr', 'La contraseña es requerida', true); ok = false; }
+      else showErr('wpass', 'perr', null, false);
+      if (isA && !key) { showErr('wakey', 'aerr', 'La clave de administrador es requerida', true); ok = false; }
+      else showErr('wakey', 'aerr', null, false);
+      if (!ok) return;
+      const btn = document.getElementById('btnL');
+      btn.classList.add('ld'); btn.disabled = true;
+      setLive('Verificando credenciales…');
+      setTimeout(() => {
+        btn.classList.remove('ld'); btn.disabled = false;
+        const u = USERS.find(u => u.email === email && u.pass === pass && u.role === role);
+        if (!u) {
+          showErr('wemail', 'eerr', 'Correo o contraseña incorrectos', true);
+          showErr('wpass', 'perr', 'Correo o contraseña incorrectos', true);
+          showToast('Credenciales incorrectas', 'er'); setLive('Credenciales incorrectas'); return;
+        }
+        if (isA && u.key !== key) {
+          showErr('wakey', 'aerr', 'Clave de administrador incorrecta', true);
+          showToast('Clave incorrecta', 'er'); return;
+        }
+        setSession(u);
+        showToast(`¡Bienvenido, ${u.name}!`, 'ok');
+        setLive('Sesión iniciada. Redirigiendo…');
+        document.getElementById('btnTxt').textContent = '✓ Acceso concedido — redirigiendo…';
+        setTimeout(() => {
+          window.location.href = isA ? '11)admin_dashboard.html' : 'dashboard.html';
+        }, 1200);
+      }, 1100);
+    }
+    document.getElementById('btnL').addEventListener('click', e => { e.preventDefault(); doLogin(); });
+    document.getElementById('form').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+    document.getElementById('flink').addEventListener('click', e => { e.preventDefault(); showToast('Redirigiendo a recuperación…'); });
+
+    /* Flutter */
+    document.getElementById('fBtn').addEventListener('click', function () {
+      const a = this.getAttribute('aria-pressed') === 'true';
+      this.setAttribute('aria-pressed', !a); this.classList.toggle('on', !a);
+      const o = document.getElementById('fo');
+      o.classList.toggle('on', !a); o.setAttribute('aria-hidden', a ? 'true' : 'false');
+      if (!a) {
+        const card = document.querySelector('.card');
+        const r = card.getBoundingClientRect();
+        const fc = document.getElementById('fcCard');
+        Object.assign(fc.style, { top: r.top + 'px', left: r.left + 'px', width: r.width + 'px', height: r.height + 'px', 'border-color': 'rgba(255,200,0,.6)' });
+      }
+      setLive(a ? 'Flutter oculto' : 'Flutter visible');
+    });
+
+    /* Toast + Live (removed) */
+
+    setTimeout(() => document.getElementById('email').focus(), 300);
+  </script>
+</body>
+
+</html>
