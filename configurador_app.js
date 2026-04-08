@@ -636,10 +636,12 @@ self.onmessage=(e)=>{
 
     function selectColor(i) {
       currentColor = COLORS[i];
-      swatches.forEach((s, j) => {
-        s.classList.toggle('active', j === i);
-        s.setAttribute('aria-checked', j === i ? 'true' : 'false');
-        s.setAttribute('tabindex', j === i ? '0' : '-1');
+      // Actualizar swatches físicos
+      document.querySelectorAll('.color-swatch:not(#swatchCustom)').forEach((s, j) => {
+        const active = j === i;
+        s.classList.toggle('active', active);
+        s.setAttribute('aria-checked', active ? 'true' : 'false');
+        s.setAttribute('tabindex', active ? '0' : '-1');
       });
       // hide custom panel and deselect custom swatch when standard color chosen
       document.getElementById('colorCustomPanel').style.display = 'none';
@@ -838,26 +840,39 @@ self.onmessage=(e)=>{
     }
 
     swatchCustomEl.addEventListener('click', () => {
-      // Deselect all standard swatches
-      swatches.forEach(s => { s.classList.remove('active'); s.setAttribute('aria-checked', 'false'); s.setAttribute('tabindex', '-1'); });
+      // 1. Deseleccionar el swatch anterior
+      swatches.forEach(s => { 
+        s.classList.remove('active'); 
+        s.setAttribute('aria-checked', 'false'); 
+        s.setAttribute('tabindex', '-1'); 
+      });
+
+      // 2. Activar el swatch custom
       swatchCustomEl.classList.add('active');
       swatchCustomEl.setAttribute('aria-checked', 'true');
       swatchCustomEl.setAttribute('tabindex', '0');
-      customPanel.style.display = '';
 
-      // Actually trigger the native UI color picker picker so the user can just select without fuss
-      document.getElementById('colorPickerNative').click();
-
+      // 3. Mostrar el panel y establecer el color actual como el custom
+      customPanel.style.display = 'block';
       currentColor = customColor;
+
+      // 4. Sincronizar UI del panel lateral
       document.getElementById('colorDot').style.background = customColor.hex;
       document.getElementById('colorName').textContent = 'Personalizado';
       document.getElementById('colorCode').textContent = customColor.hex + ' · RGB';
-      document.getElementById('specColorName').textContent = 'Personalizado';
-      document.getElementById('specHex').textContent = customColor.hex;
-      document.getElementById('specRef').textContent = 'RGB personalizado';
+
+      // 5. Abrir el selector nativo (opcional, para conveniencia)
+      document.getElementById('colorPickerNative').click();
+
+      // 6. Refrescar previews
+      document.querySelectorAll('.pattern-card canvas').forEach((cv, idx) => {
+        const patKey = ALL_PATTERNS[idx]?.key;
+        if (patKey) renderPreview(cv, patKey, customColor.hex);
+      });
+
       updateCode();
       scheduleRender();
-      statusMsg('Color personalizado seleccionado');
+      statusMsg('Modo de color personalizado activo');
     });
     swatchCustomEl.addEventListener('keydown', e => {
       if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); swatchCustomEl.click(); }
@@ -891,6 +906,27 @@ self.onmessage=(e)=>{
         swatchCustomEl.setAttribute('aria-checked', 'false');
         swatchCustomEl.setAttribute('tabindex', '-1');
       });
+    });
+
+    /* ══ VISTA PREVIA (btnPreview) ══ */
+    document.getElementById('btnPreview').addEventListener('click', function () {
+      // Tomamos la imagen exacta del canvas principal del configurador
+      const dataURL = document.getElementById('mosaicCanvas').toDataURL('image/png');
+
+      const design = {
+        name: 'Diseño Actual',
+        line: currentLine,
+        pattern: currentPattern,
+        color: currentColor.hex,
+        colorName: currentColor.name,
+        size: currentSize,
+        grainFino, grainMedio, grainGrueso,
+        paramSize, paramIrreg, paramDensity,
+        imgData: dataURL // <--- Guardamos la imagen
+      };
+      localStorage.setItem('mexmos_active_design', JSON.stringify(design));
+      statusMsg('Preparando Vista Previa...');
+      setTimeout(() => { window.location.href = 'vista_previa.html'; }, 400);
     });
 
     /* ══ GUARDAR (btnPedido → save) ══ */
@@ -1113,11 +1149,97 @@ self.onmessage=(e)=>{
       msgTimer = setTimeout(() => { el.textContent = ''; }, 3000);
     }
 
+    function loadActiveDesign() {
+      const raw = localStorage.getItem('mexmos_active_design');
+      if (!raw) return;
+      try {
+        const d = JSON.parse(raw);
+        console.log('Cargando diseño activo:', d.name);
+
+        // 1. Línea
+        if (d.line && LINES_DATA[d.line]) {
+          currentLine = d.line;
+        }
+
+        // 2. Patrón
+        if (d.pattern) {
+          const lp = LINES_DATA[currentLine].patterns;
+          if (lp.includes(d.pattern)) {
+             currentPattern = d.pattern;
+          } else {
+             currentPattern = lp[0]; 
+          }
+        }
+
+        // 3. Color
+        let foundIndex = -1;
+        if (d.color) {
+          foundIndex = COLORS.findIndex(c => c.hex.toLowerCase() === d.color.toLowerCase());
+          if (foundIndex >= 0) {
+            currentColor = COLORS[foundIndex];
+          } else {
+            // Es un color personalizado
+            syncCustomColor(d.color);
+            // Asegurar que el swatch custom se vea activo
+            swatchCustomEl.click();
+          }
+        }
+
+        // 4. Tamaño
+        if (d.size) {
+           const sizeNorm = d.size.replace('x', '×');
+           const ls = LINES_DATA[currentLine].sizes;
+           if (ls.includes(sizeNorm)) {
+             currentSize = sizeNorm;
+           } else {
+             currentSize = ls[0];
+           }
+        }
+
+        // 5. Parámetros
+        if (d.grainFino !== undefined) grainFino = d.grainFino;
+        if (d.grainMedio !== undefined) grainMedio = d.grainMedio;
+        if (d.grainGrueso !== undefined) grainGrueso = d.grainGrueso;
+        if (d.paramSize !== undefined) paramSize = d.paramSize;
+        if (d.paramIrreg !== undefined) paramIrreg = d.paramIrreg;
+        if (d.paramDensity !== undefined) paramDensity = d.paramDensity;
+
+        // Limpieza inteligente: No eliminamos de inmediato para permitir que 
+        // otras páginas (Vista Previa) lo lean si el usuario no ha hecho cambios.
+        // localStorage.removeItem('mexmos_active_design'); 
+        
+        // Sincronizar UI (esto reemplaza al updateUI inexistente)
+        loadA11yState();
+        buildPatternCards();
+        buildSizeChips();
+        buildGrainSection();
+        updateSpecPanel();
+        updateCode();
+        scheduleRender();
+        
+        // CORRECCIÓN: Marcar el swatch correcto como activo después de construir la UI
+        if (foundIndex >= 0) {
+           selectColor(foundIndex);
+        }
+
+        statusMsg(`Diseño "${d.name}" cargado`);
+
+      } catch (e) {
+        console.error('Error cargando diseño activo:', e);
+      }
+    }
+
     /* ══ INIT ══ */
     loadA11yState();
-    buildPatternCards();
-    buildSizeChips();
-    buildGrainSection();
-    updateSpecPanel();
-    scheduleRender();
+    loadActiveDesign(); // Esto ya llama a los builders internamente si hay diseño
+    
+    // Si no se cargó nada activo, inicializar UI por defecto
+    if (!localStorage.getItem('mexmos_active_design')) {
+      buildPatternCards();
+      buildSizeChips();
+      buildGrainSection();
+      updateSpecPanel();
+      updateCode();
+      scheduleRender();
+    }
     setInterval(() => { if (!document.hidden) scheduleRender(); }, 5000);

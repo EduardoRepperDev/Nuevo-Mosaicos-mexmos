@@ -384,8 +384,12 @@ const session = requireAuth();
        LOAD IN CONFIGURATOR
     ════════════════════════ */
     function loadInConfigurator(item) {
-      showToast(`"${item.name}" cargado en el Configurador`);
+      localStorage.setItem('mexmos_active_design', JSON.stringify(item));
+      showToast(` Cargando "${item.name}"...`);
       setLive(`${item.name} cargado en el configurador`);
+      setTimeout(() => {
+        window.location.href = 'configurador.html';
+      }, 800);
     }
 
     /* ════════════════════════

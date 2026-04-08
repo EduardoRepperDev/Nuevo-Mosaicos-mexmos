@@ -1211,19 +1211,18 @@ function buildCard(product, index, animate){
   // Events
   card.addEventListener('click', e => {
     if(e.target.closest('button')) return;
-    openDetail(product);
+    loadInConfigurator(product);
   });
   card.addEventListener('keydown', e => {
-    if(e.key==='Enter') openDetail(product);
+    if(e.key==='Enter') loadInConfigurator(product);
   });
 
   card.querySelector('.btn-card-primary').addEventListener('click', e => {
-    e.stopPropagation(); openDetail(product);
+    e.stopPropagation(); loadInConfigurator(product);
   });
   card.querySelector('[title="Usar en configurador"]').addEventListener('click', e => {
     e.stopPropagation();
-    showToast(`"${product.name}" cargado en el Configurador`);
-    setLive(`${product.name} cargado en el configurador`);
+    loadInConfigurator(product);
   });
   card.querySelector('[title="Guardar en Mis Creaciones"]').addEventListener('click', e => {
     e.stopPropagation();
@@ -1237,9 +1236,17 @@ function buildCard(product, index, animate){
 /* ════════════════════════
    OPEN DETAIL (simula navegación)
 ════════════════════════ */
-function openDetail(product){
-  showToast(`Abriendo detalle: ${product.name}…`);
-  setLive(`Navegando al detalle de ${product.name}`);
+function loadInConfigurator(product){
+  const design = {
+    name: product.name,
+    line: product.line,
+    pattern: product.pattern,
+    color: product.colors[0],
+    size: product.sizes[0] || '40×40'
+  };
+  localStorage.setItem('mexmos_active_design', JSON.stringify(design));
+  showToast(`Cargando "${product.name}"...`);
+  setTimeout(() => window.location.href = 'configurador.html', 800);
 }
 
 /* ════════════════════════

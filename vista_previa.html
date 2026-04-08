@@ -303,6 +303,23 @@
       scrollbar-color: var(--surface-hover) transparent;
     }
 
+    .saved-selector {
+      width: 100%;
+      padding: 8px 12px;
+      background: var(--surface-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--r-md);
+      color: var(--text-primary);
+      font-family: var(--font-body);
+      font-size: 13px;
+      margin-top: 5px;
+      margin-bottom: 5px;
+      cursor: pointer;
+    }
+    .saved-selector:focus-visible {
+      outline: 2px solid var(--brand-terra);
+    }
+
     .cp-section {
       padding: 12px var(--sp-md);
       border-bottom: 1px solid var(--border-subtle);
@@ -1069,9 +1086,9 @@
       <div class="app-bar__div" aria-hidden="true"></div>
 
       <nav class="breadcrumb" aria-label="Ruta de navegación">
-        <a href="#">Inicio</a>
+        <a href="dashboard.html">Inicio</a>
         <span class="breadcrumb__sep" aria-hidden="true">›</span>
-        <a href="#">Configurador</a>
+        <a href="configurador.html">Configurador</a>
         <span class="breadcrumb__sep" aria-hidden="true">›</span>
         <span class="breadcrumb__current" aria-current="page">Vista Previa Avanzada</span>
       </nav>
@@ -1096,9 +1113,17 @@
     <main class="main-layout" role="main">
 
       <!-- LEFT — Control Panel -->
-      <aside class="control-panel" role="complementary" aria-label="Panel de controles de la vista previa avanzada">
+      <aside class="panel-left control-panel" role="complementary" aria-label="Panel de opciones para la vista previa">
 
-        <!-- ─── 1. ANCHO DE JUNTA ─── -->
+        <!-- ─── 0. DISEÑO GUARDADO ─── -->
+        <div class="cp-section">
+          <div class="cp-label">Seleccionar Diseño Guardado</div>
+          <select class="saved-selector" id="savedDesignSelect" aria-label="Cambiar a otro diseño guardado">
+            <option value="">-- Diseño Actual --</option>
+          </select>
+        </div>
+
+        <!-- ─── 1. JUNTA (Grout) ─── -->
         <div class="cp-section">
           <div class="cp-label">
             Ancho de junta
@@ -1405,8 +1430,18 @@
       showGrid: false,
       // Configuración del mosaico base (herencia del configurador)
       tileColor: '#C8741A',
+      colorName: 'Terracota',
       pattern: 'palladiana',
       tileSize: 40,         // cm
+      line: 'TRAD',
+      grainFino: 35,
+      grainMedio: 50,
+      grainGrueso: 15,
+      paramSize: 35,
+      paramIrreg: 60,
+      paramDensity: 3,
+      name: 'Diseño Actual',
+      imgData: null
     };
 
     /* Historiales de incrustaciones (posiciones aleatorias fijas por sesión) */
@@ -1425,6 +1460,24 @@
       { name: 'Azul Gris', hex: '#4A6478' },
       { name: 'Verde Musgo', hex: '#3D5A3E' },
     ];
+
+    /* ════════════════════════
+       DICCIONARIOS DE NOMBRES
+    ════════════════════════ */
+    const LINE_NAMES = {
+      'TRAD': 'Línea Tradicional',
+      'L-64': 'Línea de Granito 64',
+      'COL': 'Línea Colonial',
+      'PREM': 'Línea Premium'
+    };
+
+    const PATTERN_NAMES = {
+      'palladiana': 'Palladiana',
+      'tradicional': 'Tradicional',
+      'traditional': 'Tradicional',
+      'trencadis': 'Trencadís',
+      'opusincertum': 'Opus Incertum'
+    };
 
     /* ════════════════════════
        BUILD GROUT CHIPS
@@ -1514,6 +1567,46 @@
         if (cv) setTimeout(() => drawAmbiente(cv, key), 50);
       });
     }
+    
+    // Configurar overlay vectorial básico para dar contexto visual de escala en viewport
+    function drawOverlayEnvironment(key) {
+      const overlay = document.getElementById('ambienteOverlay');
+      overlay.innerHTML = ''; // Clear SVG if any
+      if (key === 'none') {
+        overlay.classList.remove('visible');
+        overlay.style.background = '';
+        return;
+      }
+      
+      const amb = AMBIENTES[key];
+      overlay.style.background = `radial-gradient(ellipse at center, transparent 30%, rgba(0,0,0,0.6) 100%)`;
+      
+      let svgContent = '';
+      if (key === 'cocina') {
+        // Bloque representando una isla de cocina
+        svgContent = `<svg width="100%" height="100%" viewBox="0 0 1000 600" preserveAspectRatio="none">
+           <rect x="150" y="450" width="700" height="150" fill="${amb.colors[0]}" opacity="0.9"/>
+           <rect x="140" y="430" width="720" height="20" fill="${amb.colors[2] || '#ddd'}" />
+           <rect x="400" y="450" width="200" height="150" fill="rgba(0,0,0,0.2)" />
+        </svg>`;
+      } else if (key === 'pared') {
+        // Zoclo inferior
+        svgContent = `<svg width="100%" height="100%" viewBox="0 0 1000 600" preserveAspectRatio="none">
+           <rect x="0" y="520" width="1000" height="80" fill="${amb.colors[0]}" opacity="0.95"/>
+           <rect x="0" y="520" width="1000" height="10" fill="rgba(255,255,255,0.1)"/>
+        </svg>`;
+      } else if (key === 'entrada') {
+        // Tapete semicircular
+        svgContent = `<svg width="100%" height="100%" viewBox="0 0 1000 600" preserveAspectRatio="xMidYMax meet">
+           <path d="M 200,600 A 300,150 0 0,1 800,600 Z" fill="${amb.colors[0]}" opacity="0.8"/>
+        </svg>`;
+      }
+      
+      if (svgContent) {
+         overlay.innerHTML = svgContent;
+      }
+      overlay.classList.add('visible');
+    }
 
     /* ════════════════════════
        CANVAS SETUP
@@ -1524,14 +1617,20 @@
 
     function sizeCanvas() {
       const vp = document.getElementById('canvasViewport');
-      const vpW = vp.offsetWidth, vpH = vp.offsetHeight;
-      // 4 tiles × tile visual size in px
-      const tileVis = Math.min(Math.floor(Math.min(vpW, vpH) * 0.82 / 4), 130);
-      const juntaPx = Math.round(state.junta * tileVis / 80);
-      const grid = 4;
+      const vpW = Math.max(vp.offsetWidth || 800, 300);
+      const vpH = Math.max(vp.offsetHeight || 600, 300);
+      // 3 tiles × tile visual size in px para mejor detalle
+      const tileVis = Math.min(Math.floor(Math.min(vpW, vpH) * 0.90 / 3), 180);
+      const juntaPx = Math.round((Number(state.junta) || 5) * tileVis / 80);
+      const grid = 3;
       const total = grid * tileVis + (grid + 1) * juntaPx;
       mosaicCanvas.width = total;
       mosaicCanvas.height = total;
+      
+      // Aplicar tamaño CSS explicitamente para evitar que se colapse a 0x0
+      mosaicCanvas.style.width = total + 'px';
+      mosaicCanvas.style.height = total + 'px';
+      
       return { tileVis, juntaPx, grid };
     }
 
@@ -1545,11 +1644,18 @@
 
     /* Render one tile */
     let latestRenderImg = null;
-    function renderTile(cx, cy, tw, th, color, pattern) {
-      if (latestRenderImg) {
-        ctx.drawImage(latestRenderImg, cx, cy, tw, th);
-        return;
+    let fallbackRenderImg = null;
+
+    function renderTile(cx, cy, tw, th) {
+      const img = latestRenderImg || fallbackRenderImg;
+      if (img && img.complete && img.naturalWidth > 0) {
+        ctx.drawImage(img, cx, cy, tw, th);
+      } else {
+        renderProceduralTile(cx, cy, tw, th, state.tileColor || '#C8741A', state.pattern || 'palladiana');
       }
+    }
+
+    function renderProceduralTile(cx, cy, tw, th, color, pattern) {
       switch (pattern) {
         case 'tradicional':
         case 'traditional': {
@@ -1602,12 +1708,12 @@
           }
           break;
         }
-        case 'opusincertum': {
+        default: {
           ctx.fillStyle = darken(color, 43); ctx.fillRect(cx, cy, tw, th);
-          const count = Math.floor(tw * th / 220);
+          const count = Math.floor(tw * th / 180);
           for (let i = 0; i < count; i++) {
             const px = cx + Math.random() * tw, py = cy + Math.random() * th;
-            const r1 = jitter(tw / 7, 0.85) * 0.8, r2 = jitter(th / 7, 0.85) * 0.8;
+            const r1 = jitter(tw / 6, 0.8) * 0.8, r2 = jitter(th / 6, 0.8) * 0.8;
             const sides = 3 + Math.floor(Math.random() * 5), rot = Math.random() * 2 * Math.PI;
             const v = Math.floor(Math.random() * 40 - 20);
             ctx.fillStyle = v >= 0 ? lighten(color, v) : darken(color, -v);
@@ -1615,10 +1721,15 @@
             ctx.beginPath();
             for (let j = 0; j < sides; j++) {
               const a = rot + (j / sides) * 2 * Math.PI;
-              const ji = 0.65 + Math.random() * 0.7;
+              const ji = 0.6 + Math.random() * 0.8;
               j === 0 ? ctx.moveTo(px + r1 * ji * Math.cos(a), py + r2 * ji * Math.sin(a)) : ctx.lineTo(px + r1 * ji * Math.cos(a), py + r2 * ji * Math.sin(a));
             }
             ctx.closePath(); ctx.fill(); ctx.globalAlpha = 1;
+          }
+          // Añadir grano sutil general
+          for(let i=0; i<300; i++) {
+            ctx.fillStyle = 'rgba(255,255,255,0.05)';
+            ctx.fillRect(cx + Math.random()*tw, cy + Math.random()*th, 1, 1);
           }
           break;
         }
@@ -1649,7 +1760,7 @@
           ctx.rect(x, y, tileVis, tileVis);
           ctx.clip();
 
-          renderTile(x, y, tileVis, tileVis, state.tileColor, state.pattern);
+          renderTile(x, y, tileVis, tileVis);
 
           // 3. Acabado: mate overlay
           if (state.acabado === 'mate') {
@@ -1759,7 +1870,7 @@
         ? `con ${state.incrustaciones.size} tipo(s) de incrustaciones`
         : 'sin incrustaciones';
       mosaicCanvas.setAttribute('aria-label',
-        `Cuadrícula 4×4 de mosaicos: color ${state.tileColor}, ` +
+        `Cuadrícula 3×3 de mosaicos: color ${state.tileColor}, ` +
         `junta ${state.junta} mm color ${state.groutName}, ` +
         `acabado ${state.acabado}, ${incs}`
       );
@@ -1872,17 +1983,8 @@
         b.setAttribute('aria-checked', active ? 'true' : 'false');
         b.setAttribute('tabindex', active ? '0' : '-1');
       });
-      const overlay = document.getElementById('ambienteOverlay');
+      drawOverlayEnvironment(key);
       const amb = AMBIENTES[key];
-      if (key === 'none') {
-        overlay.classList.remove('visible');
-        overlay.style.background = '';
-      } else {
-        // Draw simulated background
-        overlay.style.background =
-          `linear-gradient(135deg, ${amb.colors[0]} 0%, ${amb.colors[1] || amb.colors[0]} 100%)`;
-        overlay.classList.add('visible');
-      }
       setLive(`Ambiente: ${amb.label}`);
     }
 
@@ -1956,13 +2058,39 @@
        CTA BUTTONS
     ════════════════════════ */
     document.getElementById('btnAplicar').addEventListener('click', function () {
-      this.innerHTML = '<span>✓</span> Aplicado — redirigiendo al configurador…';
+      this.innerHTML = '<span>✓</span> Aplicando...';
       this.disabled = true;
       setLive('Parámetros aplicados al configurador');
+
+      // Obtener diseño base si existe
+      const stored = localStorage.getItem('mexmos_active_design');
+      let baseDesign = stored ? JSON.parse(stored) : {};
+      
+      const design = {
+        ...baseDesign,
+        name: state.name || baseDesign.name || 'Diseño desde Vista Previa',
+        line: state.line,
+        pattern: state.pattern,
+        color: state.tileColor,
+        colorHex: state.tileColor, // Sincronizar ambos nombres posibles
+        colorName: state.colorName,
+        size: state.tileSize + '×' + state.tileSize,
+        grainFino: state.grainFino,
+        grainMedio: state.grainMedio,
+        grainGrueso: state.grainGrueso,
+        paramSize: state.paramSize,
+        paramIrreg: state.paramIrreg,
+        paramDensity: state.paramDensity,
+        // Nuevos campos de vista previa
+        paramJunta: state.junta,
+        paramAcabado: state.acabado
+      };
+      
+      localStorage.setItem('mexmos_active_design', JSON.stringify(design));
+
       setTimeout(() => {
-        this.innerHTML = '<span>🎨</span> Aplicar al configurador →';
-        this.disabled = false;
-      }, 2800);
+        window.location.href = 'configurador.html';
+      }, 300);
     });
 
     document.getElementById('btnGuardarVariante').addEventListener('click', function () {
@@ -2004,6 +2132,7 @@
     document.getElementById('btnBack').addEventListener('click', () => {
       showToast('← Volviendo al Configurador…');
       setLive('Navegando al configurador');
+      setTimeout(() => { window.location.href = 'configurador.html'; }, 400);
     });
 
     /* ════════════════════════
@@ -2032,6 +2161,10 @@
       const imgData = mosaicCanvas.toDataURL('image/png');
       const timestamp = new Date().toLocaleString('es-MX');
 
+      const lineName = LINE_NAMES[state.line] || state.line || 'Línea Tradicional';
+      const patternName = PATTERN_NAMES[state.pattern] || state.pattern || 'Personalizado';
+      const designTitle = `${state.colorName} ${patternName}`;
+
       // Crear ventana de impresión con ficha + imagen
       const w = window.open('', '_blank');
       w.document.write(`
@@ -2039,7 +2172,7 @@
     <html lang="es">
     <head>
       <meta charset="UTF-8"/>
-      <title>Ficha Técnica — Vista Previa Avanzada</title>
+      <title>Ficha Técnica — ${designTitle}</title>
       <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet"/>
       <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -2079,34 +2212,34 @@
           <div class="header__sub">Tizayuca, Hidalgo · 55 años en el mercado</div>
         </div>
         <div class="header__date">
-          <strong>Ficha técnica — Vista Previa Avanzada</strong><br>
+          <strong>Ficha técnica de diseño</strong><br>
           Generada el ${timestamp}
         </div>
       </div>
 
-      <h1>Vista Previa Avanzada — Terracota Palladiana</h1>
+      <h1>${designTitle}</h1>
 
       <div class="layout">
         <div class="preview-wrap">
-          <div class="preview-label">Vista previa del mosaico (4×4)</div>
+          <div class="preview-label">Vista previa del mosaico (Cuadrícula 3x3)</div>
           <img class="preview-img" src="${imgData}" alt="Vista previa del mosaico"/>
         </div>
         <div class="specs">
 
           <div class="spec-section">
             <h2>Configuración del mosaico</h2>
-            <div class="spec-row"><span class="spec-row__key">Línea</span><span class="spec-row__val hi">Tradicional</span></div>
-            <div class="spec-row"><span class="spec-row__key">Patrón</span><span class="spec-row__val hi">Palladiana</span></div>
-            <div class="spec-row"><span class="spec-row__key">Color pasta</span><span class="spec-row__val">Terracota · #C8741A</span></div>
-            <div class="spec-row"><span class="spec-row__key">Tamaño</span><span class="spec-row__val">40 × 40 cm</span></div>
+            <div class="spec-row"><span class="spec-row__key">Línea</span><span class="spec-row__val hi">${lineName}</span></div>
+            <div class="spec-row"><span class="spec-row__key">Patrón</span><span class="spec-row__val hi">${patternName}</span></div>
+            <div class="spec-row"><span class="spec-row__key">Color base</span><span class="spec-row__val">${state.colorName} · ${state.tileColor}</span></div>
+            <div class="spec-row"><span class="spec-row__key">Módulo</span><span class="spec-row__val">${state.tileSize} × ${state.tileSize} cm</span></div>
           </div>
 
           <div class="spec-section">
             <h2>Parámetros de instalación</h2>
-            <div class="spec-row"><span class="spec-row__key">Ancho de junta</span><span class="spec-row__val hi">${state.junta} mm</span></div>
+            <div class="spec-row"><span class="spec-row__key">Ancho de junta</span><span class="spec-row__val">${state.junta} mm</span></div>
             <div class="spec-row"><span class="spec-row__key">Color de lechada</span><span class="spec-row__val">${state.groutName} · ${state.groutColor}</span></div>
             <div class="spec-row"><span class="spec-row__key">Acabado superficial</span><span class="spec-row__val">${state.acabado === 'pulido' ? 'Pulido 400 grit' : 'Mate antideslizante'}</span></div>
-            <div class="spec-row"><span class="spec-row__key">Vista ambiente</span><span class="spec-row__val">${state.ambiente === 'none' ? 'Neutro' : state.ambiente}</span></div>
+            <div class="spec-row"><span class="spec-row__key">Fondo ambiente</span><span class="spec-row__val">${state.ambiente === 'none' ? 'Neutro' : (AMBIENTES[state.ambiente] ? AMBIENTES[state.ambiente].label : state.ambiente)}</span></div>
           </div>
 
           <div class="spec-section">
@@ -2173,17 +2306,105 @@
     }
 
     /* ════════════════════════
-       INIT
+       INIT & DATA LOAD
     ════════════════════════ */
-    window.addEventListener('load', () => {
-      
+    function loadActiveDesign() {
+      try {
+        const stored = localStorage.getItem('mexmos_active_design');
+        if (stored) {
+          const d = JSON.parse(stored);
+          Object.assign(state, d);
+          
+          if (d.imgData) {
+            const img = new Image();
+            img.onload = () => {
+              latestRenderImg = img;
+              render(); // Re-render when image is fully loaded
+            };
+            img.src = d.imgData;
+          }
+          
+          updateCTAInfo();
+        }
+      } catch(e) {
+        console.error('Error loading active design:', e);
+      }
+    }
 
+    function populateSavedDesigns() {
+      // Intentar leer de localStorage directo
+      try {
+        const stored = localStorage.getItem('mexmos_creaciones');
+        const select = document.getElementById('savedDesignSelect');
+        if (!stored) return;
+        
+        const creaciones = JSON.parse(stored);
+        const currentUser = localStorage.getItem('mexmos_current_user') || 'hannia@mosaicos.mx';
+        
+        // Filtrar las del usuario o mostrar todas si es super admin
+        const myCreations = creaciones.filter(c => c.owner === currentUser || currentUser.includes('admin') || currentUser.includes('super'));
+        
+        myCreations.forEach(c => {
+          const opt = document.createElement('option');
+          opt.value = c.id;
+          opt.textContent = c.name + ' - ' + c.colorName;
+          select.appendChild(opt);
+        });
+
+        select.addEventListener('change', function() {
+          if (!this.value) return; // Diseño Actual
+          
+          const selected = creaciones.find(c => c.id === this.value);
+          if (selected) {
+            // Apply parameters
+            state.line = selected.line;
+            state.pattern = selected.pattern;
+            state.tileColor = selected.color;
+            state.colorName = selected.colorName;
+            state.junta = selected.paramJunta || 5;
+            state.acabado = selected.paramAcabado || 'pulido';
+            state.densidad = selected.paramDensity || 30;
+            state.name = selected.name;
+            
+            // Apply img data
+            if (selected.imgData) {
+              const img = new Image();
+              img.onload = () => {
+                 latestRenderImg = img;
+                 render();
+              };
+              img.src = selected.imgData;
+            } else {
+               latestRenderImg = null;
+               render(); // render fallback
+            }
+            
+            // Sync slider UI
+            document.getElementById('sliderJunta').value = state.junta;
+            document.getElementById('juntaVal').textContent = state.junta + ' mm';
+            
+            // Sync acabado buttons
+            document.querySelectorAll('.acabado-btn').forEach(b => {
+              b.classList.toggle('active', b.dataset.acabado === state.acabado);
+            });
+            
+            updateCTAInfo();
+            setLive('Diseño ' + selected.name + ' cargado en vista previa.');
+          }
+        });
+
+      } catch(e) { console.error('Error loading sorted designs', e); }
+    }
+
+    window.addEventListener('load', () => {
+      loadActiveDesign();
+      populateSavedDesigns();
       buildGroutChips();
       buildAmbienteThumbs();
       setupDrag();
       render();
-      // Re-render periódico para efecto vivo (sólo si no es imagen fija)
-      setInterval(() => { if (!document.hidden && !latestRenderImg) render(); }, 6000);
+      // Re-render periódico para efecto vivo ya no aplica al grid de imagen fija, pero lo mantenemos por texturas
+      setInterval(() => { if (!document.hidden && latestRenderImg) render(); }, 8000);
     });
 
     window.addEventListener('resize', () => {
