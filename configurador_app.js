@@ -16,9 +16,7 @@ const session = requireAuth();
       { name: 'Rojo', hex: '#B91C1C', ref: 'PMS 7621 C', pattern: '◈' },
     ];
 
-    /* ── Datos por línea ──
-       Cada línea define qué tamaños y qué patrones tiene disponibles
-    */
+    /* ── Datos por línea ── */
     const LINES_DATA = {
       'TRAD': {
         name: 'Línea Tradicional',
@@ -52,10 +50,29 @@ const session = requireAuth();
 
     const ALL_SIZES = ['20×20', '30×30', '40×40', '50×50', '60×60', '64×64'];
 
+    /* ══════════════════════════════════════
+       DEFINICIÓN DE CAPAS — medidas exactas de fábrica
+       Basadas en CalculadorTamanoGrano (aberturas de malla reales)
+
+       Abertura 3/4" → 19.0mm diámetro → 9.5mm radio (grano grueso / #5-6)
+       Abertura 1/2" → 12.7mm → 6.35mm radio
+       Abertura 1/4" → 6.35mm → 3.175mm radio (grano medio / #3)
+       Abertura 3/16" → 4.76mm → 2.38mm radio
+       Abertura 1/8" → 3.17mm → 1.585mm radio (grano fino / #0-2)
+       Abertura 1/16" → 1.59mm → 0.79mm radio
+    ══════════════════════════════════════ */
+
+    const LAYER_DEFS = {
+      pasta:       { label: 'Pasta Base',    detail: 'Fondo / cemento',       icon: '▬' },
+      granoGrueso: { label: 'Grano Grueso',  detail: '3/4" · 9.5mm · Malla #5-6', icon: '●' },
+      granoMedio:  { label: 'Grano Medio',   detail: '1/4" · 3.175mm · Malla #3', icon: '◉' },
+      granoFino:   { label: 'Grano Fino',    detail: '1/8" · 1.585mm · Malla #0-2', icon: '·' },
+      fragmento:   { label: 'Fragmentos',    detail: 'Tamaño variable',      icon: '◇' },
+    };
+
     /* ══ ESTADO ══ */
     let currentLine = 'TRAD';
     let currentPattern = 'tradicional';
-    let currentColor = COLORS[0];
     let currentSize = '40×40';
     let currentCVD = 'normal';
     let grainFino = 35, grainMedio = 50, grainGrueso = 15;
@@ -65,12 +82,25 @@ const session = requireAuth();
       ? CreacionesStore.getByUser(session.email)
       : [];
 
+    /* ── Estado de colores por capa (independiente) ── */
+    let layerColors = {
+      pasta:       { hex: '#F5F0E0', name: 'Hueso', ref: 'PMS Warm Gray 1' },
+      granoGrueso: { hex: '#C8741A', name: 'Terracota', ref: 'PMS 166 C' },
+      granoMedio:  { hex: '#8B8B8B', name: 'Gris', ref: 'PMS Cool Gray 7' },
+      granoFino:   { hex: '#1A1A2E', name: 'Granito', ref: 'PMS Black 6 C' },
+      fragmento:   { hex: '#C8741A', name: 'Terracota', ref: 'PMS 166 C' },
+    };
+    let activeLayer = 'pasta';
+
+    // Backward compatibility: expose currentColor as a getter for code that reads it
+    function getCurrentColor() {
+      return { name: layerColors.pasta.name, hex: layerColors.pasta.hex, ref: layerColors.pasta.ref };
+    }
+
     /* ══ CANVAS ══ */
     const canvas = document.getElementById('mosaicCanvas');
     const ctx = canvas.getContext('2d');
     const W = canvas.width, H = canvas.height;
-
-    /* ── Helpers de color (movidos a utils) ── */
 
     /* ══ WORKER VORONOI ══ */
     const WORKER_SRC = `
@@ -96,13 +126,16 @@ function resolveColor(c){if(c.pigmento&&c.pigmento.codigoHex)return c.pigmento.c
 function makeGrid(cs,cols){const cells=new Map();function key(x,y){return(Math.floor(y/cs)*cols+Math.floor(x/cs))|0;}return{add(x,y,it){const k=key(x,y);if(!cells.has(k))cells.set(k,[]);cells.get(k).push(it);},neighbors(x,y,steps){const cx=Math.floor(x/cs),cy=Math.floor(y/cs),out=[];for(let i=-steps;i<=steps;i++)for(let j=-steps;j<=steps;j++){const c=cells.get((cy+i)*cols+(cx+j));if(c)for(const it of c)out.push(it);}return out;}};}
 function generarParticulas({capas,width,height,offsetPasta,escala,rng,irreg,distanciaFisica}){
   const sorted=[...capas].sort((a,b)=>inferirRadioMm(b.abertura,b.codigoTamano)-inferirRadioMm(a.abertura,a.codigoTamano));
-  let maxR=0;for(const c of sorted){const r=inferirRadioMm(c.abertura,c.codigoTamano)*escala*1.5;if(r>maxR)maxR=r;}
+  let maxR=0;for(const c of sorted){const r=inferirRadioMm(c.abertura,c.codigoTamano)*escala;if(r>maxR)maxR=r;}
   if(maxR===0)return[];const cs=maxR*2,cols=Math.ceil(width/cs)+2,grid=makeGrid(cs,cols),all=[];
   for(const capa of sorted){
-    const rMm=inferirRadioMm(capa.abertura,capa.codigoTamano),rPx=rMm*escala*1.5;if(rPx===0)continue;
-    const maxP=Math.min(15000,Math.floor((width*height*(capa.densidad||0.4)*1.8)/(Math.PI*rPx*rPx)));
+    const rMm=inferirRadioMm(capa.abertura,capa.codigoTamano),rPx=rMm*escala;if(rPx===0)continue;
+    const physicalMax=Math.floor((width*height)/(Math.PI*rPx*rPx*1.4));
+    const dens=(capa.densidad===undefined||capa.densidad===null)?0.4:capa.densidad;
+    const maxP=Math.min(15000,Math.floor(physicalMax*dens));
+    const fallLimit=rPx<5?3000:1500;
     let fails=0,placed=0;
-    while(placed<maxP&&fails<1500){
+    while(placed<maxP&&fails<fallLimit){
       const x=rng()*width,y=rng()*height,r=rPx*(0.8+rng()*0.4*(irreg||1));
       const nb=grid.neighbors(x,y,2);let hit=false;
       for(const n of nb){const dx=n.x-x,dy=n.y-y,min=n.radio+r+(distanciaFisica||offsetPasta);if(dx*dx+dy*dy<min*min){hit=true;break;}}
@@ -162,9 +195,7 @@ self.onmessage=(e)=>{
       if (String(id).startsWith('main_')) {
         if (id !== 'main_' + currentRenderID) return;
         lastPiedras = payload.piedras;
-        drawCanvas(ctx, payload.piedras, currentColor.hex, canvas.width, canvas.height);
-        // Cache the render for the advanced preview
-        
+        drawCanvas(ctx, payload.piedras, layerColors.pasta.hex, canvas.width, canvas.height);
         const overlay = document.getElementById('canvasOverlay');
         if (overlay) overlay.classList.remove('visible');
       } else if (String(id).startsWith('preview_')) {
@@ -175,32 +206,66 @@ self.onmessage=(e)=>{
       }
     };
 
-    function getCapasForPattern(pattern, colorHex) {
-      const lightHex = lighten(colorHex, 15);
-      const darkHex = darken(colorHex, 18);
+    /* ══════════════════════════════════════
+       getCapasForPattern — AHORA con colores independientes por capa
+       Cada capa toma su color de layerColors, NO se derivan de un solo color.
+       Las medidas de abertura/codigoTamano son las exactas de fábrica.
+    ══════════════════════════════════════ */
+    function getCapasForPattern(pattern, overrideColors) {
+      const lc = overrideColors || layerColors;
 
       if (pattern === 'tradicional') {
         return {
           capas: [
-            { id: 'c0', abertura: '3/4', codigoTamano: '5-6', densidad: grainGrueso / 100, colorNatural: lightHex, colorVar: 25 },
-            { id: 'c1', abertura: '1/4', codigoTamano: '3', densidad: grainMedio / 100, colorNatural: colorHex, colorVar: 20 },
-            { id: 'c2', abertura: '1/8', codigoTamano: '2', densidad: grainFino / 100, colorNatural: darkHex, colorVar: 15 }
+            {
+              id: 'c0', abertura: '3/4', codigoTamano: '5-6',
+              densidad: grainGrueso / 100,
+              colorNatural: lc.granoGrueso.hex,
+              colorVar: 25
+            },
+            {
+              id: 'c1', abertura: '1/4', codigoTamano: '3',
+              densidad: grainMedio / 100,
+              colorNatural: lc.granoMedio.hex,
+              colorVar: 20
+            },
+            {
+              id: 'c2', abertura: '1/8', codigoTamano: '0-2',
+              densidad: grainFino / 100,
+              colorNatural: lc.granoFino.hex,
+              colorVar: 15
+            }
           ],
           irreg: 1.0, offsetPasta: 1.0, distanciaFisica: 1.0
         };
       } else if (pattern === 'palladiana') {
         return {
-          capas: [{ id: 'p0', abertura: paramSize + 'mm', codigoTamano: '', densidad: 1.0, colorNatural: colorHex, colorVar: 30 }],
+          capas: [{
+            id: 'p0', abertura: paramSize + 'mm', codigoTamano: '',
+            densidad: 1.0,
+            colorNatural: lc.fragmento.hex,
+            colorVar: 30
+          }],
           irreg: 1.8 + (paramIrreg / 100) * 1.2, offsetPasta: paramDensity * 1.5, distanciaFisica: paramDensity * 3.5
         };
       } else if (pattern === 'trencadis') {
         return {
-          capas: [{ id: 't0', abertura: Math.min(paramSize, 30) + 'mm', codigoTamano: '', densidad: 1.0, colorNatural: colorHex, colorVar: 35 }],
+          capas: [{
+            id: 't0', abertura: Math.min(paramSize, 30) + 'mm', codigoTamano: '',
+            densidad: 1.0,
+            colorNatural: lc.fragmento.hex,
+            colorVar: 35
+          }],
           irreg: 2.5 + (paramIrreg / 100), offsetPasta: paramDensity * 1.5, distanciaFisica: paramDensity * 1.5
         };
       } else { /* opusincertum */
         return {
-          capas: [{ id: 'o0', abertura: paramSize + 'mm', codigoTamano: '', densidad: 0.9, colorNatural: colorHex, colorVar: 25 }],
+          capas: [{
+            id: 'o0', abertura: paramSize + 'mm', codigoTamano: '',
+            densidad: 0.9,
+            colorNatural: lc.fragmento.hex,
+            colorVar: 25
+          }],
           irreg: 1.2 + (paramIrreg / 100) * 0.8, offsetPasta: paramDensity * 1.5, distanciaFisica: paramDensity * 1.5
         };
       }
@@ -212,10 +277,10 @@ self.onmessage=(e)=>{
 
       currentRenderID++;
       const idStr = 'main_' + currentRenderID;
-      const config = getCapasForPattern(currentPattern, currentColor.hex);
+      const config = getCapasForPattern(currentPattern);
 
       canvas.setAttribute('aria-label',
-        `Previsualización: color ${currentColor.name}, patrón ${currentPatternLabel()}, tamaño ${currentSize}`);
+        `Previsualización: pasta ${layerColors.pasta.name}, patrón ${currentPatternLabel()}, tamaño ${currentSize}`);
 
       voronoiWorker.postMessage({
         type: 'render', id: idStr,
@@ -230,7 +295,7 @@ self.onmessage=(e)=>{
       });
     }
 
-    // Deterministic RNG for stable per-stone texture (main-thread copy — worker has its own in WORKER_SRC)
+    // Deterministic RNG for stable per-stone texture
     function makePRNG(seed) {
       let s = seed >>> 0;
       return function () {
@@ -241,7 +306,6 @@ self.onmessage=(e)=>{
       };
     }
 
-    // Parse bounding box from SVG path string "M x,y L x,y ..."
     const _bboxCache = new Map();
     function parseBbox(pathStr) {
       if (_bboxCache.has(pathStr)) return _bboxCache.get(pathStr);
@@ -257,9 +321,9 @@ self.onmessage=(e)=>{
       return bb;
     }
 
-    function drawCanvas(ctxEl, piedras, baseColor, w, h) {
+    function drawCanvas(ctxEl, piedras, pastaHex, w, h) {
       ctxEl.clearRect(0, 0, w, h);
-      ctxEl.fillStyle = darken(baseColor, 55);  // grout background
+      ctxEl.fillStyle = darken(pastaHex, 55);  // grout = darker version of pasta base
       ctxEl.fillRect(0, 0, w, h);
 
       const largeSurface = w * h > 200000;
@@ -275,12 +339,12 @@ self.onmessage=(e)=>{
           try {
             ctxEl.clip(path);
 
-            // 1. Base fill
+            // 1. Base fill (stone color from its own layer)
             ctxEl.globalAlpha = 0.92 + rng() * 0.08;
             ctxEl.fillStyle = p.colorHex;
             ctxEl.fill(path);
 
-            // 2. Subtle diagonal gradient (color variation within stone)
+            // 2. Subtle diagonal gradient
             const rgb = hexToRgb(p.colorHex);
             const grd = ctxEl.createLinearGradient(bb.x0, bb.y0, bb.x1, bb.y1);
             grd.addColorStop(0, `rgba(${Math.min(255, rgb.r + 18)},${Math.min(255, rgb.g + 18)},${Math.min(255, rgb.b + 18)},0.25)`);
@@ -305,7 +369,7 @@ self.onmessage=(e)=>{
               ctxEl.fill();
             }
 
-            // 4. Highlight reflection spot (polished terrazzo surface)
+            // 4. Highlight reflection spot (polished terrazzo)
             const hx = bb.x0 + bw * (0.3 + rng() * 0.4);
             const hy = bb.y0 + bh * 0.2;
             const hr = Math.max(1.5, bw * 0.18);
@@ -315,11 +379,11 @@ self.onmessage=(e)=>{
             ctxEl.fillStyle = hGrd;
             ctxEl.fill(path);
           } finally {
-            ctxEl.restore();  // always restore clip, even if a drawing step threw
+            ctxEl.restore();
           }
 
           // 5. Thin grout-shadow edge (outside clip)
-          ctxEl.strokeStyle = darken(baseColor, 40);
+          ctxEl.strokeStyle = darken(pastaHex, 40);
           ctxEl.lineWidth = 0.8;
           ctxEl.globalAlpha = 0.6;
           ctxEl.stroke(path);
@@ -336,23 +400,23 @@ self.onmessage=(e)=>{
 
     function scheduleRender() {
       if (animFrame) clearTimeout(animFrame);
-      animFrame = setTimeout(renderMain, 50); // slight debounce
+      animFrame = setTimeout(renderMain, 50);
     }
 
     /* ── Mini preview para tarjetas de patrón ── */
-    function renderPreview(canvasEl, patternKey, colorHex) {
+    function renderPreview(canvasEl, patternKey, previewLayerColors) {
       const c = canvasEl.getContext('2d');
       canvasEl.width = canvasEl.parentElement.offsetWidth || 100;
       canvasEl.height = canvasEl.parentElement.offsetHeight || 44;
       const cw = canvasEl.width, ch = canvasEl.height;
 
-      c.fillStyle = darken(colorHex, 50); c.fillRect(0, 0, cw, ch);
+      c.fillStyle = darken(previewLayerColors.pasta.hex, 50); c.fillRect(0, 0, cw, ch);
 
       const pid = 'preview_' + Math.random().toString(36).substring(2);
-      const config = getCapasForPattern(patternKey, colorHex);
+      const config = getCapasForPattern(patternKey, previewLayerColors);
 
       previewCallbacks[pid] = function (piedras) {
-        drawCanvas(c, piedras, colorHex, cw, ch);
+        drawCanvas(c, piedras, previewLayerColors.pasta.hex, cw, ch);
       };
 
       voronoiWorker.postMessage({
@@ -366,6 +430,119 @@ self.onmessage=(e)=>{
           capas: config.capas
         }
       });
+    }
+
+    /* ══════════════════════════════════════
+       LAYER PANEL — construir lista de capas según patrón activo
+    ══════════════════════════════════════ */
+    function getVisibleLayers() {
+      if (currentPattern === 'tradicional') {
+        return ['pasta', 'granoGrueso', 'granoMedio', 'granoFino'];
+      } else {
+        return ['pasta', 'fragmento'];
+      }
+    }
+
+    function buildLayerPanel() {
+      const list = document.getElementById('layerList');
+      list.innerHTML = '';
+      const visible = getVisibleLayers();
+
+      // If active layer is not visible for this pattern, switch to pasta
+      if (!visible.includes(activeLayer)) {
+        activeLayer = 'pasta';
+      }
+
+      visible.forEach(layerKey => {
+        const def = LAYER_DEFS[layerKey];
+        const lc = layerColors[layerKey];
+        const isActive = layerKey === activeLayer;
+
+        const row = document.createElement('div');
+        row.className = 'layer-row' + (isActive ? ' active' : '');
+        row.setAttribute('role', 'option');
+        row.setAttribute('aria-selected', isActive ? 'true' : 'false');
+        row.setAttribute('data-layer', layerKey);
+        row.setAttribute('tabindex', isActive ? '0' : '-1');
+        row.setAttribute('aria-label', `${def.label}: ${lc.name} (${lc.hex})`);
+
+        // Density badge for grain layers
+        let badge = '';
+        if (layerKey === 'granoGrueso') badge = `<span class="layer-density-badge">${grainGrueso}%</span>`;
+        else if (layerKey === 'granoMedio') badge = `<span class="layer-density-badge">${grainMedio}%</span>`;
+        else if (layerKey === 'granoFino') badge = `<span class="layer-density-badge">${grainFino}%</span>`;
+
+        row.innerHTML = `
+          <div class="layer-color-dot" style="background:${lc.hex}"></div>
+          <div class="layer-info">
+            <div class="layer-name">${def.icon} ${def.label}</div>
+            <div class="layer-detail">${lc.name} · ${def.detail}</div>
+          </div>
+          ${badge}
+        `;
+
+        row.addEventListener('click', () => selectLayer(layerKey));
+        row.addEventListener('keydown', e => {
+          if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectLayer(layerKey); }
+        });
+
+        list.appendChild(row);
+      });
+
+      // Update the picker title
+      updatePickerTitle();
+      // Sync the swatch highlight to match the active layer's current color
+      syncSwatchesToLayer();
+      // Update spec panel layer colors
+      updateSpecLayerColors();
+    }
+
+    function selectLayer(layerKey) {
+      activeLayer = layerKey;
+      // Update visual state
+      document.querySelectorAll('.layer-row').forEach(r => {
+        const isActive = r.dataset.layer === layerKey;
+        r.classList.toggle('active', isActive);
+        r.setAttribute('aria-selected', isActive ? 'true' : 'false');
+        r.setAttribute('tabindex', isActive ? '0' : '-1');
+      });
+      updatePickerTitle();
+      syncSwatchesToLayer();
+      // Hide custom panel when switching layers
+      document.getElementById('colorCustomPanel').style.display = 'none';
+      statusMsg(`Editando capa: ${LAYER_DEFS[layerKey].label}`);
+    }
+
+    function updatePickerTitle() {
+      const nameEl = document.getElementById('layerPickerName');
+      if (nameEl) nameEl.textContent = LAYER_DEFS[activeLayer].label;
+    }
+
+    function syncSwatchesToLayer() {
+      const lc = layerColors[activeLayer];
+      // Find which standard swatch matches the active layer's color
+      const matchIndex = COLORS.findIndex(c => c.hex.toLowerCase() === lc.hex.toLowerCase());
+
+      const allSwatches = document.querySelectorAll('.color-swatch:not(#swatchCustom)');
+      allSwatches.forEach((s, j) => {
+        const active = j === matchIndex;
+        s.classList.toggle('active', active);
+        s.setAttribute('aria-checked', active ? 'true' : 'false');
+        s.setAttribute('tabindex', active ? '0' : '-1');
+      });
+
+      const sc = document.getElementById('swatchCustom');
+      const isCustom = matchIndex < 0;
+      sc.classList.toggle('active', isCustom);
+      sc.setAttribute('aria-checked', isCustom ? 'true' : 'false');
+      if (isCustom) {
+        sc.style.background = lc.hex;
+      }
+
+      // Update color info display
+      document.getElementById('colorDot').style.background = lc.hex;
+      document.getElementById('colorName').textContent = lc.name;
+      document.getElementById('colorCode').textContent = `${lc.hex} · ${lc.ref}`;
     }
 
     /* ══ RENDERIZAR TARJETAS DE PATRÓN según línea ══ */
@@ -402,8 +579,7 @@ self.onmessage=(e)=>{
 
         group.appendChild(card);
 
-        // Renderizar preview
-        setTimeout(() => renderPreview(card.querySelector('canvas'), p.key, currentColor.hex), 10);
+        setTimeout(() => renderPreview(card.querySelector('canvas'), p.key, layerColors), 10);
       });
     }
 
@@ -413,14 +589,13 @@ self.onmessage=(e)=>{
       const lineData = LINES_DATA[currentLine];
       group.innerHTML = '';
 
-      // Si el tamaño actual no está en la línea, cambia al default
       if (!lineData.sizes.includes(currentSize)) {
         currentSize = lineData.defaultSize;
       }
 
       ALL_SIZES.forEach(sz => {
         const available = lineData.sizes.includes(sz);
-        if (!available) return; // Solo mostrar los de la línea activa
+        if (!available) return;
 
         const chip = document.createElement('div');
         chip.className = 'size-chip' + (sz === currentSize ? ' active' : '');
@@ -445,7 +620,6 @@ self.onmessage=(e)=>{
       const pData = ALL_PATTERNS.find(p => p.key === currentPattern);
       const isGrain = pData && pData.hasGrain;
 
-      // Right panel toggle
       document.getElementById('specGrainBars').style.display = isGrain ? '' : 'none';
       document.getElementById('specParamRows').style.display = isGrain ? 'none' : '';
 
@@ -455,16 +629,15 @@ self.onmessage=(e)=>{
       <div class="grain-sliders">
         <div class="grain-row">
           <div class="grain-header">
-            <label class="grain-label" for="gFino">Grano fino</label>
+            <label class="grain-label" for="gFino">Grano fino <span style="font-size:9px;color:var(--text-muted);">(1/8" · 1.585mm)</span></label>
             <span class="grain-val" id="gFinoVal">${grainFino}%</span>
           </div>
           <input type="range" id="gFino" min="0" max="100" value="${grainFino}" step="5"
-                 aria-label="Porcentaje de grano fino"
-                 aria-valuemin="0" aria-valuemax="100" aria-valuenow="${grainFino}"/>
+                 aria-label="Porcentaje de grano fino" aria-valuenow="${grainFino}"/>
         </div>
         <div class="grain-row">
           <div class="grain-header">
-            <label class="grain-label" for="gMedio">Grano medio</label>
+            <label class="grain-label" for="gMedio">Grano medio <span style="font-size:9px;color:var(--text-muted);">(1/4" · 3.175mm)</span></label>
             <span class="grain-val" id="gMedioVal">${grainMedio}%</span>
           </div>
           <input type="range" id="gMedio" min="0" max="100" value="${grainMedio}" step="5"
@@ -472,7 +645,7 @@ self.onmessage=(e)=>{
         </div>
         <div class="grain-row">
           <div class="grain-header">
-            <label class="grain-label" for="gGrueso">Grano grueso</label>
+            <label class="grain-label" for="gGrueso">Grano grueso <span style="font-size:9px;color:var(--text-muted);">(3/4" · 9.5mm)</span></label>
             <span class="grain-val" id="gGruesoVal">${grainGrueso}%</span>
           </div>
           <input type="range" id="gGrueso" min="0" max="100" value="${grainGrueso}" step="5"
@@ -487,8 +660,8 @@ self.onmessage=(e)=>{
         bindGrainSliders();
       } else {
         const patternNotes = {
-          palladiana: 'Polígonos 5–8 lados, 20–55 px, estilo veneciano',
-          trencadis: 'Rectángulos angulosos 6–18 px, estilo Gaudí',
+          palladiana: 'Polígonos 5-8 lados, 20-55 px, estilo veneciano',
+          trencadis: 'Rectángulos angulosos 6-18 px, estilo Gaudí',
           opusincertum: 'Formas libres de tamaño y orientación variable, estilo romano',
         };
         label.textContent = 'Parámetros de patrón';
@@ -539,6 +712,7 @@ self.onmessage=(e)=>{
           const total = grainFino + grainMedio + grainGrueso;
           const warn = document.getElementById('grainWarn');
           if (warn) warn.style.display = total > 100 ? 'flex' : 'none';
+          buildLayerPanel(); // Refresh density badges
           scheduleRender();
         });
       };
@@ -569,22 +743,20 @@ self.onmessage=(e)=>{
       currentLine = lineKey;
       const lineData = LINES_DATA[lineKey];
 
-      // Si el patrón actual no está disponible en esta línea, cambiar al default
       if (!lineData.patterns.includes(currentPattern)) {
         currentPattern = lineData.defaultPattern;
       }
 
-      // Actualizar tabs
       document.querySelectorAll('.line-tab').forEach(t => {
         const active = t.dataset.line === lineKey;
         t.classList.toggle('active', active);
         t.setAttribute('aria-checked', active ? 'true' : 'false');
       });
 
-      // Reconstruir patrones + tamaños
       buildPatternCards();
       buildSizeChips();
       buildGrainSection();
+      buildLayerPanel();
       updateSpecPanel();
       updateCode();
       scheduleRender();
@@ -601,6 +773,7 @@ self.onmessage=(e)=>{
         c.setAttribute('tabindex', active ? '0' : '-1');
       });
       buildGrainSection();
+      buildLayerPanel(); // Layers change depending on pattern (tradicional vs others)
       updateSpecPanel();
       updateCode();
       scheduleRender();
@@ -621,7 +794,7 @@ self.onmessage=(e)=>{
       statusMsg(`Tamaño ${sz} cm seleccionado`);
     }
 
-    /* ══ SELECCIONAR COLOR ══ */
+    /* ══ SELECCIONAR COLOR (para la capa activa) ══ */
     const swatches = document.querySelectorAll('.color-swatch:not(#swatchCustom)');
     swatches.forEach((sw, i) => {
       sw.addEventListener('click', () => selectColor(i));
@@ -635,32 +808,36 @@ self.onmessage=(e)=>{
     });
 
     function selectColor(i) {
-      currentColor = COLORS[i];
-      // Actualizar swatches físicos
+      const color = COLORS[i];
+      // Apply to the ACTIVE layer only
+      layerColors[activeLayer] = { hex: color.hex, name: color.name, ref: color.ref };
+
+      // Update swatches
       document.querySelectorAll('.color-swatch:not(#swatchCustom)').forEach((s, j) => {
         const active = j === i;
         s.classList.toggle('active', active);
         s.setAttribute('aria-checked', active ? 'true' : 'false');
         s.setAttribute('tabindex', active ? '0' : '-1');
       });
-      // hide custom panel and deselect custom swatch when standard color chosen
+      // Hide custom panel and deselect custom swatch
       document.getElementById('colorCustomPanel').style.display = 'none';
       const sc = document.getElementById('swatchCustom');
       sc.classList.remove('active'); sc.setAttribute('aria-checked', 'false'); sc.setAttribute('tabindex', '-1');
-      document.getElementById('colorDot').style.background = currentColor.hex;
-      document.getElementById('colorName').textContent = currentColor.name;
-      document.getElementById('colorCode').textContent = `${currentColor.hex} · ${currentColor.ref}`;
-      document.getElementById('specColorName').textContent = currentColor.name;
-      document.getElementById('specHex').textContent = currentColor.hex;
-      document.getElementById('specRef').textContent = currentColor.ref;
+
+      // Update color info
+      document.getElementById('colorDot').style.background = color.hex;
+      document.getElementById('colorName').textContent = color.name;
+      document.getElementById('colorCode').textContent = `${color.hex} · ${color.ref}`;
+
       updateCode();
-      // Refrescar previews de patrón con el nuevo color
+      buildLayerPanel(); // Refresh layer display with new color
+      // Refresh pattern previews
       document.querySelectorAll('.pattern-card canvas').forEach((cv, idx) => {
         const patKey = ALL_PATTERNS[idx]?.key;
-        if (patKey) renderPreview(cv, patKey, currentColor.hex);
+        if (patKey) renderPreview(cv, patKey, layerColors);
       });
       scheduleRender();
-      statusMsg(`Color ${currentColor.name} seleccionado`);
+      statusMsg(`${LAYER_DEFS[activeLayer].label}: ${color.name}`);
     }
 
     /* ══ A11Y PERSISTENCIA Y TOGGLES ══ */
@@ -714,13 +891,31 @@ self.onmessage=(e)=>{
       document.getElementById('specLine').textContent = LINES_DATA[currentLine].name;
       document.getElementById('specPattern').textContent = currentPatternLabel();
       document.getElementById('specPatternStrip').textContent = currentPatternLabel();
+      updateSpecLayerColors();
+    }
+
+    function updateSpecLayerColors() {
+      const container = document.getElementById('specLayerColors');
+      if (!container) return;
+      const visible = getVisibleLayers();
+      container.innerHTML = visible.map(key => {
+        const def = LAYER_DEFS[key];
+        const lc = layerColors[key];
+        return `<div class="spec-row">
+          <span class="spec-row__key" style="display:flex;align-items:center;gap:5px;">
+            <span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:${lc.hex};border:1px solid rgba(0,0,0,0.15);"></span>
+            ${def.label}
+          </span>
+          <span class="spec-row__val">${lc.name} <code style="font-size:9px;color:var(--text-muted);">${lc.hex}</code></span>
+        </div>`;
+      }).join('');
     }
 
     /* ══ UPDATE CODE ══ */
     function updateCode() {
       const lineAbbr = currentLine;
       const sizeCode = currentSize.replace('×', 'x');
-      const colorAbbr = currentColor.name.substring(0, 3).toUpperCase();
+      const colorAbbr = layerColors.pasta.name.substring(0, 3).toUpperCase();
       const patAbbr = { tradicional: 'TRAD', palladiana: 'PALL', trencadis: 'TREN', opusincertum: 'OPUS' }[currentPattern];
       document.getElementById('configCode').textContent = `TRZ-${lineAbbr}-${sizeCode}-${colorAbbr}-${patAbbr}`;
     }
@@ -787,7 +982,6 @@ self.onmessage=(e)=>{
       applyZoom();
       statusMsg('Zoom restablecido a 100%');
     });
-    /* Scroll del mouse también hace zoom */
     document.querySelector('.canvas-viewport').addEventListener('wheel', e => {
       if (!e.ctrlKey && !e.metaKey) return;
       e.preventDefault();
@@ -801,8 +995,6 @@ self.onmessage=(e)=>{
     const swatchCustomEl = document.getElementById('swatchCustom');
     const customPanel = document.getElementById('colorCustomPanel');
 
-    let customColor = { name: 'Personalizado', hex: '#C8741A', ref: 'RGB personalizado' };
-
     function hexFromRGB(r, g, b) {
       return '#' + [r, g, b].map(v => Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, '0')).join('');
     }
@@ -814,7 +1006,10 @@ self.onmessage=(e)=>{
     function syncCustomColor(hex) {
       hex = hex.toUpperCase();
       if (!/^#[0-9A-F]{6}$/.test(hex)) return;
-      customColor.hex = hex;
+
+      // Apply to the ACTIVE layer
+      layerColors[activeLayer] = { hex: hex, name: 'Personalizado', ref: 'RGB personalizado' };
+
       swatchCustomEl.style.background = hex;
       document.getElementById('colorPickerNative').value = hex;
       document.getElementById('colorPickerHex').textContent = hex;
@@ -822,57 +1017,50 @@ self.onmessage=(e)=>{
       document.getElementById('sliderR').value = r; document.getElementById('valR').textContent = r;
       document.getElementById('sliderG').value = g; document.getElementById('valG').textContent = g;
       document.getElementById('sliderB').value = b; document.getElementById('valB').textContent = b;
-      // Apply to canvas if this is the selected color
-      if (swatchCustomEl.classList.contains('active')) {
-        currentColor = customColor;
-        document.getElementById('colorDot').style.background = hex;
-        document.getElementById('colorName').textContent = 'Personalizado';
-        document.getElementById('colorCode').textContent = hex + ' · RGB';
-        document.getElementById('specColorName').textContent = 'Personalizado';
-        document.getElementById('specHex').textContent = hex;
-        document.getElementById('specRef').textContent = 'RGB personalizado';
-        document.querySelectorAll('.pattern-card canvas').forEach((cv, idx) => {
-          const patKey = ALL_PATTERNS[idx]?.key;
-          if (patKey) renderPreview(cv, patKey, hex);
-        });
-        scheduleRender();
-      }
+
+      // Update color info
+      document.getElementById('colorDot').style.background = hex;
+      document.getElementById('colorName').textContent = 'Personalizado';
+      document.getElementById('colorCode').textContent = hex + ' · RGB';
+
+      // Refresh layer panel, previews, and render
+      buildLayerPanel();
+      document.querySelectorAll('.pattern-card canvas').forEach((cv, idx) => {
+        const patKey = ALL_PATTERNS[idx]?.key;
+        if (patKey) renderPreview(cv, patKey, layerColors);
+      });
+      updateCode();
+      scheduleRender();
     }
 
     swatchCustomEl.addEventListener('click', () => {
-      // 1. Deseleccionar el swatch anterior
-      swatches.forEach(s => { 
-        s.classList.remove('active'); 
-        s.setAttribute('aria-checked', 'false'); 
-        s.setAttribute('tabindex', '-1'); 
+      // Deselect standard swatches
+      swatches.forEach(s => {
+        s.classList.remove('active');
+        s.setAttribute('aria-checked', 'false');
+        s.setAttribute('tabindex', '-1');
       });
 
-      // 2. Activar el swatch custom
+      // Activate custom swatch
       swatchCustomEl.classList.add('active');
       swatchCustomEl.setAttribute('aria-checked', 'true');
       swatchCustomEl.setAttribute('tabindex', '0');
 
-      // 3. Mostrar el panel y establecer el color actual como el custom
+      // Show panel, pre-fill with the active layer's current color
       customPanel.style.display = 'block';
-      currentColor = customColor;
+      const currentHex = layerColors[activeLayer].hex;
+      swatchCustomEl.style.background = currentHex;
+      document.getElementById('colorPickerNative').value = currentHex;
+      document.getElementById('colorPickerHex').textContent = currentHex;
+      const { r, g, b } = rgbFromHex(currentHex);
+      document.getElementById('sliderR').value = r; document.getElementById('valR').textContent = r;
+      document.getElementById('sliderG').value = g; document.getElementById('valG').textContent = g;
+      document.getElementById('sliderB').value = b; document.getElementById('valB').textContent = b;
 
-      // 4. Sincronizar UI del panel lateral
-      document.getElementById('colorDot').style.background = customColor.hex;
-      document.getElementById('colorName').textContent = 'Personalizado';
-      document.getElementById('colorCode').textContent = customColor.hex + ' · RGB';
-
-      // 5. Abrir el selector nativo (opcional, para conveniencia)
+      // Open native picker
       document.getElementById('colorPickerNative').click();
 
-      // 6. Refrescar previews
-      document.querySelectorAll('.pattern-card canvas').forEach((cv, idx) => {
-        const patKey = ALL_PATTERNS[idx]?.key;
-        if (patKey) renderPreview(cv, patKey, customColor.hex);
-      });
-
-      updateCode();
-      scheduleRender();
-      statusMsg('Modo de color personalizado activo');
+      statusMsg(`Color personalizado para ${LAYER_DEFS[activeLayer].label}`);
     });
     swatchCustomEl.addEventListener('keydown', e => {
       if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); swatchCustomEl.click(); }
@@ -884,7 +1072,7 @@ self.onmessage=(e)=>{
     });
 
     // RGB sliders
-    function bindRGBSlider(id, valId, channel) {
+    function bindRGBSlider(id, valId) {
       document.getElementById(id).addEventListener('input', function () {
         document.getElementById(valId).textContent = this.value;
         const r = +document.getElementById('sliderR').value;
@@ -893,13 +1081,12 @@ self.onmessage=(e)=>{
         syncCustomColor(hexFromRGB(r, g, b));
       });
     }
-    bindRGBSlider('sliderR', 'valR', 'r');
-    bindRGBSlider('sliderG', 'valG', 'g');
-    bindRGBSlider('sliderB', 'valB', 'b');
+    bindRGBSlider('sliderR', 'valR');
+    bindRGBSlider('sliderG', 'valG');
+    bindRGBSlider('sliderB', 'valB');
 
     // Hide custom panel when a standard swatch is selected
-    swatches.forEach((sw, i) => {
-      const origClick = sw.onclick; // preserve existing
+    swatches.forEach((sw) => {
       sw.addEventListener('click', () => {
         customPanel.style.display = 'none';
         swatchCustomEl.classList.remove('active');
@@ -910,26 +1097,24 @@ self.onmessage=(e)=>{
 
     /* ══ VISTA PREVIA (btnPreview) ══ */
     document.getElementById('btnPreview').addEventListener('click', function () {
-      // Tomamos la imagen exacta del canvas principal del configurador
       const dataURL = document.getElementById('mosaicCanvas').toDataURL('image/png');
 
       const design = {
         name: 'Diseño Actual',
         line: currentLine,
         pattern: currentPattern,
-        color: currentColor.hex,
-        colorName: currentColor.name,
         size: currentSize,
+        layerColors: JSON.parse(JSON.stringify(layerColors)),
         grainFino, grainMedio, grainGrueso,
         paramSize, paramIrreg, paramDensity,
-        imgData: dataURL // <--- Guardamos la imagen
+        imgData: dataURL
       };
       localStorage.setItem('mexmos_active_design', JSON.stringify(design));
       statusMsg('Preparando Vista Previa...');
       setTimeout(() => { window.location.href = 'vista_previa.html'; }, 400);
     });
 
-    /* ══ GUARDAR (btnPedido → save) ══ */
+    /* ══ GUARDAR (btnPedido -> save) ══ */
     document.getElementById('btnPedido').addEventListener('click', function () {
       openDrawer();
       document.getElementById('creationName').focus();
@@ -942,10 +1127,15 @@ self.onmessage=(e)=>{
       const code = document.getElementById('configCode').textContent;
       const lineName = LINES_DATA[currentLine].name;
       const patLabel = currentPatternLabel();
-      const colorNm = currentColor.name;
-      const colorHex = currentColor.hex;
-      const colorRef = currentColor.ref || 'RGB personalizado';
       const sz = currentSize;
+
+      // Build layer color rows for the PDF spec table
+      const visible = getVisibleLayers();
+      const layerRows = visible.map(key => {
+        const def = LAYER_DEFS[key];
+        const lc = layerColors[key];
+        return `<tr><th>${def.label}</th><td><span class="swatch" style="background:${lc.hex};"></span>${lc.name} <code>${lc.hex}</code></td></tr>`;
+      }).join('');
 
       const win = window.open('', '_blank', 'width=800,height=900');
       if (!win) { statusMsg('Permite ventanas emergentes para imprimir'); return; }
@@ -963,10 +1153,12 @@ self.onmessage=(e)=>{
     th,td{padding:8px 10px;border-bottom:1px solid #eee;font-size:12px;text-align:left;}
     th{color:#666;font-weight:500;width:45%;}
     td{font-weight:600;}
+    code{font-size:10px;color:#888;font-family:monospace;}
     .code{font-family:monospace;font-size:13px;font-weight:700;background:#f5f2ec;
           padding:8px 12px;border-radius:6px;border-left:3px solid #C8741A;margin-top:16px;}
     .swatch{display:inline-block;width:14px;height:14px;border-radius:3px;
             border:1px solid #ccc;vertical-align:middle;margin-right:6px;}
+    .section-title{font-size:13px;font-weight:700;margin-top:16px;margin-bottom:4px;color:#333;}
     footer{margin-top:28px;font-size:10px;color:#aaa;border-top:1px solid #eee;padding-top:12px;}
     @media print{body{padding:16px;}button{display:none;}}
   </style>
@@ -977,18 +1169,17 @@ self.onmessage=(e)=>{
     <div><img src="${dataURL}" alt="Previsualización del mosaico"/></div>
     <div>
       <table>
-        <tr><th>Código</th><td><code>${code}</code></td></tr>
+        <tr><th>Código</th><td><code style="font-size:13px;font-weight:700;">${code}</code></td></tr>
         <tr><th>Línea</th><td>${lineName}</td></tr>
         <tr><th>Patrón</th><td>${patLabel}</td></tr>
-        <tr><th>Color</th><td><span class="swatch" style="background:${colorHex};"></span>${colorNm}</td></tr>
-        <tr><th>Referencia color</th><td>${colorRef}</td></tr>
-        <tr><th>HEX</th><td><code>${colorHex}</code></td></tr>
         <tr><th>Tamaño de pieza</th><td>${sz} cm</td></tr>
         <tr><th>Acabado</th><td>Pulido 400 grit</td></tr>
         <tr><th>Grosor</th><td>2.5 cm</td></tr>
         <tr><th>Resistencia</th><td>21.37 MPa</td></tr>
         <tr><th>Absorción</th><td>2.56%</td></tr>
       </table>
+      <div class="section-title">Colores por capa</div>
+      <table>${layerRows}</table>
       <div class="code">${code}</div>
     </div>
   </div>
@@ -1023,14 +1214,17 @@ self.onmessage=(e)=>{
     function saveCreacion() {
       const nameEl = document.getElementById('creationName');
       const name = nameEl.value.trim() || `Diseño ${creaciones.length + 1}`;
-      const dataURL = canvas.toDataURL('image/png'); // Export to cache for pattern repetition
+      const dataURL = canvas.toDataURL('image/png');
 
       const cr = {
         id: 'CRE-' + Date.now(),
         name,
         owner: session ? session.email : 'unknown',
-        color: currentColor.hex,
-        colorName: currentColor.name,
+        // Store full layer colors for per-layer restore
+        layerColors: JSON.parse(JSON.stringify(layerColors)),
+        // Keep flat fields for backward compatibility with drawer display
+        color: layerColors.pasta.hex,
+        colorName: layerColors.pasta.name,
         pattern: currentPattern,
         line: currentLine, size: currentSize,
         grainFino, grainMedio, grainGrueso,
@@ -1074,14 +1268,13 @@ self.onmessage=(e)=>{
       </div>
       <button class="creation-load" aria-label="Cargar ${cr.name}">Cargar</button>
     `;
-        // Mini thumb via Voronoi Worker
         const tc = item.querySelector('canvas');
         if (cr.imgData) {
           const img = new Image();
           img.onload = () => { tc.getContext('2d').drawImage(img, 0, 0, 36, 36); }
           img.src = cr.imgData;
         } else {
-          renderPreview(tc, cr.pattern, cr.color);
+          renderPreview(tc, cr.pattern, layerColors);
         }
 
         item.querySelector('.creation-load').addEventListener('click', () => loadCreacion(cr));
@@ -1092,9 +1285,20 @@ self.onmessage=(e)=>{
     function loadCreacion(cr) {
       selectLine(cr.line);
       selectPattern(cr.pattern);
-      const ci = COLORS.findIndex(c => c.hex === cr.color);
-      if (ci >= 0) selectColor(ci);
-      else syncCustomColor(cr.color); // Fallback custom
+
+      // Restore per-layer colors if available, otherwise fall back to single color
+      if (cr.layerColors) {
+        layerColors = JSON.parse(JSON.stringify(cr.layerColors));
+      } else if (cr.color) {
+        // Legacy: single color -> apply to all layers
+        const ci = COLORS.findIndex(c => c.hex.toLowerCase() === cr.color.toLowerCase());
+        const col = ci >= 0 ? COLORS[ci] : { hex: cr.color, name: cr.colorName || 'Personalizado', ref: 'RGB' };
+        layerColors.pasta = { hex: col.hex, name: col.name, ref: col.ref || 'RGB' };
+        layerColors.granoGrueso = { hex: lighten(col.hex, 15), name: col.name + ' claro', ref: col.ref || 'RGB' };
+        layerColors.granoMedio = { hex: col.hex, name: col.name, ref: col.ref || 'RGB' };
+        layerColors.granoFino = { hex: darken(col.hex, 18), name: col.name + ' oscuro', ref: col.ref || 'RGB' };
+        layerColors.fragmento = { hex: col.hex, name: col.name, ref: col.ref || 'RGB' };
+      }
 
       selectSize(cr.size);
       if (cr.pattern === 'tradicional') {
@@ -1103,6 +1307,9 @@ self.onmessage=(e)=>{
         paramSize = cr.paramSize || 35; paramIrreg = cr.paramIrreg || 60; paramDensity = cr.paramDensity || 3;
       }
       buildGrainSection();
+      buildLayerPanel();
+      updateSpecPanel();
+      updateCode();
       scheduleRender();
       closeDrawer();
       statusMsg(`"${cr.name}" cargado`);
@@ -1154,49 +1361,31 @@ self.onmessage=(e)=>{
       if (!raw) return;
       try {
         const d = JSON.parse(raw);
-        console.log('Cargando diseño activo:', d.name);
 
-        // 1. Línea
-        if (d.line && LINES_DATA[d.line]) {
-          currentLine = d.line;
-        }
+        if (d.line && LINES_DATA[d.line]) currentLine = d.line;
 
-        // 2. Patrón
         if (d.pattern) {
           const lp = LINES_DATA[currentLine].patterns;
-          if (lp.includes(d.pattern)) {
-             currentPattern = d.pattern;
-          } else {
-             currentPattern = lp[0]; 
-          }
+          currentPattern = lp.includes(d.pattern) ? d.pattern : lp[0];
         }
 
-        // 3. Color
-        let foundIndex = -1;
-        if (d.color) {
-          foundIndex = COLORS.findIndex(c => c.hex.toLowerCase() === d.color.toLowerCase());
-          if (foundIndex >= 0) {
-            currentColor = COLORS[foundIndex];
-          } else {
-            // Es un color personalizado
-            syncCustomColor(d.color);
-            // Asegurar que el swatch custom se vea activo
-            swatchCustomEl.click();
-          }
+        // Restore per-layer colors
+        if (d.layerColors) {
+          layerColors = JSON.parse(JSON.stringify(d.layerColors));
+        } else if (d.color) {
+          // Legacy single color
+          const ci = COLORS.findIndex(c => c.hex.toLowerCase() === d.color.toLowerCase());
+          const col = ci >= 0 ? COLORS[ci] : { hex: d.color, name: d.colorName || 'Personalizado', ref: 'RGB' };
+          layerColors.pasta = { hex: col.hex, name: col.name, ref: col.ref || 'RGB' };
+          layerColors.fragmento = { hex: col.hex, name: col.name, ref: col.ref || 'RGB' };
         }
 
-        // 4. Tamaño
         if (d.size) {
-           const sizeNorm = d.size.replace('x', '×');
-           const ls = LINES_DATA[currentLine].sizes;
-           if (ls.includes(sizeNorm)) {
-             currentSize = sizeNorm;
-           } else {
-             currentSize = ls[0];
-           }
+          const sizeNorm = d.size.replace('x', '×');
+          const ls = LINES_DATA[currentLine].sizes;
+          currentSize = ls.includes(sizeNorm) ? sizeNorm : ls[0];
         }
 
-        // 5. Parámetros
         if (d.grainFino !== undefined) grainFino = d.grainFino;
         if (d.grainMedio !== undefined) grainMedio = d.grainMedio;
         if (d.grainGrueso !== undefined) grainGrueso = d.grainGrueso;
@@ -1204,23 +1393,14 @@ self.onmessage=(e)=>{
         if (d.paramIrreg !== undefined) paramIrreg = d.paramIrreg;
         if (d.paramDensity !== undefined) paramDensity = d.paramDensity;
 
-        // Limpieza inteligente: No eliminamos de inmediato para permitir que 
-        // otras páginas (Vista Previa) lo lean si el usuario no ha hecho cambios.
-        // localStorage.removeItem('mexmos_active_design'); 
-        
-        // Sincronizar UI (esto reemplaza al updateUI inexistente)
         loadA11yState();
         buildPatternCards();
         buildSizeChips();
         buildGrainSection();
+        buildLayerPanel();
         updateSpecPanel();
         updateCode();
         scheduleRender();
-        
-        // CORRECCIÓN: Marcar el swatch correcto como activo después de construir la UI
-        if (foundIndex >= 0) {
-           selectColor(foundIndex);
-        }
 
         statusMsg(`Diseño "${d.name}" cargado`);
 
@@ -1231,15 +1411,16 @@ self.onmessage=(e)=>{
 
     /* ══ INIT ══ */
     loadA11yState();
-    loadActiveDesign(); // Esto ya llama a los builders internamente si hay diseño
-    
-    // Si no se cargó nada activo, inicializar UI por defecto
+    loadActiveDesign();
+
     if (!localStorage.getItem('mexmos_active_design')) {
       buildPatternCards();
       buildSizeChips();
       buildGrainSection();
+      buildLayerPanel();
       updateSpecPanel();
       updateCode();
       scheduleRender();
     }
+    renderDrawerList();
     setInterval(() => { if (!document.hidden) scheduleRender(); }, 5000);
