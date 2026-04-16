@@ -634,6 +634,95 @@
       color: var(--brand-terra);
     }
 
+    /* ── Density slider inline ── */
+    .layer-density-ctrl {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      flex-shrink: 0;
+    }
+
+    .layer-density-slider {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 52px;
+      height: 3px;
+      border-radius: 2px;
+      background: var(--border-subtle);
+      outline: none;
+      cursor: pointer;
+    }
+
+    .layer-density-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--brand-terra);
+      cursor: pointer;
+    }
+
+    .layer-density-slider::-moz-range-thumb {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--brand-terra);
+      border: none;
+      cursor: pointer;
+    }
+
+    /* ── Botón eliminar capa ── */
+    .layer-del-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 12px;
+      line-height: 1;
+      padding: 2px 3px;
+      border-radius: var(--r-sm);
+      color: var(--text-muted);
+      opacity: 0;
+      transition: opacity 0.15s, color 0.15s;
+      flex-shrink: 0;
+    }
+
+    .layer-row:hover .layer-del-btn {
+      opacity: 1;
+    }
+
+    .layer-del-btn:hover {
+      color: #e05555;
+      background: rgba(224, 85, 85, 0.12);
+    }
+
+    /* ── Fila de botones "Agregar capa" ── */
+    .layer-add-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      padding: 6px 2px 2px;
+      border-top: 1px solid var(--border-subtle);
+      margin-top: 4px;
+    }
+
+    .layer-add-btn {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px dashed var(--border-subtle);
+      border-radius: var(--r-sm);
+      color: var(--text-secondary);
+      font-size: 10px;
+      padding: 3px 7px;
+      cursor: pointer;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+
+    .layer-add-btn:hover {
+      background: rgba(200, 116, 26, 0.12);
+      border-color: var(--brand-terra);
+      color: var(--brand-terra);
+    }
+
     /* ═══════════════════════════════════
    COLOR SWATCHES — WCAG 1.4.1
 ═══════════════════════════════════ */

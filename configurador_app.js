@@ -62,39 +62,129 @@ const session = requireAuth();
        Abertura 1/16" → 1.59mm → 0.79mm radio
     ══════════════════════════════════════ */
 
-    const LAYER_DEFS = {
-      pasta:       { label: 'Pasta Base',    detail: 'Fondo / cemento',       icon: '▬' },
-      granoGrueso: { label: 'Grano Grueso',  detail: '3/4" · 9.5mm · Malla #5-6', icon: '●' },
-      granoMedio:  { label: 'Grano Medio',   detail: '1/4" · 3.175mm · Malla #3', icon: '◉' },
-      granoFino:   { label: 'Grano Fino',    detail: '1/8" · 1.585mm · Malla #0-2', icon: '·' },
-      fragmento:   { label: 'Fragmentos',    detail: 'Tamaño variable',      icon: '◇' },
+    const LAYER_TYPES = {
+      pasta:       { label: 'Pasta Base',   detail: 'Fondo / cemento',           icon: '▬', abertura: null,  codigoTamano: null, colorVar: 0,  deletable: false, kind: 'pasta' },
+      granoGrueso: { label: 'Grano Grueso', detail: '3/4" · 9.5mm · Malla #5-6', icon: '●', abertura: '3/4', codigoTamano: '5-6', colorVar: 25, deletable: true,  kind: 'grain' },
+      granoMedio:  { label: 'Grano Medio',  detail: '1/4" · 3.175mm · Malla #3', icon: '◉', abertura: '1/4', codigoTamano: '3',   colorVar: 20, deletable: true,  kind: 'grain' },
+      granoFino:   { label: 'Grano Fino',   detail: '1/8" · 1.585mm · Malla #0-2', icon: '·', abertura: '1/8', codigoTamano: '0-2', colorVar: 15, deletable: true,  kind: 'grain' },
+      fragmento:   { label: 'Fragmento',    detail: 'Tamaño variable',           icon: '◇', abertura: null,  codigoTamano: null, colorVar: 30, deletable: true,  kind: 'fragment' },
     };
+    // Legacy alias for any code that still reads LAYER_DEFS
+    const LAYER_DEFS = LAYER_TYPES;
 
     /* ══ ESTADO ══ */
     let currentLine = 'TRAD';
     let currentPattern = 'tradicional';
     let currentSize = '40×40';
     let currentCVD = 'normal';
-    let grainFino = 35, grainMedio = 50, grainGrueso = 15;
     let paramSize = 35, paramIrreg = 60, paramDensity = 3;
     let animFrame = null;
     let creaciones = (typeof CreacionesStore !== 'undefined' && session)
       ? CreacionesStore.getByUser(session.email)
       : [];
 
-    /* ── Estado de colores por capa (independiente) ── */
-    let layerColors = {
-      pasta:       { hex: '#F5F0E0', name: 'Hueso', ref: 'PMS Warm Gray 1' },
-      granoGrueso: { hex: '#C8741A', name: 'Terracota', ref: 'PMS 166 C' },
-      granoMedio:  { hex: '#8B8B8B', name: 'Gris', ref: 'PMS Cool Gray 7' },
-      granoFino:   { hex: '#1A1A2E', name: 'Granito', ref: 'PMS Black 6 C' },
-      fragmento:   { hex: '#C8741A', name: 'Terracota', ref: 'PMS 166 C' },
-    };
-    let activeLayer = 'pasta';
+    /* ── Capas dinámicas: pasta siempre primero, luego granos/fragmentos
+         El usuario puede agregar múltiples capas del mismo tipo con colores distintos. ── */
+    let _layerIdSeq = 0;
+    function nextLayerId(prefix) { _layerIdSeq++; return (prefix || 'L') + '_' + _layerIdSeq; }
 
-    // Backward compatibility: expose currentColor as a getter for code that reads it
+    let layers = [
+      { id: 'pasta',  tipo: 'pasta',       color: { hex: '#F5F0E0', name: 'Hueso',     ref: 'PMS Warm Gray 1' }, densidad: 0 },
+      { id: nextLayerId('gG'), tipo: 'granoGrueso', color: { hex: '#C8741A', name: 'Terracota', ref: 'PMS 166 C' },     densidad: 15 },
+      { id: nextLayerId('gM'), tipo: 'granoMedio',  color: { hex: '#8B8B8B', name: 'Gris',      ref: 'PMS Cool Gray 7' }, densidad: 50 },
+      { id: nextLayerId('gF'), tipo: 'granoFino',   color: { hex: '#1A1A2E', name: 'Granito',   ref: 'PMS Black 6 C' },   densidad: 35 },
+      { id: nextLayerId('fr'), tipo: 'fragmento',   color: { hex: '#C8741A', name: 'Terracota', ref: 'PMS 166 C' },     densidad: 100 },
+    ];
+    let activeLayerId = 'pasta';
+
+    function findLayer(id) { return layers.find(l => l.id === id); }
+    function getActiveLayer() { return findLayer(activeLayerId) || layers[0]; }
+    function getPastaLayer() { return layers.find(l => l.tipo === 'pasta') || layers[0]; }
+
+    // Tipos visibles según patrón
+    function getVisibleTipos(pattern) {
+      if (pattern === 'tradicional') return ['pasta', 'granoGrueso', 'granoMedio', 'granoFino'];
+      return ['pasta', 'fragmento'];
+    }
+    // Tipos que el usuario puede agregar con el botón "+"
+    function getAddableTipos(pattern) {
+      if (pattern === 'tradicional') return ['granoGrueso', 'granoMedio', 'granoFino'];
+      return ['fragmento'];
+    }
+    function getVisibleLayers() {
+      const tipos = getVisibleTipos(currentPattern);
+      return layers.filter(l => tipos.includes(l.tipo));
+    }
+
+    // Default color for a new layer of a tipo (cycles through palette so new capas don't all look identical)
+    function defaultColorForNewLayer(tipo) {
+      const existing = layers.filter(l => l.tipo === tipo).length;
+      const palette = COLORS;
+      const c = palette[(existing * 3 + 1) % palette.length];
+      return { hex: c.hex, name: c.name, ref: c.ref };
+    }
+
+    function addLayer(tipo) {
+      if (!LAYER_TYPES[tipo] || !LAYER_TYPES[tipo].deletable) return null;
+      const existingSame = layers.filter(l => l.tipo === tipo);
+      // Repartir densidad: si ya hay capas del mismo tipo, la nueva hereda el promedio
+      const defaultDens = existingSame.length
+        ? Math.max(5, Math.round(existingSame.reduce((a, l) => a + l.densidad, 0) / existingSame.length / 2))
+        : (tipo === 'fragmento' ? 50 : 20);
+      const nl = { id: nextLayerId(tipo.substring(0, 2)), tipo, color: defaultColorForNewLayer(tipo), densidad: defaultDens };
+      // Insertar respetando orden: pasta primero, luego grueso, medio, fino, fragmento
+      const order = { pasta: 0, granoGrueso: 1, granoMedio: 2, granoFino: 3, fragmento: 4 };
+      layers.push(nl);
+      layers.sort((a, b) => (order[a.tipo] - order[b.tipo]));
+      return nl;
+    }
+
+    function removeLayer(id) {
+      const l = findLayer(id);
+      if (!l || !LAYER_TYPES[l.tipo].deletable) return false;
+      layers = layers.filter(x => x.id !== id);
+      if (activeLayerId === id) activeLayerId = 'pasta';
+      return true;
+    }
+
+    // Backward compatibility helper
     function getCurrentColor() {
-      return { name: layerColors.pasta.name, hex: layerColors.pasta.hex, ref: layerColors.pasta.ref };
+      const p = getPastaLayer();
+      return { name: p.color.name, hex: p.color.hex, ref: p.color.ref };
+    }
+
+    /* ── Migración legacy:
+         Diseños antiguos guardaban `layerColors` (objeto) + grainFino/Medio/Grueso.
+         Convertir a `layers[]` array. ── */
+    function migrateLegacyToLayers(saved) {
+      if (Array.isArray(saved.layers)) return saved.layers.map(l => ({
+        id: l.id || nextLayerId(l.tipo ? l.tipo.substring(0,2) : 'L'),
+        tipo: l.tipo,
+        color: { hex: l.color.hex, name: l.color.name, ref: l.color.ref || 'RGB' },
+        densidad: (l.densidad === undefined || l.densidad === null) ? 0 : l.densidad,
+      }));
+
+      const lc = saved.layerColors || {};
+      const pastaSrc = lc.pasta || { hex: saved.color || '#F5F0E0', name: saved.colorName || 'Hueso', ref: 'PMS' };
+      const out = [
+        { id: 'pasta', tipo: 'pasta', color: { hex: pastaSrc.hex, name: pastaSrc.name, ref: pastaSrc.ref || 'PMS' }, densidad: 0 },
+      ];
+      const gG = (saved.grainGrueso !== undefined) ? saved.grainGrueso : 15;
+      const gM = (saved.grainMedio  !== undefined) ? saved.grainMedio  : 50;
+      const gF = (saved.grainFino   !== undefined) ? saved.grainFino   : 35;
+      const mk = (tipo, src, dens) => ({
+        id: nextLayerId(tipo.substring(0,2)),
+        tipo,
+        color: src
+          ? { hex: src.hex, name: src.name, ref: src.ref || 'RGB' }
+          : { hex: pastaSrc.hex, name: pastaSrc.name, ref: pastaSrc.ref || 'RGB' },
+        densidad: dens,
+      });
+      out.push(mk('granoGrueso', lc.granoGrueso, gG));
+      out.push(mk('granoMedio',  lc.granoMedio,  gM));
+      out.push(mk('granoFino',   lc.granoFino,   gF));
+      out.push(mk('fragmento',   lc.fragmento,   100));
+      return out;
     }
 
     /* ══ CANVAS ══ */
@@ -125,27 +215,78 @@ function inferirRadioMm(ab,cd){ab=String(ab||'').toLowerCase().trim();cd=String(
 function resolveColor(c){if(c.pigmento&&c.pigmento.codigoHex)return c.pigmento.codigoHex;const cn=c.colorNatural;if(typeof cn==='string')return cn.startsWith('#')||cn.startsWith('rgb')?cn:'#'+cn;if(typeof cn==='number'){const r=(cn>>>16)&0xFF,g=(cn>>>8)&0xFF,b=cn&0xFF;return'#'+[r,g,b].map(x=>x.toString(16).padStart(2,'0')).join('');}return'#888888';}
 function makeGrid(cs,cols){const cells=new Map();function key(x,y){return(Math.floor(y/cs)*cols+Math.floor(x/cs))|0;}return{add(x,y,it){const k=key(x,y);if(!cells.has(k))cells.set(k,[]);cells.get(k).push(it);},neighbors(x,y,steps){const cx=Math.floor(x/cs),cy=Math.floor(y/cs),out=[];for(let i=-steps;i<=steps;i++)for(let j=-steps;j<=steps;j++){const c=cells.get((cy+i)*cols+(cx+j));if(c)for(const it of c)out.push(it);}return out;}};}
 function generarParticulas({capas,width,height,offsetPasta,escala,rng,irreg,distanciaFisica}){
+  // Ordenar de mayor a menor radio para colocar granos grandes primero
   const sorted=[...capas].sort((a,b)=>inferirRadioMm(b.abertura,b.codigoTamano)-inferirRadioMm(a.abertura,a.codigoTamano));
   let maxR=0;for(const c of sorted){const r=inferirRadioMm(c.abertura,c.codigoTamano)*escala;if(r>maxR)maxR=r;}
   if(maxR===0)return[];const cs=maxR*2,cols=Math.ceil(width/cs)+2,grid=makeGrid(cs,cols),all=[];
+  // Agrupar capas por radio (misma abertura = mismo tamaño físico)
+  const groups=[];
   for(const capa of sorted){
     const rMm=inferirRadioMm(capa.abertura,capa.codigoTamano),rPx=rMm*escala;if(rPx===0)continue;
     const physicalMax=Math.floor((width*height)/(Math.PI*rPx*rPx*1.4));
     const dens=(capa.densidad===undefined||capa.densidad===null)?0.4:capa.densidad;
     const maxP=Math.min(15000,Math.floor(physicalMax*dens));
-    const fallLimit=rPx<5?3000:1500;
-    let fails=0,placed=0;
-    while(placed<maxP&&fails<fallLimit){
+    // ¿Ya existe un grupo con este radio?
+    const existing=groups.find(g=>Math.abs(g.rPx-rPx)<0.01);
+    if(existing){existing.slots.push({capa,maxP,placed:0});}
+    else{groups.push({rPx,fallLimit:rPx<5?3000:1500,slots:[{capa,maxP,placed:0}]});}
+  }
+  // Colocar cada grupo: round-robin ponderado por densidad restante dentro del mismo tamaño
+  const gap=distanciaFisica||offsetPasta;
+  for(const grp of groups){
+    const{rPx,fallLimit,slots}=grp;
+    let fails=0;
+    while(fails<fallLimit){
+      // ¿Quedan partículas por colocar?
+      const remaining=slots.filter(s=>s.placed<s.maxP);
+      if(!remaining.length)break;
+      // Elegir capa aleatoriamente ponderada por (maxP - placed)
+      let total=remaining.reduce((a,s)=>a+(s.maxP-s.placed),0);
+      let pick=rng()*total,chosen=remaining[remaining.length-1];
+      for(const s of remaining){pick-=(s.maxP-s.placed);if(pick<=0){chosen=s;break;}}
+      // Intentar colocar una partícula para la capa elegida
       const x=rng()*width,y=rng()*height,r=rPx*(0.8+rng()*0.4*(irreg||1));
       const nb=grid.neighbors(x,y,2);let hit=false;
-      for(const n of nb){const dx=n.x-x,dy=n.y-y,min=n.radio+r+(distanciaFisica||offsetPasta);if(dx*dx+dy*dy<min*min){hit=true;break;}}
-      if(!hit){const p={x,y,radio:r,capa};all.push(p);grid.add(x,y,p);placed++;fails=0;}else fails++;
+      for(const n of nb){const dx=n.x-x,dy=n.y-y,min=n.radio+r+gap;if(dx*dx+dy*dy<min*min){hit=true;break;}}
+      if(!hit){const p={x,y,radio:r,capa:chosen.capa};all.push(p);grid.add(x,y,p);chosen.placed++;fails=0;}
+      else{fails++;}
     }
   }
   return all;
 }
 function clipPolygon(poly,px,py,nx,ny){if(!poly.length)return[];const out=[];let cp1=poly[poly.length-1];const inside=pt=>(pt.x-px)*nx+(pt.y-py)*ny<=0;const intersect=(a,b)=>{const d1=(a.x-px)*nx+(a.y-py)*ny,d2=(b.x-px)*nx+(b.y-py)*ny,t=d1/(d1-d2);return{x:a.x+t*(b.x-a.x),y:a.y+t*(b.y-a.y)};};for(const cp2 of poly){const i2=inside(cp2),i1=inside(cp1);if(i2){if(!i1)out.push(intersect(cp1,cp2));out.push(cp2);}else if(i1)out.push(intersect(cp1,cp2));cp1=cp2;}return out;}
-function initialPolygon(p,rng,irreg){const sides=5+Math.floor(rng()*4*(irreg||1)),maxR=p.radio*1.5,sx=0.8+rng()*0.4,sy=0.8+rng()*0.4,rot=rng()*Math.PI,poly=[];for(let i=0;i<sides;i++){const a=(2*Math.PI/sides)*i,lx=Math.cos(a)*maxR*sx,ly=Math.sin(a)*maxR*sy;poly.push({x:p.x+lx*Math.cos(rot)-ly*Math.sin(rot),y:p.y+lx*Math.sin(rot)+ly*Math.cos(rot)});}return poly;}
+function initialPolygon(p,rng,irreg){
+  const irr=Math.max(0.4,irreg||1);
+  // Lados irregulares: 4-9, con más variación al aumentar irreg
+  const sides=4+Math.floor(rng()*5*irr);
+  const maxR=p.radio*(1.1+rng()*0.7);
+  // Elongación aleatoria en una dirección (fragmentos reales no son circulares)
+  const stretchDir=rng()*Math.PI*2;
+  const stretchAmt=0.55+rng()*1.1; // 0.55 = casi cuadrado, 1.65 = muy elongado
+  // Espaciado angular NO uniforme: simula fracturas naturales
+  const angles=[];
+  let cur=rng()*Math.PI*2;
+  const baseStep=(Math.PI*2)/sides;
+  for(let i=0;i<sides;i++){
+    cur+=baseStep*(0.35+rng()*1.3); // paso variable → ángulos irregulares
+    angles.push(cur);
+  }
+  const rot=rng()*Math.PI;
+  const poly=[];
+  for(let i=0;i<sides;i++){
+    const a=angles[i];
+    // Radio por vértice: algunos vértices se hunden (concavidad natural de fracturas)
+    const concaveFactor=rng()<0.28*irr ? 0.30+rng()*0.35 : 0.68+rng()*0.45;
+    const r=maxR*concaveFactor;
+    // Aplicar elongación a lo largo de stretchDir
+    const dotStretch=Math.cos(a-stretchDir);
+    const elong=1+(stretchAmt-1)*dotStretch*dotStretch*0.6;
+    const lx=Math.cos(a)*r*elong;
+    const ly=Math.sin(a)*r;
+    poly.push({x:p.x+lx*Math.cos(rot)-ly*Math.sin(rot),y:p.y+lx*Math.sin(rot)+ly*Math.cos(rot)});
+  }
+  return poly;
+}
 function generarDiagramas({particulas,width,height,offsetPasta,rng,irreg}){
   let maxR=0;for(const p of particulas)if(p.radio>maxR)maxR=p.radio;
   const searchR=maxR*5;if(searchR<=0)return[];const cs=maxR*2.5,cols=Math.ceil(width/cs)+2,grid=makeGrid(cs,cols);
@@ -159,7 +300,7 @@ function generarDiagramas({particulas,width,height,offsetPasta,rng,irreg}){
       const nx=dx/dist,ny=dy/dist;poly=clipPolygon(poly,p.x+nx*cut,p.y+ny*cut,nx,ny);if(!poly.length)break;
     }
     if(poly.length>=3){
-      let d='';for(let i=0;i<poly.length;i++){const jx=(rng()-.5)*p.radio*.15*(irreg||1),jy=(rng()-.5)*p.radio*.15*(irreg||1);d+=(i===0?'M':'L')+(poly[i].x+jx).toFixed(1)+','+(poly[i].y+jy).toFixed(1);}
+      let d='';for(let i=0;i<poly.length;i++){const jx=(rng()-.5)*p.radio*.28*(irreg||1),jy=(rng()-.5)*p.radio*.28*(irreg||1);d+=(i===0?'M':'L')+(poly[i].x+jx).toFixed(1)+','+(poly[i].y+jy).toFixed(1);}
       const baseColor = resolveColor(p.capa);
       const jColor = jitterColor(baseColor, rng, p.capa.colorVar || 10);
       piedras.push({pathStr:d+'Z',colorHex:jColor,capaId:p.capa.id});
@@ -195,7 +336,7 @@ self.onmessage=(e)=>{
       if (String(id).startsWith('main_')) {
         if (id !== 'main_' + currentRenderID) return;
         lastPiedras = payload.piedras;
-        drawCanvas(ctx, payload.piedras, layerColors.pasta.hex, canvas.width, canvas.height);
+        drawCanvas(ctx, payload.piedras, getPastaLayer().color.hex, canvas.width, canvas.height);
         const overlay = document.getElementById('canvasOverlay');
         if (overlay) overlay.classList.remove('visible');
       } else if (String(id).startsWith('preview_')) {
@@ -207,68 +348,73 @@ self.onmessage=(e)=>{
     };
 
     /* ══════════════════════════════════════
-       getCapasForPattern — AHORA con colores independientes por capa
-       Cada capa toma su color de layerColors, NO se derivan de un solo color.
+       getCapasForPattern — Capas dinámicas desde `layers[]`
+       Cada capa de usuario (grano o fragmento) se traduce en una capa Voronoi
+       independiente con su propio color y densidad. El motor las mezcla
+       aleatoriamente dentro de cada clase de tamaño (ver WORKER_SRC).
        Las medidas de abertura/codigoTamano son las exactas de fábrica.
     ══════════════════════════════════════ */
-    function getCapasForPattern(pattern, overrideColors) {
-      const lc = overrideColors || layerColors;
+    function getCapasForPattern(pattern, overrideLayers) {
+      const src = overrideLayers || layers;
 
       if (pattern === 'tradicional') {
-        return {
-          capas: [
-            {
-              id: 'c0', abertura: '3/4', codigoTamano: '5-6',
-              densidad: grainGrueso / 100,
-              colorNatural: lc.granoGrueso.hex,
-              colorVar: 25
-            },
-            {
-              id: 'c1', abertura: '1/4', codigoTamano: '3',
-              densidad: grainMedio / 100,
-              colorNatural: lc.granoMedio.hex,
-              colorVar: 20
-            },
-            {
-              id: 'c2', abertura: '1/8', codigoTamano: '0-2',
-              densidad: grainFino / 100,
-              colorNatural: lc.granoFino.hex,
-              colorVar: 15
-            }
-          ],
-          irreg: 1.0, offsetPasta: 1.0, distanciaFisica: 1.0
-        };
-      } else if (pattern === 'palladiana') {
-        return {
-          capas: [{
-            id: 'p0', abertura: paramSize + 'mm', codigoTamano: '',
-            densidad: 1.0,
-            colorNatural: lc.fragmento.hex,
-            colorVar: 30
-          }],
-          irreg: 1.8 + (paramIrreg / 100) * 1.2, offsetPasta: paramDensity * 1.5, distanciaFisica: paramDensity * 3.5
-        };
-      } else if (pattern === 'trencadis') {
-        return {
-          capas: [{
-            id: 't0', abertura: Math.min(paramSize, 30) + 'mm', codigoTamano: '',
-            densidad: 1.0,
-            colorNatural: lc.fragmento.hex,
-            colorVar: 35
-          }],
-          irreg: 2.5 + (paramIrreg / 100), offsetPasta: paramDensity * 1.5, distanciaFisica: paramDensity * 1.5
-        };
-      } else { /* opusincertum */
-        return {
-          capas: [{
-            id: 'o0', abertura: paramSize + 'mm', codigoTamano: '',
-            densidad: 0.9,
-            colorNatural: lc.fragmento.hex,
-            colorVar: 25
-          }],
-          irreg: 1.2 + (paramIrreg / 100) * 0.8, offsetPasta: paramDensity * 1.5, distanciaFisica: paramDensity * 1.5
-        };
+        const grains = src.filter(l => LAYER_TYPES[l.tipo] && LAYER_TYPES[l.tipo].kind === 'grain');
+        const capas = grains.map((l, idx) => {
+          const t = LAYER_TYPES[l.tipo];
+          return {
+            id: 'c' + idx + '_' + l.id,
+            abertura: t.abertura, codigoTamano: t.codigoTamano,
+            densidad: (l.densidad || 0) / 100,
+            colorNatural: l.color.hex,
+            colorVar: t.colorVar,
+          };
+        });
+        return { capas, irreg: 1.0, offsetPasta: 1.0, distanciaFisica: 1.0 };
       }
+
+      // palladiana / trencadis / opusincertum — fragmentos dinámicos
+      const frags = src.filter(l => l.tipo === 'fragmento');
+      // Evitar array vacío: si el usuario borró todo, usar el color de pasta
+      const baseFrags = frags.length ? frags : [{
+        id: 'frag_fallback', tipo: 'fragmento',
+        color: (src.find(l => l.tipo === 'pasta') || src[0]).color,
+        densidad: 100
+      }];
+
+      let abertura, patternParams, colorVar;
+      if (pattern === 'palladiana') {
+        abertura = paramSize + 'mm'; colorVar = 30;
+        patternParams = { irreg: 1.8 + (paramIrreg / 100) * 1.2, offsetPasta: paramDensity * 1.5, distanciaFisica: paramDensity * 3.5 };
+      } else if (pattern === 'trencadis') {
+        abertura = Math.min(paramSize, 30) + 'mm'; colorVar = 35;
+        patternParams = { irreg: 2.5 + (paramIrreg / 100), offsetPasta: paramDensity * 1.5, distanciaFisica: paramDensity * 1.5 };
+      } else { /* opusincertum */
+        abertura = paramSize + 'mm'; colorVar = 25;
+        patternParams = { irreg: 1.2 + (paramIrreg / 100) * 0.8, offsetPasta: paramDensity * 1.5, distanciaFisica: paramDensity * 1.5 };
+      }
+
+      const capas = baseFrags.map((l, idx) => ({
+        id: 'f' + idx + '_' + l.id,
+        abertura, codigoTamano: '',
+        densidad: Math.min(1, (l.densidad || 0) / 100),
+        colorNatural: l.color.hex,
+        colorVar,
+      }));
+      return { capas, ...patternParams };
+    }
+
+    // Helper: used by places that still think in terms of the old `layerColors` shape
+    // (pattern previews, some legacy paths). Reads current `layers`.
+    function layerColorsSnapshot(src) {
+      const arr = src || layers;
+      const find = tipo => arr.find(l => l.tipo === tipo) || arr.find(l => l.tipo === 'pasta') || arr[0];
+      return {
+        pasta:       find('pasta').color,
+        granoGrueso: (arr.find(l => l.tipo === 'granoGrueso') || find('pasta')).color,
+        granoMedio:  (arr.find(l => l.tipo === 'granoMedio')  || find('pasta')).color,
+        granoFino:   (arr.find(l => l.tipo === 'granoFino')   || find('pasta')).color,
+        fragmento:   (arr.find(l => l.tipo === 'fragmento')   || find('pasta')).color,
+      };
     }
 
     function renderMain() {
@@ -280,7 +426,7 @@ self.onmessage=(e)=>{
       const config = getCapasForPattern(currentPattern);
 
       canvas.setAttribute('aria-label',
-        `Previsualización: pasta ${layerColors.pasta.name}, patrón ${currentPatternLabel()}, tamaño ${currentSize}`);
+        `Previsualización: pasta ${getPastaLayer().color.name}, patrón ${currentPatternLabel()}, tamaño ${currentSize}`);
 
       voronoiWorker.postMessage({
         type: 'render', id: idStr,
@@ -404,19 +550,30 @@ self.onmessage=(e)=>{
     }
 
     /* ── Mini preview para tarjetas de patrón ── */
-    function renderPreview(canvasEl, patternKey, previewLayerColors) {
+    function renderPreview(canvasEl, patternKey, previewLayers) {
       const c = canvasEl.getContext('2d');
       canvasEl.width = canvasEl.parentElement.offsetWidth || 100;
       canvasEl.height = canvasEl.parentElement.offsetHeight || 44;
       const cw = canvasEl.width, ch = canvasEl.height;
 
-      c.fillStyle = darken(previewLayerColors.pasta.hex, 50); c.fillRect(0, 0, cw, ch);
+      // previewLayers puede ser array (nuevo) u objeto (legacy). Resolver pasta.
+      let pastaHex;
+      if (Array.isArray(previewLayers)) {
+        const p = previewLayers.find(l => l.tipo === 'pasta') || previewLayers[0];
+        pastaHex = p && p.color ? p.color.hex : '#F5F0E0';
+      } else if (previewLayers && previewLayers.pasta) {
+        pastaHex = previewLayers.pasta.hex;
+      } else {
+        pastaHex = getPastaLayer().color.hex;
+      }
+
+      c.fillStyle = darken(pastaHex, 50); c.fillRect(0, 0, cw, ch);
 
       const pid = 'preview_' + Math.random().toString(36).substring(2);
-      const config = getCapasForPattern(patternKey, previewLayerColors);
+      const config = getCapasForPattern(patternKey, Array.isArray(previewLayers) ? previewLayers : layers);
 
       previewCallbacks[pid] = function (piedras) {
-        drawCanvas(c, piedras, previewLayerColors.pasta.hex, cw, ch);
+        drawCanvas(c, piedras, pastaHex, cw, ch);
       };
 
       voronoiWorker.postMessage({
@@ -433,94 +590,173 @@ self.onmessage=(e)=>{
     }
 
     /* ══════════════════════════════════════
-       LAYER PANEL — construir lista de capas según patrón activo
+       LAYER PANEL — lista dinámica (pasta fija + capas de grano/fragmento con +/🗑)
     ══════════════════════════════════════ */
-    function getVisibleLayers() {
-      if (currentPattern === 'tradicional') {
-        return ['pasta', 'granoGrueso', 'granoMedio', 'granoFino'];
-      } else {
-        return ['pasta', 'fragmento'];
-      }
-    }
-
     function buildLayerPanel() {
       const list = document.getElementById('layerList');
       list.innerHTML = '';
       const visible = getVisibleLayers();
 
-      // If active layer is not visible for this pattern, switch to pasta
-      if (!visible.includes(activeLayer)) {
-        activeLayer = 'pasta';
+      // Si la capa activa no es visible para este patrón, cambiar a pasta
+      if (!visible.find(l => l.id === activeLayerId)) {
+        activeLayerId = 'pasta';
       }
 
-      visible.forEach(layerKey => {
-        const def = LAYER_DEFS[layerKey];
-        const lc = layerColors[layerKey];
-        const isActive = layerKey === activeLayer;
+      visible.forEach(layer => {
+        const t = LAYER_TYPES[layer.tipo];
+        const isActive = layer.id === activeLayerId;
 
         const row = document.createElement('div');
         row.className = 'layer-row' + (isActive ? ' active' : '');
         row.setAttribute('role', 'option');
         row.setAttribute('aria-selected', isActive ? 'true' : 'false');
-        row.setAttribute('data-layer', layerKey);
+        row.setAttribute('data-layer', layer.id);
         row.setAttribute('tabindex', isActive ? '0' : '-1');
-        row.setAttribute('aria-label', `${def.label}: ${lc.name} (${lc.hex})`);
+        row.setAttribute('aria-label', `${t.label}: ${layer.color.name} (${layer.color.hex})`);
 
-        // Density badge for grain layers
-        let badge = '';
-        if (layerKey === 'granoGrueso') badge = `<span class="layer-density-badge">${grainGrueso}%</span>`;
-        else if (layerKey === 'granoMedio') badge = `<span class="layer-density-badge">${grainMedio}%</span>`;
-        else if (layerKey === 'granoFino') badge = `<span class="layer-density-badge">${grainFino}%</span>`;
+        // Contar cuántas capas del mismo tipo existen para numerarlas visualmente
+        const sameTipoList = layers.filter(l => l.tipo === layer.tipo);
+        const sameTipoIdx = sameTipoList.indexOf(layer);
+        const showIdx = sameTipoList.length > 1 ? ` ${sameTipoIdx + 1}` : '';
+
+        // Densidad inline (solo grano/fragmento)
+        let densityCtrl = '';
+        if (t.kind !== 'pasta') {
+          densityCtrl = `
+            <div class="layer-density-ctrl" onclick="event.stopPropagation()">
+              <input type="range" class="layer-density-slider" min="0" max="100" step="5"
+                     value="${layer.densidad}" data-layer-id="${layer.id}"
+                     aria-label="Densidad de ${t.label} ${showIdx}"/>
+              <span class="layer-density-badge" data-badge-for="${layer.id}">${layer.densidad}%</span>
+            </div>`;
+        }
+
+        // Botón eliminar (no para pasta)
+        const delBtn = t.deletable
+          ? `<button class="layer-del-btn" data-del-layer="${layer.id}" aria-label="Eliminar ${t.label}" title="Eliminar capa">🗑</button>`
+          : '';
 
         row.innerHTML = `
-          <div class="layer-color-dot" style="background:${lc.hex}"></div>
+          <div class="layer-color-dot" style="background:${layer.color.hex}"></div>
           <div class="layer-info">
-            <div class="layer-name">${def.icon} ${def.label}</div>
-            <div class="layer-detail">${lc.name} · ${def.detail}</div>
+            <div class="layer-name">${t.icon} ${t.label}${showIdx}</div>
+            <div class="layer-detail">${layer.color.name} · ${t.detail}</div>
           </div>
-          ${badge}
+          ${densityCtrl}
+          ${delBtn}
         `;
 
-        row.addEventListener('click', () => selectLayer(layerKey));
+        row.addEventListener('click', (e) => {
+          if (e.target.closest('.layer-del-btn') || e.target.closest('.layer-density-ctrl')) return;
+          selectLayer(layer.id);
+        });
         row.addEventListener('keydown', e => {
-          if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectLayer(layerKey); }
+          if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectLayer(layer.id); }
         });
 
         list.appendChild(row);
       });
 
-      // Update the picker title
+      // Bind delete buttons
+      list.querySelectorAll('[data-del-layer]').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const id = btn.getAttribute('data-del-layer');
+          const l = findLayer(id);
+          if (!l) return;
+          if (removeLayer(id)) {
+            statusMsg(`Capa ${LAYER_TYPES[l.tipo].label} eliminada`);
+            buildLayerPanel();
+            updateSpecPanel();
+            updateCode();
+            scheduleRender();
+            refreshPatternPreviews();
+          }
+        });
+      });
+
+      // Bind density sliders
+      list.querySelectorAll('.layer-density-slider').forEach(sl => {
+        sl.addEventListener('input', () => {
+          const id = sl.getAttribute('data-layer-id');
+          const l = findLayer(id);
+          if (!l) return;
+          l.densidad = +sl.value;
+          const badge = list.querySelector(`[data-badge-for="${id}"]`);
+          if (badge) badge.textContent = l.densidad + '%';
+          updateSpecPanel();
+          scheduleRender();
+        });
+      });
+
+      // Agregar botones "+"
+      const addable = getAddableTipos(currentPattern);
+      if (addable.length) {
+        const adder = document.createElement('div');
+        adder.className = 'layer-add-row';
+        adder.innerHTML = addable.map(tipo => {
+          const t = LAYER_TYPES[tipo];
+          return `<button class="layer-add-btn" data-add-tipo="${tipo}" aria-label="Agregar capa de ${t.label}" title="Agregar capa de ${t.label}">+ ${t.icon} ${t.label.replace('Grano ', '')}</button>`;
+        }).join('');
+        list.appendChild(adder);
+        adder.querySelectorAll('[data-add-tipo]').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const tipo = btn.getAttribute('data-add-tipo');
+            const nl = addLayer(tipo);
+            if (!nl) return;
+            activeLayerId = nl.id;
+            statusMsg(`Nueva capa ${LAYER_TYPES[tipo].label} agregada`);
+            buildLayerPanel();
+            updateSpecPanel();
+            updateCode();
+            scheduleRender();
+            refreshPatternPreviews();
+          });
+        });
+      }
+
       updatePickerTitle();
-      // Sync the swatch highlight to match the active layer's current color
       syncSwatchesToLayer();
-      // Update spec panel layer colors
       updateSpecLayerColors();
     }
 
-    function selectLayer(layerKey) {
-      activeLayer = layerKey;
-      // Update visual state
+    function refreshPatternPreviews() {
+      document.querySelectorAll('.pattern-card canvas').forEach((cv, idx) => {
+        const patKey = ALL_PATTERNS[idx]?.key;
+        if (patKey) renderPreview(cv, patKey, layerColorsSnapshot());
+      });
+    }
+
+    function selectLayer(layerId) {
+      if (!findLayer(layerId)) return;
+      activeLayerId = layerId;
       document.querySelectorAll('.layer-row').forEach(r => {
-        const isActive = r.dataset.layer === layerKey;
+        const isActive = r.dataset.layer === layerId;
         r.classList.toggle('active', isActive);
         r.setAttribute('aria-selected', isActive ? 'true' : 'false');
         r.setAttribute('tabindex', isActive ? '0' : '-1');
       });
       updatePickerTitle();
       syncSwatchesToLayer();
-      // Hide custom panel when switching layers
       document.getElementById('colorCustomPanel').style.display = 'none';
-      statusMsg(`Editando capa: ${LAYER_DEFS[layerKey].label}`);
+      const l = getActiveLayer();
+      statusMsg(`Editando capa: ${LAYER_TYPES[l.tipo].label}`);
     }
 
     function updatePickerTitle() {
       const nameEl = document.getElementById('layerPickerName');
-      if (nameEl) nameEl.textContent = LAYER_DEFS[activeLayer].label;
+      if (!nameEl) return;
+      const l = getActiveLayer();
+      const t = LAYER_TYPES[l.tipo];
+      const sameTipoList = layers.filter(x => x.tipo === l.tipo);
+      const showIdx = sameTipoList.length > 1 ? ` ${sameTipoList.indexOf(l) + 1}` : '';
+      nameEl.textContent = t.label + showIdx;
     }
 
     function syncSwatchesToLayer() {
-      const lc = layerColors[activeLayer];
-      // Find which standard swatch matches the active layer's color
+      const l = getActiveLayer();
+      const lc = l.color;
       const matchIndex = COLORS.findIndex(c => c.hex.toLowerCase() === lc.hex.toLowerCase());
 
       const allSwatches = document.querySelectorAll('.color-swatch:not(#swatchCustom)');
@@ -535,11 +771,8 @@ self.onmessage=(e)=>{
       const isCustom = matchIndex < 0;
       sc.classList.toggle('active', isCustom);
       sc.setAttribute('aria-checked', isCustom ? 'true' : 'false');
-      if (isCustom) {
-        sc.style.background = lc.hex;
-      }
+      if (isCustom) sc.style.background = lc.hex;
 
-      // Update color info display
       document.getElementById('colorDot').style.background = lc.hex;
       document.getElementById('colorName').textContent = lc.name;
       document.getElementById('colorCode').textContent = `${lc.hex} · ${lc.ref}`;
@@ -579,7 +812,7 @@ self.onmessage=(e)=>{
 
         group.appendChild(card);
 
-        setTimeout(() => renderPreview(card.querySelector('canvas'), p.key, layerColors), 10);
+        setTimeout(() => renderPreview(card.querySelector('canvas'), p.key, layers), 10);
       });
     }
 
@@ -612,7 +845,11 @@ self.onmessage=(e)=>{
       });
     }
 
-    /* ══ RENDERIZAR CONTROLES DE GRANO / PARAMS ══ */
+    /* ══ RENDERIZAR CONTROLES DE GRANO / PARAMS ══
+       Tradicional: densidades están en el panel de capas (inline sliders);
+       aquí sólo mostramos resumen / nada.
+       Otros patrones: paramSize/paramIrreg/paramDensity globales.
+    ══ */
     function buildGrainSection() {
       const section = document.getElementById('grainSection');
       const label = document.getElementById('grainSectionLabel');
@@ -624,41 +861,10 @@ self.onmessage=(e)=>{
       document.getElementById('specParamRows').style.display = isGrain ? 'none' : '';
 
       if (isGrain) {
-        label.textContent = 'Composición de grano';
-        body.innerHTML = `
-      <div class="grain-sliders">
-        <div class="grain-row">
-          <div class="grain-header">
-            <label class="grain-label" for="gFino">Grano fino <span style="font-size:9px;color:var(--text-muted);">(1/8" · 1.585mm)</span></label>
-            <span class="grain-val" id="gFinoVal">${grainFino}%</span>
-          </div>
-          <input type="range" id="gFino" min="0" max="100" value="${grainFino}" step="5"
-                 aria-label="Porcentaje de grano fino" aria-valuenow="${grainFino}"/>
-        </div>
-        <div class="grain-row">
-          <div class="grain-header">
-            <label class="grain-label" for="gMedio">Grano medio <span style="font-size:9px;color:var(--text-muted);">(1/4" · 3.175mm)</span></label>
-            <span class="grain-val" id="gMedioVal">${grainMedio}%</span>
-          </div>
-          <input type="range" id="gMedio" min="0" max="100" value="${grainMedio}" step="5"
-                 aria-label="Porcentaje de grano medio" aria-valuenow="${grainMedio}"/>
-        </div>
-        <div class="grain-row">
-          <div class="grain-header">
-            <label class="grain-label" for="gGrueso">Grano grueso <span style="font-size:9px;color:var(--text-muted);">(3/4" · 9.5mm)</span></label>
-            <span class="grain-val" id="gGruesoVal">${grainGrueso}%</span>
-          </div>
-          <input type="range" id="gGrueso" min="0" max="100" value="${grainGrueso}" step="5"
-                 aria-label="Porcentaje de grano grueso" aria-valuenow="${grainGrueso}"/>
-        </div>
-        <div class="grain-warn" id="grainWarn" role="alert" aria-live="assertive" style="display:none">
-          <span aria-hidden="true">⚠</span>
-          <span>La suma supera 100%. Ajusta los valores.</span>
-        </div>
-      </div>
-    `;
-        bindGrainSliders();
+        // Ocultar la sección — el panel de capas maneja densidad por capa
+        if (section) section.style.display = 'none';
       } else {
+        if (section) section.style.display = '';
         const patternNotes = {
           palladiana: 'Polígonos 5-8 lados, 20-55 px, estilo veneciano',
           trencadis: 'Rectángulos angulosos 6-18 px, estilo Gaudí',
@@ -697,28 +903,6 @@ self.onmessage=(e)=>{
     `;
         bindParamSliders();
       }
-    }
-
-    function bindGrainSliders() {
-      const bind = (id, valId, setter, barId, barLabelId) => {
-        const el = document.getElementById(id);
-        if (!el) return;
-        el.addEventListener('input', function () {
-          setter(+this.value);
-          document.getElementById(valId).textContent = this.value + '%';
-          this.setAttribute('aria-valuenow', this.value);
-          if (barId) { document.getElementById(barId).style.width = this.value + '%'; }
-          if (barLabelId) { document.getElementById(barLabelId).textContent = this.value + '%'; }
-          const total = grainFino + grainMedio + grainGrueso;
-          const warn = document.getElementById('grainWarn');
-          if (warn) warn.style.display = total > 100 ? 'flex' : 'none';
-          buildLayerPanel(); // Refresh density badges
-          scheduleRender();
-        });
-      };
-      bind('gFino', 'gFinoVal', v => { grainFino = v; }, 'barFino', 'barFinoLabel');
-      bind('gMedio', 'gMedioVal', v => { grainMedio = v; }, 'barMedio', 'barMedioLabel');
-      bind('gGrueso', 'gGruesoVal', v => { grainGrueso = v; }, 'barGrueso', 'barGruesoLabel');
     }
 
     function bindParamSliders() {
@@ -809,35 +993,28 @@ self.onmessage=(e)=>{
 
     function selectColor(i) {
       const color = COLORS[i];
-      // Apply to the ACTIVE layer only
-      layerColors[activeLayer] = { hex: color.hex, name: color.name, ref: color.ref };
+      const l = getActiveLayer();
+      l.color = { hex: color.hex, name: color.name, ref: color.ref };
 
-      // Update swatches
       document.querySelectorAll('.color-swatch:not(#swatchCustom)').forEach((s, j) => {
         const active = j === i;
         s.classList.toggle('active', active);
         s.setAttribute('aria-checked', active ? 'true' : 'false');
         s.setAttribute('tabindex', active ? '0' : '-1');
       });
-      // Hide custom panel and deselect custom swatch
       document.getElementById('colorCustomPanel').style.display = 'none';
       const sc = document.getElementById('swatchCustom');
       sc.classList.remove('active'); sc.setAttribute('aria-checked', 'false'); sc.setAttribute('tabindex', '-1');
 
-      // Update color info
       document.getElementById('colorDot').style.background = color.hex;
       document.getElementById('colorName').textContent = color.name;
       document.getElementById('colorCode').textContent = `${color.hex} · ${color.ref}`;
 
       updateCode();
-      buildLayerPanel(); // Refresh layer display with new color
-      // Refresh pattern previews
-      document.querySelectorAll('.pattern-card canvas').forEach((cv, idx) => {
-        const patKey = ALL_PATTERNS[idx]?.key;
-        if (patKey) renderPreview(cv, patKey, layerColors);
-      });
+      buildLayerPanel();
+      refreshPatternPreviews();
       scheduleRender();
-      statusMsg(`${LAYER_DEFS[activeLayer].label}: ${color.name}`);
+      statusMsg(`${LAYER_TYPES[l.tipo].label}: ${color.name}`);
     }
 
     /* ══ A11Y PERSISTENCIA Y TOGGLES ══ */
@@ -894,19 +1071,37 @@ self.onmessage=(e)=>{
       updateSpecLayerColors();
     }
 
+    /* Calcula el porcentaje efectivo de cada capa dentro de su grupo de tipo.
+       Cuando hay varias capas del mismo tipo sus densidades se normalizan para
+       que el total de ese tipo equivalga a min(100, suma).
+       Ejemplo: grueso_1=60, grueso_2=40 → efectivo 60% y 40% (suma=100, ok).
+                grueso_1=80, grueso_2=80 → efectivo 50% y 50% (suma=160 → cada una es 80/160*100=50%). */
+    function effectivePct(layer) {
+      if (LAYER_TYPES[layer.tipo].kind === 'pasta') return null;
+      const sameTipo = getVisibleLayers().filter(l => l.tipo === layer.tipo);
+      if (sameTipo.length <= 1) return layer.densidad;
+      const sum = sameTipo.reduce((a, l) => a + (l.densidad || 0), 0);
+      if (sum === 0) return 0;
+      return Math.round((layer.densidad / sum) * Math.min(100, sum));
+    }
+
     function updateSpecLayerColors() {
       const container = document.getElementById('specLayerColors');
       if (!container) return;
       const visible = getVisibleLayers();
-      container.innerHTML = visible.map(key => {
-        const def = LAYER_DEFS[key];
-        const lc = layerColors[key];
+      container.innerHTML = visible.map(layer => {
+        const t = LAYER_TYPES[layer.tipo];
+        const lc = layer.color;
+        const sameTipoList = layers.filter(x => x.tipo === layer.tipo);
+        const idxLabel = sameTipoList.length > 1 ? ` ${sameTipoList.indexOf(layer) + 1}` : '';
+        const eff = effectivePct(layer);
+        const densPart = eff !== null ? ` · ${eff}%` : '';
         return `<div class="spec-row">
           <span class="spec-row__key" style="display:flex;align-items:center;gap:5px;">
             <span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:${lc.hex};border:1px solid rgba(0,0,0,0.15);"></span>
-            ${def.label}
+            ${t.label}${idxLabel}
           </span>
-          <span class="spec-row__val">${lc.name} <code style="font-size:9px;color:var(--text-muted);">${lc.hex}</code></span>
+          <span class="spec-row__val">${lc.name}${densPart} <code style="font-size:9px;color:var(--text-muted);">${lc.hex}</code></span>
         </div>`;
       }).join('');
     }
@@ -915,7 +1110,7 @@ self.onmessage=(e)=>{
     function updateCode() {
       const lineAbbr = currentLine;
       const sizeCode = currentSize.replace('×', 'x');
-      const colorAbbr = layerColors.pasta.name.substring(0, 3).toUpperCase();
+      const colorAbbr = getPastaLayer().color.name.substring(0, 3).toUpperCase();
       const patAbbr = { tradicional: 'TRAD', palladiana: 'PALL', trencadis: 'TREN', opusincertum: 'OPUS' }[currentPattern];
       document.getElementById('configCode').textContent = `TRZ-${lineAbbr}-${sizeCode}-${colorAbbr}-${patAbbr}`;
     }
@@ -1007,8 +1202,8 @@ self.onmessage=(e)=>{
       hex = hex.toUpperCase();
       if (!/^#[0-9A-F]{6}$/.test(hex)) return;
 
-      // Apply to the ACTIVE layer
-      layerColors[activeLayer] = { hex: hex, name: 'Personalizado', ref: 'RGB personalizado' };
+      const l = getActiveLayer();
+      l.color = { hex: hex, name: 'Personalizado', ref: 'RGB personalizado' };
 
       swatchCustomEl.style.background = hex;
       document.getElementById('colorPickerNative').value = hex;
@@ -1018,17 +1213,12 @@ self.onmessage=(e)=>{
       document.getElementById('sliderG').value = g; document.getElementById('valG').textContent = g;
       document.getElementById('sliderB').value = b; document.getElementById('valB').textContent = b;
 
-      // Update color info
       document.getElementById('colorDot').style.background = hex;
       document.getElementById('colorName').textContent = 'Personalizado';
       document.getElementById('colorCode').textContent = hex + ' · RGB';
 
-      // Refresh layer panel, previews, and render
       buildLayerPanel();
-      document.querySelectorAll('.pattern-card canvas').forEach((cv, idx) => {
-        const patKey = ALL_PATTERNS[idx]?.key;
-        if (patKey) renderPreview(cv, patKey, layerColors);
-      });
+      refreshPatternPreviews();
       updateCode();
       scheduleRender();
     }
@@ -1048,7 +1238,8 @@ self.onmessage=(e)=>{
 
       // Show panel, pre-fill with the active layer's current color
       customPanel.style.display = 'block';
-      const currentHex = layerColors[activeLayer].hex;
+      const activeL = getActiveLayer();
+      const currentHex = activeL.color.hex;
       swatchCustomEl.style.background = currentHex;
       document.getElementById('colorPickerNative').value = currentHex;
       document.getElementById('colorPickerHex').textContent = currentHex;
@@ -1060,7 +1251,7 @@ self.onmessage=(e)=>{
       // Open native picker
       document.getElementById('colorPickerNative').click();
 
-      statusMsg(`Color personalizado para ${LAYER_DEFS[activeLayer].label}`);
+      statusMsg(`Color personalizado para ${LAYER_TYPES[activeL.tipo].label}`);
     });
     swatchCustomEl.addEventListener('keydown', e => {
       if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); swatchCustomEl.click(); }
@@ -1104,8 +1295,11 @@ self.onmessage=(e)=>{
         line: currentLine,
         pattern: currentPattern,
         size: currentSize,
-        layerColors: JSON.parse(JSON.stringify(layerColors)),
-        grainFino, grainMedio, grainGrueso,
+        layers: JSON.parse(JSON.stringify(layers)),
+        // Flat compat fields for viewers that haven't been migrated yet
+        layerColors: layerColorsSnapshot(),
+        color: getPastaLayer().color.hex,
+        colorName: getPastaLayer().color.name,
         paramSize, paramIrreg, paramDensity,
         imgData: dataURL
       };
@@ -1129,12 +1323,16 @@ self.onmessage=(e)=>{
       const patLabel = currentPatternLabel();
       const sz = currentSize;
 
-      // Build layer color rows for the PDF spec table
+      // Build layer color rows for the PDF spec table (porcentajes normalizados)
       const visible = getVisibleLayers();
-      const layerRows = visible.map(key => {
-        const def = LAYER_DEFS[key];
-        const lc = layerColors[key];
-        return `<tr><th>${def.label}</th><td><span class="swatch" style="background:${lc.hex};"></span>${lc.name} <code>${lc.hex}</code></td></tr>`;
+      const layerRows = visible.map(layer => {
+        const t = LAYER_TYPES[layer.tipo];
+        const lc = layer.color;
+        const sameTipoList = layers.filter(x => x.tipo === layer.tipo);
+        const idxLabel = sameTipoList.length > 1 ? ` ${sameTipoList.indexOf(layer) + 1}` : '';
+        const eff = effectivePct(layer);
+        const densPart = eff !== null ? ` <code style="color:#aaa;">${eff}%</code>` : '';
+        return `<tr><th>${t.label}${idxLabel}</th><td><span class="swatch" style="background:${lc.hex};"></span>${lc.name} <code>${lc.hex}</code>${densPart}</td></tr>`;
       }).join('');
 
       const win = window.open('', '_blank', 'width=800,height=900');
@@ -1216,19 +1414,24 @@ self.onmessage=(e)=>{
       const name = nameEl.value.trim() || `Diseño ${creaciones.length + 1}`;
       const dataURL = canvas.toDataURL('image/png');
 
+      // Sumas por tipo de grano (para compatibilidad retro con "grain" string)
+      const sumByTipo = tipo => layers.filter(l => l.tipo === tipo).reduce((a, l) => a + (l.densidad || 0), 0);
+      const gF = sumByTipo('granoFino'), gM = sumByTipo('granoMedio'), gG = sumByTipo('granoGrueso');
+
       const cr = {
         id: 'CRE-' + Date.now(),
         name,
         owner: session ? session.email : 'unknown',
-        // Store full layer colors for per-layer restore
-        layerColors: JSON.parse(JSON.stringify(layerColors)),
-        // Keep flat fields for backward compatibility with drawer display
-        color: layerColors.pasta.hex,
-        colorName: layerColors.pasta.name,
+        // Formato nuevo
+        layers: JSON.parse(JSON.stringify(layers)),
+        // Flat compat fields
+        layerColors: layerColorsSnapshot(),
+        color: getPastaLayer().color.hex,
+        colorName: getPastaLayer().color.name,
         pattern: currentPattern,
         line: currentLine, size: currentSize,
-        grainFino, grainMedio, grainGrueso,
-        grain: currentPattern === 'tradicional' ? `${grainFino}/${grainMedio}/${grainGrueso}` : '—',
+        grainFino: gF, grainMedio: gM, grainGrueso: gG,
+        grain: currentPattern === 'tradicional' ? `${gF}/${gM}/${gG}` : '—',
         paramSize, paramIrreg, paramDensity,
         date: 'Hoy, ' + new Date().toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' }),
         ts: Date.now(),
@@ -1274,7 +1477,7 @@ self.onmessage=(e)=>{
           img.onload = () => { tc.getContext('2d').drawImage(img, 0, 0, 36, 36); }
           img.src = cr.imgData;
         } else {
-          renderPreview(tc, cr.pattern, layerColors);
+          renderPreview(tc, cr.pattern, layers);
         }
 
         item.querySelector('.creation-load').addEventListener('click', () => loadCreacion(cr));
@@ -1286,24 +1489,12 @@ self.onmessage=(e)=>{
       selectLine(cr.line);
       selectPattern(cr.pattern);
 
-      // Restore per-layer colors if available, otherwise fall back to single color
-      if (cr.layerColors) {
-        layerColors = JSON.parse(JSON.stringify(cr.layerColors));
-      } else if (cr.color) {
-        // Legacy: single color -> apply to all layers
-        const ci = COLORS.findIndex(c => c.hex.toLowerCase() === cr.color.toLowerCase());
-        const col = ci >= 0 ? COLORS[ci] : { hex: cr.color, name: cr.colorName || 'Personalizado', ref: 'RGB' };
-        layerColors.pasta = { hex: col.hex, name: col.name, ref: col.ref || 'RGB' };
-        layerColors.granoGrueso = { hex: lighten(col.hex, 15), name: col.name + ' claro', ref: col.ref || 'RGB' };
-        layerColors.granoMedio = { hex: col.hex, name: col.name, ref: col.ref || 'RGB' };
-        layerColors.granoFino = { hex: darken(col.hex, 18), name: col.name + ' oscuro', ref: col.ref || 'RGB' };
-        layerColors.fragmento = { hex: col.hex, name: col.name, ref: col.ref || 'RGB' };
-      }
+      // Formato nuevo (array) o migración legacy (objeto + grain vars)
+      layers = migrateLegacyToLayers(cr);
+      activeLayerId = 'pasta';
 
       selectSize(cr.size);
-      if (cr.pattern === 'tradicional') {
-        grainFino = cr.grainFino || 35; grainMedio = cr.grainMedio || 50; grainGrueso = cr.grainGrueso || 15;
-      } else {
+      if (cr.pattern !== 'tradicional') {
         paramSize = cr.paramSize || 35; paramIrreg = cr.paramIrreg || 60; paramDensity = cr.paramDensity || 3;
       }
       buildGrainSection();
@@ -1369,16 +1560,9 @@ self.onmessage=(e)=>{
           currentPattern = lp.includes(d.pattern) ? d.pattern : lp[0];
         }
 
-        // Restore per-layer colors
-        if (d.layerColors) {
-          layerColors = JSON.parse(JSON.stringify(d.layerColors));
-        } else if (d.color) {
-          // Legacy single color
-          const ci = COLORS.findIndex(c => c.hex.toLowerCase() === d.color.toLowerCase());
-          const col = ci >= 0 ? COLORS[ci] : { hex: d.color, name: d.colorName || 'Personalizado', ref: 'RGB' };
-          layerColors.pasta = { hex: col.hex, name: col.name, ref: col.ref || 'RGB' };
-          layerColors.fragmento = { hex: col.hex, name: col.name, ref: col.ref || 'RGB' };
-        }
+        // Restore capas: formato nuevo o migración legacy
+        layers = migrateLegacyToLayers(d);
+        activeLayerId = 'pasta';
 
         if (d.size) {
           const sizeNorm = d.size.replace('x', '×');
@@ -1386,9 +1570,6 @@ self.onmessage=(e)=>{
           currentSize = ls.includes(sizeNorm) ? sizeNorm : ls[0];
         }
 
-        if (d.grainFino !== undefined) grainFino = d.grainFino;
-        if (d.grainMedio !== undefined) grainMedio = d.grainMedio;
-        if (d.grainGrueso !== undefined) grainGrueso = d.grainGrueso;
         if (d.paramSize !== undefined) paramSize = d.paramSize;
         if (d.paramIrreg !== undefined) paramIrreg = d.paramIrreg;
         if (d.paramDensity !== undefined) paramDensity = d.paramDensity;
@@ -1423,4 +1604,4 @@ self.onmessage=(e)=>{
       scheduleRender();
     }
     renderDrawerList();
-    setInterval(() => { if (!document.hidden) scheduleRender(); }, 5000);
+    // Sin auto-refresh: el renderizado solo se actualiza cuando el usuario hace cambios.
