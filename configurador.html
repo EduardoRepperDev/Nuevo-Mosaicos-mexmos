@@ -550,6 +550,51 @@
       display: none;
     }
 
+    .size-add-btn {
+      background: rgba(200, 116, 26, 0.08) !important;
+      border-color: rgba(200, 116, 26, 0.30) !important;
+      color: var(--brand-terra) !important;
+      font-size: 18px !important;
+      font-weight: 700 !important;
+      line-height: 1 !important;
+    }
+    .size-add-btn:hover {
+      background: rgba(200, 116, 26, 0.20) !important;
+    }
+    .custom-size-form {
+      margin-top: 8px;
+      padding: 10px 12px;
+      background: var(--surface-card);
+      border: 1px solid var(--border-accent);
+      border-radius: var(--r-md);
+    }
+    .csf-row {
+      display: flex;
+      align-items: flex-end;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .csf-field { display: flex; flex-direction: column; gap: 3px; }
+    .csf-label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: .06em; }
+    .csf-input {
+      width: 62px; padding: 5px 8px;
+      background: var(--surface-dark);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--r-sm);
+      color: var(--text-primary);
+      font-size: 12px; font-family: var(--font-body);
+    }
+    .csf-input:focus { outline: 2px solid var(--brand-terra); outline-offset: 2px; border-color: transparent; }
+    .csf-sep { color: var(--text-muted); font-size: 16px; font-weight: 700; padding-bottom: 4px; }
+    .csf-btn {
+      padding: 5px 10px; border-radius: var(--r-sm);
+      font-size: 11px; font-family: var(--font-body); cursor: pointer; transition: all .15s;
+    }
+    .csf-btn-primary { background: var(--brand-terra); border: 1px solid var(--brand-terra); color: #fff; }
+    .csf-btn-primary:hover { background: var(--brand-terra2); }
+    .csf-btn-ghost { background: var(--surface-dark); border: 1px solid var(--border-subtle); color: var(--text-secondary); }
+    .csf-btn-ghost:hover { background: var(--surface-hover); color: var(--text-primary); }
+
     /* ═══════════════════════════════════
    CAPAS DEL MOSAICO — Layer Panel
 ═══════════════════════════════════ */
@@ -1110,7 +1155,7 @@
       align-items: center;
       justify-content: center;
       position: relative;
-      overflow: hidden;
+      overflow: auto;
       padding: var(--sp-xl);
     }
 
@@ -2026,6 +2071,21 @@
             <div class="size-grid" role="radiogroup" aria-label="Seleccionar tamaño de pieza en centímetros"
               id="sizeGroup">
               <!-- Renderizado por JS según la línea -->
+            </div>
+            <div id="customSizeForm" style="display:none;" class="custom-size-form">
+              <div class="csf-row">
+                <div class="csf-field">
+                  <label class="csf-label" for="csfLargo">Largo</label>
+                  <input type="number" id="csfLargo" class="csf-input" min="1" max="200" placeholder="cm" aria-label="Largo en centímetros">
+                </div>
+                <span class="csf-sep">×</span>
+                <div class="csf-field">
+                  <label class="csf-label" for="csfAncho">Ancho</label>
+                  <input type="number" id="csfAncho" class="csf-input" min="1" max="200" placeholder="cm" aria-label="Ancho en centímetros">
+                </div>
+                <button id="csfAdd" class="csf-btn csf-btn-primary">Agregar</button>
+                <button id="csfCancel" class="csf-btn csf-btn-ghost" aria-label="Cancelar">✕</button>
+              </div>
             </div>
           </div>
         </section>

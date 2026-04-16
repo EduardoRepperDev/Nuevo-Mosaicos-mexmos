@@ -811,11 +811,13 @@ body {
      JAVASCRIPT
 ════════════════════════════════════ -->
 <script src="utils.js"></script>
+<script src="seed_data.js"></script>
 <script>
 const session = requireAuth();
 if (session) {
   document.getElementById('userAvatar').textContent = session.name.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase();
   document.getElementById('userAvatar').title = session.name + ' (Click para cerrar sesión)';
+  applyA11yPrefs(session.email);
 }
 
 /* ════════════════════════
@@ -1147,7 +1149,17 @@ function renderGrid(products, animate=true){
   setTimeout(() => {
     products.forEach((product, index) => {
       const cv = grid.children[index]?.querySelector('canvas');
-      if(cv) renderThumb(cv, product.pattern, product.colors[0]);
+      if (cv) {
+        if (product.imgData) {
+          cv.width = cv.parentElement.offsetWidth || 220;
+          cv.height = cv.parentElement.offsetHeight || 130;
+          const img = new Image();
+          img.onload = () => cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height);
+          img.src = product.imgData;
+        } else {
+          renderThumb(cv, product.pattern, product.colors[0]);
+        }
+      }
     });
     // Update flutter overlay
     updateFlutterBoxes();
@@ -1159,8 +1171,9 @@ function buildCard(product, index, animate){
   card.className = 'product-card';
   card.setAttribute('role','listitem');
   card.setAttribute('tabindex','0');
+  const lineName = LINE_NAMES[product.line] || product.line || '';
   card.setAttribute('aria-label',
-    `${product.name} — ${LINE_NAMES[product.line]} — ${PATTERN_LABELS[product.pattern]} — tamaños: ${product.sizes.join(', ')}`
+    `${product.name} — ${lineName} — ${PATTERN_LABELS[product.pattern] || product.pattern} — tamaños: ${product.sizes.join(', ')}`
   );
 
   if(animate){
@@ -1185,12 +1198,12 @@ function buildCard(product, index, animate){
   card.innerHTML = `
     <div class="card-thumb">
       <canvas aria-hidden="true"></canvas>
-      <div class="card-line-badge" aria-label="Línea: ${LINE_NAMES[product.line]}">${product.line}</div>
-      <div class="card-pattern-badge" aria-label="Patrón: ${PATTERN_LABELS[product.pattern]}">${PATTERN_LABELS[product.pattern]}</div>
+      <div class="card-line-badge" aria-label="Línea: ${lineName}">${product._isCreacion ? '★ Mío' : product.line}</div>
+      <div class="card-pattern-badge" aria-label="Patrón: ${PATTERN_LABELS[product.pattern] || product.pattern}">${PATTERN_LABELS[product.pattern] || product.pattern}</div>
     </div>
     <div class="card-body">
       <div class="card-name">${product.name}</div>
-      <div class="card-code">${product.id} · ${LINE_NAMES[product.line]}</div>
+      <div class="card-code">${product.id} · ${lineName}</div>
       <div class="card-colors" aria-label="Colores disponibles">${dotsHTML}</div>
       <div class="card-sizes" aria-label="Tamaños disponibles">${sizesHTML}</div>
     </div>
@@ -1339,6 +1352,26 @@ function updateFlutterBoxes(){
    INIT
 ════════════════════════ */
 buildColorFilters();
+
+// Merge user's saved designs into catalog (show at top with their real thumbnails)
+if (typeof CreacionesStore !== 'undefined' && session) {
+  const myCreaciones = CreacionesStore.getByUser(session.email);
+  const myItems = myCreaciones.map(cr => ({
+    id: cr.id,
+    name: cr.name,
+    line: cr.line || 'TRAD',
+    sizes: cr.size ? [cr.size] : ['40×40'],
+    colors: (cr.layers ? cr.layers.map(l => l.color && l.color.hex).filter(Boolean) : null) || [cr.color || '#F5F0E0'],
+    pattern: cr.pattern || 'tradicional',
+    desc: `Mi diseño · ${cr.code || cr.id}`,
+    _isCreacion: true,
+    imgData: cr.imgData || null,
+    owner: cr.owner,
+  }));
+  // Put user designs at the top of the catalog
+  CATALOG.unshift(...myItems);
+}
+
 renderGrid(CATALOG, true);
 </script>
 </body>

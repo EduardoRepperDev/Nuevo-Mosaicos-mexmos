@@ -44,6 +44,36 @@ function requireAuth(requiredRole) {
 }
 function doLogout() { clearSession(); window.location.href = 'login.html'; }
 
+// Apply saved a11y preferences from localStorage (call this on any page after session is loaded)
+function applyA11yPrefs(email) {
+  if (!email) return;
+  try {
+    const prefs = JSON.parse(localStorage.getItem('mexmos_a11y_' + email));
+    if (!prefs) return;
+    const r = document.documentElement;
+    const CONTRAST_LVL = [
+      { surf:'#1A2E42', card:'#243848', txt:'#B0B8C4', mut:'#6A8090' },
+      { surf:'#0D1B2A', card:'#162E45', txt:'#F0EDE8', mut:'#5B7A99' },
+      { surf:'#0A1520', card:'#112233', txt:'#F5F2EE', mut:'#7090A8' },
+      { surf:'#060E18', card:'#0C1B2E', txt:'#FAFAFA', mut:'#90A8C0' },
+      { surf:'#000000', card:'#0A0A0A', txt:'#FFFFFF', mut:'#BBBBBB' },
+    ];
+    if (prefs.contrast >= 1 && prefs.contrast <= 5) {
+      const lv = CONTRAST_LVL[prefs.contrast - 1];
+      r.style.setProperty('--surface-dark', lv.surf);
+      r.style.setProperty('--surface-panel', lv.card);
+      r.style.setProperty('--surface-card', lv.card);
+      r.style.setProperty('--text-primary', lv.txt);
+      r.style.setProperty('--text-muted', lv.mut);
+    }
+    if (prefs.fontSize >= 12 && prefs.fontSize <= 22) {
+      r.style.setProperty('--font-size-base', prefs.fontSize + 'px');
+      document.body.style.fontSize = prefs.fontSize + 'px';
+    }
+    if (prefs.movOn) document.body.classList.add('rm');
+  } catch (_) {}
+}
+
 const ADMIN_ROUTES = {
   'admin_dashboard.html': '11)admin_dashboard.html',
   'admin_lineas.html': '12)CRUD_admin_lineas_de_producto.html',

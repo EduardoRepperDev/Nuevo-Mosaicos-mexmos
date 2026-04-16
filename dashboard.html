@@ -1339,6 +1339,7 @@ if (session) {
   document.getElementById('userAvatar').textContent = session.name.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase();
   document.getElementById('userAvatar').title = session.name + ' (Click para cerrar sesión)';
   document.getElementById('heroName').textContent = session.name.split(' ')[0];
+  applyA11yPrefs(session.email);
 }
 
 /* ════════════════════════

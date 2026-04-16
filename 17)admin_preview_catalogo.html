@@ -516,6 +516,7 @@ body{font-family:var(--fb);background:var(--navy);color:var(--t1);font-size:14px
 <div id="live" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);" aria-live="polite" aria-atomic="true"></div>
 
 <script src="utils.js"></script>
+<script src="seed_data.js"></script>
 <script>
 const session = requireAuth('admin');
 if (session) {
@@ -898,6 +899,25 @@ document.getElementById('btnFlutter').addEventListener('click',function(){
 buildColorFilters();
 buildSizeFilters();
 drawHero();
+
+// Merge all saved creaciones (all users) into PRODUCTS for admin preview
+if (typeof CreacionesStore !== 'undefined') {
+  const allCre = CreacionesStore.getAll();
+  allCre.forEach(cr => {
+    const colors = (cr.layers ? cr.layers.map(l=>l.color&&l.color.hex).filter(Boolean) : null) || [cr.color||'#F5F0E0'];
+    PRODUCTS.push({
+      id: cr.id,
+      name: cr.name + ' (' + (cr.owner || '?') + ')',
+      linea: cr.line || 'TRAD',
+      pat: cr.pattern || 'tradicional',
+      sizes: cr.size ? [cr.size] : ['40×40'],
+      colors: colors.map(hex => ({ hex, name: hex })),
+      created: cr.date || '',
+      _imgData: cr.imgData || null,
+    });
+  });
+}
+
 renderCatalog();
 </script>
 </body>

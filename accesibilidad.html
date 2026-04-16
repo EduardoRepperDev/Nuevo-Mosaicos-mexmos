@@ -428,6 +428,17 @@ input[type="range"]:focus-visible::-webkit-slider-thumb{box-shadow:var(--focus-s
           </div>
         </div>
       </section>
+
+      <!-- GUARDAR PREFERENCIAS -->
+      <div style="padding: 0 0 var(--sp-xl);">
+        <button id="btnSaveA11y"
+                style="width:100%;padding:12px;background:var(--brand-terra);border:none;border-radius:var(--r-md);color:#fff;font-family:var(--font-display);font-size:14px;font-weight:700;cursor:pointer;transition:background .2s;"
+                onmouseover="this.style.background='var(--brand-terra2)'" onmouseout="this.style.background='var(--brand-terra)'"
+                aria-label="Guardar preferencias de accesibilidad">
+          Guardar preferencias
+        </button>
+        <div id="saveA11yHint" style="font-size:11px;color:var(--text-muted);margin-top:6px;text-align:center;" aria-live="polite"></div>
+      </div>
     </div><!-- /settings-scroll -->
 
     <!-- RIGHT PANEL -->
@@ -508,7 +519,10 @@ input[type="range"]:focus-visible::-webkit-slider-thumb{box-shadow:var(--focus-s
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
+<script src="utils.js"></script>
 <script>
+const session = requireAuth();
+
 /* ACCENTS */
 const ACCENTS=[
   {name:'Terracota',hex:'#C8741A',dark:'#A85E12'},
@@ -706,18 +720,60 @@ document.getElementById('btnFlutter').addEventListener('click',function(){
 
 /* KBD */
 document.addEventListener('keydown',e=>{if(e.key==='Escape')document.getElementById('btnBack').click();});
-document.getElementById('btnBack').addEventListener('click',()=>{showToast('← Volviendo...');setLive('Navegando al Dashboard');});
+document.getElementById('btnBack').addEventListener('click',()=>{ window.location.href='dashboard.html'; });
 
 /* TOAST + LIVE */
 let tt=null;
 function showToast(m){const el=document.getElementById('toast');el.textContent=m;el.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>el.classList.remove('show'),2600);}
 function setLive(m){const el=document.getElementById('statusLive');el.textContent='';requestAnimationFrame(()=>{el.textContent=m;});}
 
+/* ══ GUARDAR / CARGAR PREFERENCIAS ══ */
+function a11yKey(){ return session ? 'mexmos_a11y_' + session.email : null; }
+
+function collectA11yState(){
+  return {
+    contrast: +document.getElementById('slC').value,
+    fontSize: +document.getElementById('slF').value,
+    accentIdx: [...document.querySelectorAll('.acc-sw')].findIndex(s=>s.classList.contains('on')),
+    movOn: movOn,
+    cvd: document.querySelector('.cvd-card.on')?.dataset.cvd || 'normal',
+  };
+}
+
+function applyA11ySaved(prefs){
+  if(!prefs) return;
+  if(prefs.contrast!==undefined){ document.getElementById('slC').value=prefs.contrast; document.getElementById('slC').dispatchEvent(new Event('input')); }
+  if(prefs.fontSize!==undefined){ document.getElementById('slF').value=prefs.fontSize; document.getElementById('slF').dispatchEvent(new Event('input')); }
+  if(prefs.accentIdx!==undefined && prefs.accentIdx>=0) pickAccent(prefs.accentIdx);
+  if(prefs.movOn && !movOn) toggleMov();
+  else if(!prefs.movOn && movOn) toggleMov();
+  if(prefs.cvd) pickCVD(prefs.cvd);
+}
+
+function loadA11yPrefs(){
+  const key=a11yKey();
+  if(!key) return;
+  try{ applyA11ySaved(JSON.parse(localStorage.getItem(key))); }catch(_){}
+}
+
+function saveA11yPrefs(){
+  const key=a11yKey();
+  if(!key){ showToast('Inicia sesión para guardar preferencias'); return; }
+  localStorage.setItem(key, JSON.stringify(collectA11yState()));
+  showToast('Preferencias guardadas ✓');
+  setLive('Preferencias de accesibilidad guardadas');
+  const hint=document.getElementById('saveA11yHint');
+  if(hint) hint.textContent='✓ Guardado · ' + new Date().toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'});
+}
+
+document.getElementById('btnSaveA11y').addEventListener('click', saveA11yPrefs);
+
 /* INIT */
 buildAccents();
 buildStrip('sp','protan');
 buildStrip('sd','deuter');
 buildStrip('st','tritan');
+loadA11yPrefs();
 </script>
 </body>
 </html>

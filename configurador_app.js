@@ -190,7 +190,27 @@ const session = requireAuth();
     /* ══ CANVAS ══ */
     const canvas = document.getElementById('mosaicCanvas');
     const ctx = canvas.getContext('2d');
-    const W = canvas.width, H = canvas.height;
+    let W = canvas.width, H = canvas.height;
+
+    /* ══ CANVAS SIZE HELPERS ══ */
+    function sizeToPixels(sz) {
+      const parts = sz.split('×').map(Number);
+      if (parts.length !== 2 || isNaN(parts[0]) || isNaN(parts[1]) || parts[0] <= 0 || parts[1] <= 0) {
+        return { w: 480, h: 480 };
+      }
+      const [wCm, hCm] = parts;
+      const BASE = 480;
+      const maxDim = Math.max(wCm, hCm);
+      return { w: Math.round(BASE * wCm / maxDim), h: Math.round(BASE * hCm / maxDim) };
+    }
+
+    function resizeCanvas(sz) {
+      const { w, h } = sizeToPixels(sz);
+      canvas.width = w;
+      canvas.height = h;
+      W = w; H = h;
+      if (typeof _bboxCache !== 'undefined') _bboxCache.clear();
+    }
 
     /* ══ WORKER VORONOI ══ */
     const WORKER_SRC = `
@@ -843,6 +863,20 @@ self.onmessage=(e)=>{
         });
         group.appendChild(chip);
       });
+
+      // [+] button to add custom size
+      const addBtn = document.createElement('button');
+      addBtn.className = 'size-chip size-add-btn';
+      addBtn.setAttribute('aria-label', 'Agregar tamaño personalizado');
+      addBtn.title = 'Agregar tamaño personalizado';
+      addBtn.textContent = '+';
+      addBtn.addEventListener('click', () => {
+        const form = document.getElementById('customSizeForm');
+        const isVisible = form.style.display !== 'none';
+        form.style.display = isVisible ? 'none' : '';
+        if (!isVisible) document.getElementById('csfLargo').focus();
+      });
+      group.appendChild(addBtn);
     }
 
     /* ══ RENDERIZAR CONTROLES DE GRANO / PARAMS ══
@@ -967,15 +1001,19 @@ self.onmessage=(e)=>{
     /* ══ SELECCIONAR TAMAÑO ══ */
     function selectSize(sz) {
       currentSize = sz;
+      resizeCanvas(sz);
       document.querySelectorAll('.size-chip').forEach(c => {
         const active = c.textContent === sz;
         c.classList.toggle('active', active);
         c.setAttribute('aria-checked', active ? 'true' : 'false');
       });
-      document.getElementById('specSize').textContent = sz + ' cm';
-      document.getElementById('specSizeRight').textContent = sz.replace('×', ' × ') + ' cm';
+      const specSize = document.getElementById('specSize');
+      const specSizeRight = document.getElementById('specSizeRight');
+      if (specSize) specSize.textContent = sz + ' cm';
+      if (specSizeRight) specSizeRight.textContent = sz.replace('×', ' × ') + ' cm';
       updateCode();
       statusMsg(`Tamaño ${sz} cm seleccionado`);
+      scheduleRender();
     }
 
     /* ══ SELECCIONAR COLOR (para la capa activa) ══ */
@@ -1154,8 +1192,8 @@ self.onmessage=(e)=>{
     const mosaicCardEl = document.querySelector('.mosaic-card');
 
     function applyZoom() {
-      mosaicCardEl.style.transform = `scale(${zoomLevel})`;
-      mosaicCardEl.style.transformOrigin = 'center center';
+      mosaicCardEl.style.transform = '';
+      mosaicCardEl.style.zoom = zoomLevel;
       const pct = Math.round(zoomLevel * 100) + '%';
       const zi = document.getElementById('zoomIndicator');
       zi.textContent = pct;
@@ -1590,8 +1628,42 @@ self.onmessage=(e)=>{
       }
     }
 
+    /* ══ TAMAÑO PERSONALIZADO ══ */
+    document.getElementById('csfAdd').addEventListener('click', () => {
+      const largo = parseInt(document.getElementById('csfLargo').value, 10);
+      const ancho = parseInt(document.getElementById('csfAncho').value, 10);
+      if (!largo || !ancho || largo < 1 || ancho < 1 || largo > 200 || ancho > 200) {
+        statusMsg('Ingresa dimensiones válidas entre 1 y 200 cm');
+        return;
+      }
+      const sz = `${largo}×${ancho}`;
+      if (!ALL_SIZES.includes(sz)) ALL_SIZES.push(sz);
+      if (!LINES_DATA[currentLine].sizes.includes(sz)) LINES_DATA[currentLine].sizes.push(sz);
+      document.getElementById('customSizeForm').style.display = 'none';
+      document.getElementById('csfLargo').value = '';
+      document.getElementById('csfAncho').value = '';
+      currentSize = sz;
+      buildSizeChips();
+      resizeCanvas(sz);
+      updateCode();
+      statusMsg(`Tamaño personalizado ${sz} cm agregado`);
+      scheduleRender();
+    });
+
+    document.getElementById('csfCancel').addEventListener('click', () => {
+      document.getElementById('customSizeForm').style.display = 'none';
+    });
+
+    document.getElementById('csfLargo').addEventListener('keydown', e => {
+      if (e.key === 'Enter') document.getElementById('csfAncho').focus();
+    });
+    document.getElementById('csfAncho').addEventListener('keydown', e => {
+      if (e.key === 'Enter') document.getElementById('csfAdd').click();
+    });
+
     /* ══ INIT ══ */
     loadA11yState();
+    if (session && typeof applyA11yPrefs === 'function') applyA11yPrefs(session.email);
     loadActiveDesign();
 
     if (!localStorage.getItem('mexmos_active_design')) {
